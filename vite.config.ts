@@ -3,46 +3,36 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { VitePWA } from "vite-plugin-pwa";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      base: '/app.sosika/',
       registerType: "autoUpdate",
       injectRegister: "auto",
-      strategies: "injectManifest",
-      devOptions: {
-        enabled: true, // Enable PWA in development mode
-      },
-      manifest: {
-        name: "Sosika",
-        short_name: "Sosika",
-        description: "An Aggregator for food delivery services in campuses",
-        scope: "/app.sosika/",
-        theme_color: "#ffffff",
-        background_color: "#f8f9fa",
-        display: "standalone",
-        icons: [
+      strategies: "generateSW", // Still using Workbox for caching
+      manifest: false, // Prevents automatic manifest generation
+      workbox: {
+        runtimeCaching: [
           {
-            src: "/icons/icon-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
+            urlPattern: ({ request }) => request.destination === "document",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-cache",
+            },
           },
           {
-            src: "/icons/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
+            urlPattern: ({ request }) =>
+              ["style", "script", "worker"].includes(request.destination),
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "assets-cache",
+            },
           },
-          {
-            src: "/icons/icons-144x144.png",
-            sizes: "144x144",
-            type: "image/png",
-          }
         ],
       },
     }),
   ],
+  base: "/app.sosika/",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -50,7 +40,9 @@ export default defineConfig({
   },
   server: {
     hmr: {
-      path: "/app.sosika/__hmr", // Ensure WebSocket path aligns with your base path
+      path: "/app.sosika/__hmr",
+      protocol: "ws",
+      clientPort: 5173,
     },
-  },  
+  },
 });
