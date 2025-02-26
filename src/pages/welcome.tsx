@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from "react-router-dom";
 
 const WelcomePage: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -103,17 +104,21 @@ const WelcomePage: React.FC = () => {
 
         {/* CTA Buttons */}
         <div className="space-y-4">
-          <button 
-            className="w-full py-4 px-6 bg-[#e7e7e7] text-[#2b2b2b] rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:translate-y-px"
-          >
-            Get Started
-          </button>
+        <Link to="/register">
+  <button 
+    className="w-full py-4 px-6 bg-[#e7e7e7] text-[#2b2b2b] rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:translate-y-px"
+  >
+    Get Started
+  </button>
+</Link>
           
-          <button 
+          <Link className="mt-4" to="/login">
+          <button style={{marginTop: "10px"}}
             className="w-full py-4 px-6 border-2 border-[#e7e7e7] text-[#e7e7e7] rounded-xl font-bold text-lg hover:bg-[#3a3a3a] transition-all"
           >
             Log In
           </button>
+          </Link>
           
           <p className="text-center text-[#a0a0a0] mt-6">
             By continuing, you agree to our <span className="underline">Terms</span> and <span className="underline">Privacy Policy</span>
