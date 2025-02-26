@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      base: '/app.sosika/',
       registerType: "autoUpdate",
       injectRegister: "auto",
       strategies: "injectManifest",
@@ -23,17 +24,17 @@ export default defineConfig({
         display: "standalone",
         icons: [
           {
-            src: "/app.sosika/icons/icon-192x192.png",
+            src: "/icons/icon-192x192.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/app.sosika/icons/icon-512x512.png",
+            src: "/icons/icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
           },
           {
-            src: "/app.sosika/icons/icons-144x144.png",
+            src: "/icons/icons-144x144.png",
             sizes: "144x144",
             type: "image/png",
           }
@@ -41,7 +42,6 @@ export default defineConfig({
       },
     }),
   ],
-  base: '/app.sosika/',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
