@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
+import path from "node:path";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vite.dev/config/
@@ -9,8 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      srcDir: "public",
-      filename: "sw.js",
+      injectRegister: "auto",
       strategies: "injectManifest",
       devOptions: {
         enabled: true, // Enable PWA in development mode
@@ -24,46 +23,33 @@ export default defineConfig({
         display: "standalone",
         icons: [
           {
-            src: "/icons/icon-192x192.png",
+            src: "/app.sosika/icons/icon-192x192.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/icons/icon-512x512.png",
+            src: "/app.sosika/icons/icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
           },
           {
-            src: "/icons/icon-144x144.png",
+            src: "/app.sosika/icons/icons-144x144.png",
             sizes: "144x144",
             type: "image/png",
           }
         ],
       },
-      workbox: {
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.destination === "document",
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "html-cache",
-            },
-          },
-          {
-            urlPattern: ({ request }) =>
-              ["style", "script", "worker"].includes(request.destination),
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "assets-cache",
-            },
-          },
-        ],
-      },
     }),
   ],
+  base: '/app.sosika/',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    hmr: {
+      path: "/app.sosika/__hmr", // Ensure WebSocket path aligns with your base path
+    },
+  },  
 });
