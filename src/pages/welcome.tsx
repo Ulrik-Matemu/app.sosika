@@ -53,7 +53,7 @@ const WelcomePage: React.FC = () => {
       {/* Logo and Header */}
       <div className="py-8 px-6 flex justify-center items-center">
         <div className="flex items-center">
-          <h1 className="ml-3 text-3xl font-extrabold tracking-tight text-[#e7e7e7]">Sosika</h1>
+          <h1 className="ml-3 text-3xl font-extrabold tracking-tight text-[#00bfff]">Sosika</h1>
         </div>
       </div>
 
