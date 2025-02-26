@@ -19,6 +19,7 @@ export default defineConfig({
         name: "Sosika",
         short_name: "Sosika",
         description: "An Aggregator for food delivery services in campuses",
+        scope: "/app.sosika/",
         theme_color: "#ffffff",
         background_color: "#f8f9fa",
         display: "standalone",
