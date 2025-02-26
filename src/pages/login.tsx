@@ -53,20 +53,51 @@ const LoginPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (validateForm()) {
-      setLoading(true);
-      
-      // Simulate API call
-      setTimeout(() => {
-        setLoading(false);
-        // Here you would normally authenticate and redirect
-        console.log('Logging in with:', formData);
-      }, 1500);
+  
+    if (!validateForm()) return;
+  
+    setLoading(true);
+  
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        setTimeout(() => {
+          setLoading(false);
+          console.log('Login successful:', data);
+  
+          // Store the token (if received)
+          localStorage.setItem('token', data.token);
+  
+       alert('Login Successful')
+        }, 1500);
+      } else {
+        throw new Error(data.error || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login Error:', error);
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('An unknown error occurred');
+      }
+      setLoading(false);
     }
   };
+  
   
   const toggleRememberMe = () => {
     setRememberMe(!rememberMe);
