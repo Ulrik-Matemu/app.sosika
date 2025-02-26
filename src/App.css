@@ -1,10 +1,3 @@
 body {
-    margin: 50px 100px;
     font-family: "Titillium Web", serif;
-}
-
-@media (max-width: 768px) {
-    body {
-        margin: 30px 10px;
-    }
 }
