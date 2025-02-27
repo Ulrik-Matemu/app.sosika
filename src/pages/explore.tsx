@@ -51,7 +51,7 @@ const MenuExplorer = () => {
         const fetchMenuItems = async () => {
             try {
                 setIsLoading(true);
-                const response = await axios.get('http://localhost:3000/api/menuItems');
+                const response = await axios.get('http://192.168.210.195:3000/api/menuItems');
                 setMenuItems(response.data);
                 setFilteredItems(response.data);
 
