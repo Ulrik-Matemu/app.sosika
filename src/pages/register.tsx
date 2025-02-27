@@ -213,7 +213,7 @@ const RegisterPage: React.FC = () => {
 
                 setLoadingLocation(false);
             },
-            (error) => {
+            () => {
                 setErrors({ customAddress: "Failed to get location. Please enter manually." });
                 setLoadingLocation(false);
             }
