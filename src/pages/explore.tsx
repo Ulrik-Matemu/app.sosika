@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
+import Navbar from '../components/my-components/navbar';
+import ThemeToggle from '../components/my-components/themeToggle';
 
 
 // Define interfaces for menu items and vendor data
@@ -13,6 +15,11 @@ interface MenuItem {
     is_available: boolean;
     vendor_id: number;
     image_url?: string;
+}
+
+// Define cart item interface
+interface CartItem extends MenuItem {
+    quantity: number;
 }
 
 interface PriceRange {
@@ -35,6 +42,11 @@ const MenuExplorer = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Cart state
+    const [cart, setCart] = useState<CartItem[]>([]);
+    const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+    const [cartTotal, setCartTotal] = useState<number>(0);
+
     // Filter states
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -44,14 +56,12 @@ const MenuExplorer = () => {
     const [vendors, setVendors] = useState<number[]>([]);
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
 
-
-
     // Fetch all menu items when component mounts
     useEffect(() => {
         const fetchMenuItems = async () => {
             try {
                 setIsLoading(true);
-                const response = await axios.get('http://192.168.210.195:3000/api/menuItems');
+                const response = await axios.get('https://sosika-backend.onrender.com/api/menuItems');
                 setMenuItems(response.data);
                 setFilteredItems(response.data);
 
@@ -59,10 +69,9 @@ const MenuExplorer = () => {
                 const uniqueVendors: number[] = [...new Set((response.data as MenuItem[]).map((item: MenuItem) => item.vendor_id))];
                 setVendors(uniqueVendors);
 
-
                 // Find price extremes
                 if (response.data.length > 0) {
-                    const prices = response.data.map((item: MenuItem) => item.price);
+                    const prices = response.data.map((item: MenuItem) => parseFloat(item.price));
                     setPriceRange({
                         min: 0,
                         max: Math.ceil(Math.max(...prices))
@@ -79,6 +88,14 @@ const MenuExplorer = () => {
 
         fetchMenuItems();
     }, []);
+
+    // Calculate cart total whenever cart changes
+    useEffect(() => {
+        const total = cart.reduce((sum, item) => {
+            return sum + (parseFloat(item.price) * item.quantity);
+        }, 0);
+        setCartTotal(total);
+    }, [cart]);
 
     // Apply filters whenever filter states change
     useEffect(() => {
@@ -147,6 +164,85 @@ const MenuExplorer = () => {
         setSortOption('name-asc');
     };
 
+    // Cart functions
+    const addToCart = (item: MenuItem) => {
+        // Check if item is already in cart
+        const existingItemIndex = cart.findIndex(cartItem => cartItem.id === item.id);
+
+        if (existingItemIndex !== -1) {
+            // Item already in cart, increase quantity
+            const newCart = [...cart];
+            newCart[existingItemIndex].quantity += 1;
+            setCart(newCart);
+        } else {
+            // Item not in cart, add it with quantity 1
+            setCart([...cart, { ...item, quantity: 1 }]);
+        }
+
+        // Show cart drawer
+        setIsCartOpen(true);
+    };
+
+    const removeFromCart = (itemId: number) => {
+        setCart(cart.filter(item => item.id !== itemId));
+    };
+
+    const updateQuantity = (itemId: number, newQuantity: number) => {
+        if (newQuantity < 1) {
+            removeFromCart(itemId);
+            return;
+        }
+
+        const newCart = cart.map(item => 
+            item.id === itemId ? { ...item, quantity: newQuantity } : item
+        );
+        setCart(newCart);
+    };
+
+    const clearCart = () => {
+        setCart([]);
+    };
+
+    const checkout = async () => {
+        if (cart.length === 0) {
+            alert("Your cart is empty.");
+            return;
+        }
+    
+        try {
+            // Dummy user and vendor IDs (Replace with real ones)
+            const user_id = localStorage.getItem('userId'); 
+            const vendor_id = cart[0].vendor_id; 
+            const delivery_fee = 2.5; // Example fee
+            const requested_asap = true; // User wants ASAP delivery
+    
+            // Prepare order payload
+            const orderData = {
+                user_id,
+                vendor_id,
+                delivery_fee,
+                requested_asap,
+                order_items: cart.map(item => ({
+                    menu_item_id: item.id,
+                    quantity: item.quantity,
+                    price: parseFloat(item.price)
+                }))
+            };
+    
+            const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
+    
+            if (response.status === 201) {
+                alert(`Order placed successfully! Order ID: ${response.data.order_id}`);
+                setCart([]); // Clear cart after successful order
+                setIsCartOpen(false); // Close cart modal
+            }
+        } catch (error) {
+            console.error("Checkout error:", error);
+            alert("Failed to place order. Please try again.");
+        }
+    };
+    
+
     if (isLoading) {
         return <div className="loading-container">Loading menu items...</div>;
     }
@@ -155,23 +251,35 @@ const MenuExplorer = () => {
         return <div className="error-container">{error}</div>;
     }
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white shadow-sm">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b]">
+           <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b]  px-6 py-4">
+    <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
+    <div className="flex items-center gap-4">
+        <button 
+            onClick={() => setIsCartOpen(true)}
+            className="relative p-2"
+        >
+            <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
+            {cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                </span>
+            )}
+        </button>
+        <ThemeToggle />
+    </div>
+</header>
 
-                <h1 className="text-2xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
-
-            </header>
-
-            <div className="max-w-7xl mx-auto px-4 py-6">
-                <div className="mb-6">
+            <div className="max-w-7xl mx-auto px-4 py-2">
+                <div className="mb-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 " />
                         <input
                             type="text"
                             placeholder="Search menu items..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                            className="w-full pl-10 pr-4 py-3 rounded-3xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all dark:bg-gray-500 dark:text-black"
                         />
                     </div>
                 </div>
@@ -179,12 +287,11 @@ const MenuExplorer = () => {
                 <div className="lg:grid lg:grid-cols-12 lg:gap-6">
                     {/* Filters Sidebar */}
                     <div className="lg:col-span-3 mb-6 lg:mb-0">
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <div className="dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]">
                             <div className="justify-right mb-1">
-
                                 <button
                                     onClick={resetFilters}
-                                    className="text-sm text-blue-600 hover:text-blue-700  gap-1"
+                                    className="text-sm text-[#00bfff] hover:text-blue-700  gap-1"
                                 >
                                     <RefreshCw className="h-4 w-4" />
                                 </button>
@@ -197,21 +304,21 @@ const MenuExplorer = () => {
                                             <button
                                                 key={value}
                                                 onClick={() => setSelectedCategory(value)}
-                                                className={`flex flex-col items-center justify-center p-2 border rounded-lg w-15 h-15 transition-all ${selectedCategory === value ? "bg-blue-500 text-white" : "bg-gray-100"
+                                                className={`flex flex-col dark:bg-[#7a7a7a] items-center justify-center p-2 border rounded-lg w-15 h-15 transition-all ${selectedCategory === value ? "bg-blue-500 text-white" : "bg-gray-100"
                                                     }`}
                                             >
-                                                <Icon className="w-6 h-6 mb-2" />
-                                                <span className="text-sm font-medium">{label}</span>
+                                                <Icon className="w-6 h-6 mb-2 dark:text-white" />
+                                                <span className="text-sm font-medium dark:text-white">{label}</span>
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                                <div className='flex justify-center overflow-auto max-h-64'>
-                                    <div className='w-1/2'>
+                                <div className='flex justify-center overflow-auto h-full gap-2'>
+                                    <div className='w-full'>
                                         <select
                                             value={vendorFilter}
                                             onChange={(e) => setVendorFilter(e.target.value)}
-                                            className="px-1 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                            className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
                                         >
                                             <option value="">All Vendors</option>
                                             {vendors.map(vendorId => (
@@ -219,11 +326,11 @@ const MenuExplorer = () => {
                                             ))}
                                         </select>
                                     </div>
-                                    <div className='w-1/2'>
+                                    <div className='w-full'>
                                         <select
                                             value={sortOption}
                                             onChange={(e) => setSortOption(e.target.value as "name-asc" | "name-desc" | "price-asc" | "price-desc")}
-                                            className="px-1 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                            className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
                                         >
                                             <option value="name-asc">Name (A-Z)</option>
                                             <option value="name-desc">Name (Z-A)</option>
@@ -233,10 +340,9 @@ const MenuExplorer = () => {
                                     </div>
                                 </div>
 
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                                        <DollarSign className="h-4 w-4" />
+                                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1 dark:text-white">
+                                        <DollarSign className="h-4 w-4 dark:text-white" />
                                         Price Range (${priceRange.min} - ${priceRange.max})
                                     </label>
                                     <input
@@ -257,12 +363,10 @@ const MenuExplorer = () => {
                                         onChange={(e) => setAvailableOnly(e.target.checked)}
                                         className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
                                     />
-                                    <label htmlFor="availableOnly" className="text-sm text-gray-700">
+                                    <label htmlFor="availableOnly" className="text-sm text-gray-700 dark:text-white">
                                         Show available only
                                     </label>
                                 </div>
-
-
                             </div>
                         </div>
                     </div>
@@ -270,26 +374,21 @@ const MenuExplorer = () => {
                     {/* Results */}
                     <div className="lg:col-span-9">
                         <div className="mb-4 flex items-center justify-between">
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 font-bold dark:text-white">
                                 Showing {filteredItems.length} of {menuItems.length} items
                             </p>
                         </div>
 
                         {filteredItems.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {filteredItems.map(item => (
+                                {filteredItems.map((item) => (
                                     <div
                                         key={item.id}
-                                        className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? 'opacity-70' : ''
-                                            }`}
+                                        className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
                                     >
                                         <div className="relative aspect-square rounded-t-xl overflow-hidden">
                                             {item.image_url ? (
-                                                <img
-                                                    src={item.image_url}
-                                                    alt={item.name}
-                                                    className="w-full h-full object-cover"
-                                                />
+                                                <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                                                     <ImageIcon className="h-12 w-12 text-gray-400" />
@@ -306,18 +405,23 @@ const MenuExplorer = () => {
                                             </div>
                                         </div>
                                         <div className="p-4">
-                                            <h3 className="font-medium text-gray-900 mb-1">{item.name}</h3>
-                                            <p className="text-sm text-gray-500 mb-2 line-clamp-2">
-                                                {item.description || 'No description available'}
+                                            <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
+                                                {item.description || "No description available"}
                                             </p>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-gray-700">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
                                                     Vendor #{item.vendor_id}
                                                 </span>
-                                                <span className="text-lg font-semibold text-blue-600">
-                                                    ${parseFloat(item.price).toFixed(2)}
-                                                </span>
+                                                <span className="text-lg font-semibold text-[#00bfff]">${parseFloat(item.price).toFixed(2)}</span>
                                             </div>
+                                            <button
+                                                onClick={() => addToCart(item)}
+                                                disabled={!item.is_available}
+                                                className="w-full bg-[#00bfff] text-white py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                            >
+                                                {item.is_available ? "Add to Cart" : "Unavailable"}
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -333,6 +437,108 @@ const MenuExplorer = () => {
                 </div>
             </div>
 
+            {/* Cart Drawer */}
+            {isCartOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
+                    <div className="w-full max-w-md bg-white dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
+                        <div className="p-4 border-b flex justify-between items-center">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <ShoppingCart className="h-5 w-5" />
+                                Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)
+                            </h2>
+                            <button 
+                                onClick={() => setIsCartOpen(false)}
+                                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+                        </div>
+                        
+                        <div className="flex-grow overflow-auto p-4">
+                            {cart.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                                    <p className="text-gray-500">Your cart is empty</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {cart.map(item => (
+                                        <div key={item.id} className="bg-gray-50 dark:bg-[#3b3b3b] p-4 rounded-lg flex gap-4">
+                                            <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                                                {item.image_url ? (
+                                                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <ImageIcon className="h-6 w-6 text-gray-400" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex-grow">
+                                                <h3 className="font-medium dark:text-white">{item.name}</h3>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                    ${parseFloat(item.price).toFixed(2)} each
+                                                </p>
+                                                <div className="flex items-center justify-between mt-2">
+                                                    <div className="flex items-center">
+                                                        <button
+                                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                            className="p-1 bg-gray-200 dark:bg-gray-700 rounded-l"
+                                                        >
+                                                            <Minus className="h-4 w-4" />
+                                                        </button>
+                                                        <span className="px-3 py-1 bg-white dark:bg-gray-600 text-center min-w-8">
+                                                            {item.quantity}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                            className="p-1 bg-gray-200 dark:bg-gray-700 rounded-r"
+                                                        >
+                                                            <Plus className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removeFromCart(item.id)}
+                                                        className="p-1 text-red-500 hover:text-red-700"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="font-semibold text-[#00bfff]">
+                                                ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {cart.length > 0 && (
+                            <div className="p-4 border-t mt-auto">
+                                <div className="flex justify-between mb-2">
+                                    <span className="font-medium dark:text-white">Subtotal:</span>
+                                    <span className="font-semibold text-[#00bfff]">${cartTotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={clearCart}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-white flex-1"
+                                    >
+                                        Clear Cart
+                                    </button>
+                                    <button
+                                        onClick={checkout}
+                                        className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc] flex-1"
+                                    >
+                                        Checkout
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {isLoading && (
                 <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
                     <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
@@ -347,6 +553,7 @@ const MenuExplorer = () => {
                     </div>
                 </div>
             )}
+            <Navbar />
         </div>
     );
 };

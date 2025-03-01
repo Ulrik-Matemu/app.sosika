@@ -61,7 +61,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
   
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch('https://sosika-backend.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,8 +81,16 @@ const LoginPage: React.FC = () => {
   
           // Store the token (if received)
           localStorage.setItem('token', data.token);
+          console.log(data.userId);
+          localStorage.setItem('userId', data.userId);
   
        alert('Login Successful')
+      
+      // Navigate to explore page
+      window.location.href = '#/explore';
+
+       
+
         }, 1500);
       } else {
         throw new Error(data.error || 'Login failed');
