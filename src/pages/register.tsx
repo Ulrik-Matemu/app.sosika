@@ -38,11 +38,7 @@ const RegisterPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [loadingLocation, setLoadingLocation] = useState(false);
     const [colleges] = useState<College[]>([
-        { id: 1, name: 'University of Technology' },
-        { id: 2, name: 'City College' },
-        { id: 3, name: 'State University' },
-        { id: 4, name: 'Liberal Arts College' },
-        { id: 5, name: 'Technical Institute' },
+        { id: 1, name: 'IAA' },
     ]);
 
     const validateStep = (currentStep: number): boolean => {
