@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
+import Footer from '../components/my-components/footer';
 
 
 // Define interfaces for menu items and vendor data
@@ -193,7 +194,7 @@ const MenuExplorer = () => {
             return;
         }
 
-        const newCart = cart.map(item => 
+        const newCart = cart.map(item =>
             item.id === itemId ? { ...item, quantity: newQuantity } : item
         );
         setCart(newCart);
@@ -208,14 +209,14 @@ const MenuExplorer = () => {
             alert("Your cart is empty.");
             return;
         }
-    
+
         try {
             // Dummy user and vendor IDs (Replace with real ones)
-            const user_id = localStorage.getItem('userId'); 
-            const vendor_id = cart[0].vendor_id; 
+            const user_id = localStorage.getItem('userId');
+            const vendor_id = cart[0].vendor_id;
             const delivery_fee = 2.5; // Example fee
             const requested_asap = true; // User wants ASAP delivery
-    
+
             // Prepare order payload
             const orderData = {
                 user_id,
@@ -228,9 +229,9 @@ const MenuExplorer = () => {
                     price: parseFloat(item.price)
                 }))
             };
-    
+
             const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
-    
+
             if (response.status === 201) {
                 alert(`Order placed successfully! Order ID: ${response.data.order_id}`);
                 setCart([]); // Clear cart after successful order
@@ -241,7 +242,7 @@ const MenuExplorer = () => {
             alert("Failed to place order. Please try again.");
         }
     };
-    
+
 
     if (isLoading) {
         return <div className="loading-container">Loading menu items...</div>;
@@ -251,26 +252,26 @@ const MenuExplorer = () => {
         return <div className="error-container">{error}</div>;
     }
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b]">
-           <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b]  px-6 py-4">
-    <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
-    <div className="flex items-center gap-4">
-        <button 
-            onClick={() => setIsCartOpen(true)}
-            className="relative p-2"
-        >
-            <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
-            {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                </span>
-            )}
-        </button>
-        <ThemeToggle />
-    </div>
-</header>
+        <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
+            <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b]  px-6 py-4">
+                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => setIsCartOpen(true)}
+                        className="relative p-2"
+                    >
+                        <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
+                        {cart.length > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                            </span>
+                        )}
+                    </button>
+                    <ThemeToggle />
+                </div>
+            </header>
 
-            <div className="max-w-7xl mx-auto px-4 py-2">
+            <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
                 <div className="mb-4">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 " />
@@ -372,7 +373,7 @@ const MenuExplorer = () => {
                     </div>
 
                     {/* Results */}
-                    <div className="lg:col-span-9">
+                    <div className="lg:col-span-9 mb-8">
                         <div className="mb-4 flex items-center justify-between">
                             <p className="text-sm text-gray-600 font-bold dark:text-white">
                                 Showing {filteredItems.length} of {menuItems.length} items
@@ -380,7 +381,7 @@ const MenuExplorer = () => {
                         </div>
 
                         {filteredItems.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:mb-12">
                                 {filteredItems.map((item) => (
                                     <div
                                         key={item.id}
@@ -446,14 +447,14 @@ const MenuExplorer = () => {
                                 <ShoppingCart className="h-5 w-5" />
                                 Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)
                             </h2>
-                            <button 
+                            <button
                                 onClick={() => setIsCartOpen(false)}
                                 className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                             >
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
-                        
+
                         <div className="flex-grow overflow-auto p-4">
                             {cart.length === 0 ? (
                                 <div className="text-center py-8">
@@ -553,6 +554,7 @@ const MenuExplorer = () => {
                     </div>
                 </div>
             )}
+            <Footer />
             <Navbar />
         </div>
     );
