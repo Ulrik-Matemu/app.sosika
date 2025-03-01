@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, ShoppingCart, User, History } from "lucide-react";
+import { Home, User, History } from "lucide-react";
 import { cn } from "../../lib/utils"; // Utility function for class merging
 
 const navItems = [
