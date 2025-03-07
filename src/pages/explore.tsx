@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
+import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
-
+import OrderTracking from '../components/my-components/orderTracking';
 
 // Define interfaces for menu items and vendor data
 interface MenuItem {
@@ -42,6 +42,9 @@ const MenuExplorer = () => {
     const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState<boolean>(false);
+    const [trackedOrderId, setTrackedOrderId] = useState<string | null>(null);
 
     // Cart state
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -204,58 +207,114 @@ const MenuExplorer = () => {
         setCart([]);
     };
 
+    const openOrderTracking = (orderId?: string) => {
+        if (orderId) {
+            setTrackedOrderId(orderId);
+        }
+        setIsOrderTrackingOpen(true);
+    };
+
+    const closeOrderTracking = () => {
+        setIsOrderTrackingOpen(false);
+        setTrackedOrderId(null);
+    };
+
     const checkout = async () => {
         if (cart.length === 0) {
             alert("Your cart is empty.");
             return;
         }
-
+    
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+            return;
+        }
+    
         try {
-            // Dummy user and vendor IDs (Replace with real ones)
-            const user_id = localStorage.getItem('userId');
-            const vendor_id = cart[0].vendor_id;
-            const delivery_fee = 2.5; // Example fee
-            const requested_asap = true; // User wants ASAP delivery
-
-            // Prepare order payload
-            const orderData = {
-                user_id,
-                vendor_id,
-                delivery_fee,
-                requested_asap,
-                order_items: cart.map(item => ({
-                    menu_item_id: item.id,
-                    quantity: item.quantity,
-                    price: parseFloat(item.price)
-                }))
-            };
-
-            const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
-
-            if (response.status === 201) {
-                alert(`Order placed successfully! Order ID: ${response.data.order_id}`);
-                setCart([]); // Clear cart after successful order
-                setIsCartOpen(false); // Close cart modal
-            }
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const { latitude, longitude } = position.coords;
+    
+                const user_id = localStorage.getItem('userId');
+                const vendor_id = cart[0].vendor_id;
+                const delivery_fee = 1000; // Example fee
+                const requested_asap = true; // User wants ASAP delivery
+    
+                // Prompt user for confirmation
+                const confirmOrder = window.confirm(`
+                    Confirm your order:
+                    - Total Items: ${cart.length}
+                    - Delivery Fee: ${delivery_fee}
+                    - Payment: Cash on Delivery
+                    - Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}
+                    Click OK to place your order.
+                `);
+    
+                if (!confirmOrder) return;
+    
+                // Prepare order payload
+                const orderData = {
+                    user_id,
+                    vendor_id,
+                    delivery_fee,
+                    requested_asap,
+                    location: { latitude, longitude },
+                    payment_method: "Cash on Delivery",
+                    order_items: cart.map(item => ({
+                        menu_item_id: item.id,
+                        quantity: item.quantity,
+                        price: parseFloat(item.price)
+                    }))
+                };
+    
+                // Send order request
+                const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
+    
+                if (response.status === 201) {
+                    alert(`🎉 Order placed successfully! Order ID: ${response.data.order_id}
+                    
+                    Delivery is on the way! 🚀`);
+                    setCart([]); // Clear cart after successful order
+                    setIsCartOpen(false); // Close cart modal                    
+                    window.location.href = `#/order-tracking/${response.data.order_id}`;
+                }
+            }, (error) => {
+                console.error("Geolocation error:", error);
+                alert("Unable to fetch location. Please enable location access and try again.");
+            });
+    
         } catch (error) {
             console.error("Checkout error:", error);
             alert("Failed to place order. Please try again.");
         }
     };
 
-
+    // Render loading state
     if (isLoading) {
-        return <div className="loading-container">Loading menu items...</div>;
+        return (
+            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+                <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
+            </div>
+        );
     }
 
+    // Render error state
     if (error) {
-        return <div className="error-container">{error}</div>;
+        return (
+            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+                <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
+                    <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
+                    <p className="text-red-700 font-medium">{error}</p>
+                </div>
+            </div>
+        );
     }
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b]  px-6 py-4">
                 <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
                 <div className="flex items-center gap-4">
+               
                     <button
                         onClick={() => setIsCartOpen(true)}
                         className="relative p-2"
@@ -437,6 +496,30 @@ const MenuExplorer = () => {
                     </div>
                 </div>
             </div>
+
+             {/* Order Tracking Modal */}
+             {isOrderTrackingOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
+                    <div className="w-full max-w-md bg-white dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
+                        <div className="p-4 border-b flex justify-between items-center">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <MapPinIcon className="h-5 w-5" />
+                                Order Tracking
+                            </h2>
+                            <button
+                                onClick={closeOrderTracking}
+                                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+                        </div>
+                        
+                        <div className="flex-grow overflow-auto p-4">
+                          
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Cart Drawer */}
             {isCartOpen && (

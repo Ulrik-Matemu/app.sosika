@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface College {
     id: number;
@@ -196,14 +197,13 @@ const RegisterPage: React.FC = () => {
         setLoadingLocation(true);
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                const { latitude, longitude } = position.coords;
 
                 setFormData((prevData) => ({
                     ...prevData,
                     customAddress: {
-                        lat: latitude,
-                        lng: longitude,
-                        address: `Lat: ${latitude}, Lng: ${longitude}`, // Display coords
+                        lat: -3.4139310388717097, // Hardcoded for production in IAA only
+                        lng: 36.710932851305486,
+                        address: `Lat: -3.4139310388717097, Lng: 36.710932851305486`, // Display coords
                     },
                 }));
 
@@ -355,15 +355,7 @@ const RegisterPage: React.FC = () => {
                                     <label htmlFor="customAddress" className="block text-sm font-medium mb-1">
                                         Delivery Address
                                     </label>
-                                    <textarea
-                                        id="customAddress"
-                                        name="customAddress"
-                                        value={formData.customAddress.address}
-                                        onChange={handleChange}
-                                        rows={3}
-                                        className={`w-full px-4 py-3 bg-[#3a3a3a] border ${errors.customAddress ? 'border-red-500' : 'border-[#555555]'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e7e7e7] transition`}
-                                        placeholder="Enter your delivery address"
-                                    />
+                                  
                                     {errors.customAddress && <p className="mt-1 text-red-500 text-sm">{errors.customAddress}</p>}
                                 </div>
 
@@ -373,7 +365,7 @@ const RegisterPage: React.FC = () => {
                                     onClick={getLocation}
                                     className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
                                 >
-                                    {loadingLocation ? "Fetching Location..." : "Use My Location"}
+                                    {loadingLocation ? "Fetching Location..." : "Use My College Location (For Now)"}
                                 </button>
 
                                 {/* Show Coordinates Fields */}
@@ -494,6 +486,7 @@ const RegisterPage: React.FC = () => {
                                 onClick={() => {
                                     // Would normally redirect to login or dashboard
                                     alert('Redirecting to login...');
+                                    window.location.href = '/login'
                                 }}
                             >
                                 Continue to Login
@@ -545,8 +538,9 @@ const RegisterPage: React.FC = () => {
                 {/* Login link */}
                 {step < 4 && (
                     <div className="text-center mt-8">
+                        
                         <p className="text-[#a0a0a0]">
-                            Already have an account? <a href="#" className="text-[#e7e7e7] underline">Log in</a>
+                            Already have an account? <Link to="/login"> <a href="#" className="text-[#e7e7e7] underline">Log in</a></Link>
                         </p>
                     </div>
                 )}

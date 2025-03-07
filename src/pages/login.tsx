@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface LoginFormData {
   email: string;
@@ -14,19 +15,19 @@ const LoginPage: React.FC = () => {
     email: '',
     password: ''
   });
-  
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({
@@ -35,31 +36,31 @@ const LoginPage: React.FC = () => {
       }));
     }
   };
-  
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     if (!validateForm()) return;
-  
+
     setLoading(true);
-  
+
     try {
       const response = await fetch('https://sosika-backend.onrender.com/api/auth/login', {
         method: 'POST',
@@ -71,25 +72,25 @@ const LoginPage: React.FC = () => {
           password: formData.password,
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         setTimeout(() => {
           setLoading(false);
           console.log('Login successful:', data);
-  
+
           // Store the token (if received)
           localStorage.setItem('token', data.token);
           console.log(data.userId);
           localStorage.setItem('userId', data.userId);
-  
-       alert('Login Successful')
-      
-      // Navigate to explore page
-      window.location.href = '#/explore';
 
-       
+          alert('Login Successful')
+
+          // Navigate to explore page
+          window.location.href = '#/explore';
+
+
 
         }, 1500);
       } else {
@@ -105,12 +106,12 @@ const LoginPage: React.FC = () => {
       setLoading(false);
     }
   };
-  
-  
+
+
   const toggleRememberMe = () => {
     setRememberMe(!rememberMe);
   };
-  
+
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -120,28 +121,28 @@ const LoginPage: React.FC = () => {
       {/* Top wave decoration */}
       <div className="relative h-40 overflow-hidden">
         <svg className="absolute top-0 w-full" viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
-          <path 
-            fill="#3a3a3a" 
-            fillOpacity="1" 
+          <path
+            fill="#3a3a3a"
+            fillOpacity="1"
             d="M0,64L48,80C96,96,192,128,288,122.7C384,117,480,75,576,80C672,85,768,139,864,138.7C960,139,1056,85,1152,69.3C1248,53,1344,75,1392,85.3L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           ></path>
         </svg>
       </div>
-      
+
       {/* Logo */}
       <div className="flex justify-center -mt-4 mb-4">
-      <div className="flex items-center justify-center mb-4">
+        <div className="flex items-center justify-center mb-4">
           <h1 className="ml-3 text-3xl font-extrabold text-[#00bfff]">Sosika</h1>
         </div>
 
       </div>
-      
+
       {/* Login Form */}
       <div className="flex-1 flex flex-col justify-center px-6 pb-12">
         <div className="max-w-md w-full mx-auto">
           <h1 className="text-3xl font-bold text-center mb-2">Welcome Back</h1>
           <p className="text-[#a0a0a0] text-center mb-8">Sign in to continue to Sosika</p>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -168,7 +169,7 @@ const LoginPage: React.FC = () => {
                 <p className="mt-1 text-red-500 text-sm">{errors.email}</p>
               )}
             </div>
-            
+
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label htmlFor="password" className="block text-sm font-medium">
@@ -193,7 +194,7 @@ const LoginPage: React.FC = () => {
                   className={`w-full pl-10 pr-10 py-3 bg-[#3a3a3a] border ${errors.password ? 'border-red-500' : 'border-[#555555]'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e7e7e7] transition`}
                   placeholder="Enter your password"
                 />
-                <button 
+                <button
                   type="button"
                   className="absolute right-0 inset-y-0 pr-3 flex items-center"
                   onClick={toggleShowPassword}
@@ -215,9 +216,9 @@ const LoginPage: React.FC = () => {
                 <p className="mt-1 text-red-500 text-sm">{errors.password}</p>
               )}
             </div>
-            
+
             <div className="flex items-center">
-              <button 
+              <button
                 type="button"
                 className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none ${rememberMe ? 'bg-[#e7e7e7]' : 'bg-[#555555]'}`}
                 role="switch"
@@ -232,7 +233,7 @@ const LoginPage: React.FC = () => {
               </button>
               <span className="ml-3 text-sm text-[#a0a0a0]">Remember me</span>
             </div>
-            
+
             <div className="pt-2">
               <button
                 type="submit"
@@ -250,30 +251,31 @@ const LoginPage: React.FC = () => {
               </button>
             </div>
           </form>
-          
+
           <div className="mt-8">
-            
-            
-            
+
+
+
           </div>
-          
+
           <div className="mt-8 text-center">
             <p className="text-[#a0a0a0]">
-              Don't have an account?{' '}
-              <a href="#" className="text-[#e7e7e7] font-medium hover:underline">
-                Sign up
-              </a>
+              Don't have an account?{' '} <Link to="/register">
+                <a href="#" className="text-[#e7e7e7] font-medium hover:underline">
+                  Sign up
+                </a>
+              </Link>
             </p>
           </div>
         </div>
       </div>
-      
+
       {/* Bottom decoration */}
       <div className="relative h-20 overflow-hidden">
         <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">
-          <path 
-            fill="#3a3a3a" 
-            fillOpacity="1" 
+          <path
+            fill="#3a3a3a"
+            fillOpacity="1"
             d="M0,224L48,229.3C96,235,192,245,288,240C384,235,480,213,576,186.7C672,160,768,128,864,117.3C960,107,1056,117,1152,133.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
           ></path>
         </svg>
