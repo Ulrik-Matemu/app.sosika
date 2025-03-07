@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SVGProps } from 'react';
 import axios from 'axios';
-import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar, Clock, MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen } from 'lucide-react';
+import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar,  MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
+import { JSX } from 'react/jsx-runtime';
 
 // Define interfaces for order data
 interface OrderItem {
@@ -472,7 +473,7 @@ const OrdersPage = () => {
 };
 
 // Define missing component
-const DollarSign = (props) => {
+const DollarSign = (props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) => {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"

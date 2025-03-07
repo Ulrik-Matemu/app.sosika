@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { useParams } from "react-router-dom";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Loader2Icon, MapPinIcon, NavigationIcon, CheckCircle2 } from 'lucide-react';
+import { Loader2Icon, MapPinIcon, NavigationIcon } from 'lucide-react';
 
 // Custom icon creation function
 const createCustomIcon = (color: string) => {
@@ -48,12 +48,6 @@ const OrderTracking: React.FC = () => {
     ];
 
     // Calculate progress percentage
-    const calculateProgressPercentage = () => {
-        const currentStatusIndex = ORDER_STATUSES.indexOf(orderStatus);
-        return currentStatusIndex !== -1 
-            ? ((currentStatusIndex + 1) / ORDER_STATUSES.length) * 100 
-            : 0;
-    };
 
     // Location tracking component
     const LocationTracker = () => {
@@ -152,43 +146,6 @@ const OrderTracking: React.FC = () => {
     }
 
     // Order status progress bar
-    const OrderStatusProgress = () => {
-        const progressPercentage = calculateProgressPercentage();
-
-        return (
-            <div className="mb-4">
-                <div className="flex justify-between items-center mb-2">
-                    {ORDER_STATUSES.map((status, index) => (
-                        <div 
-                            key={status} 
-                            className="flex flex-col items-center"
-                        >
-                            <div 
-                                className={`w-8 h-8 rounded-full flex items-center justify-center 
-                                    ${index < ORDER_STATUSES.indexOf(orderStatus) + 1 
-                                        ? 'bg-green-500 text-white' 
-                                        : 'bg-gray-200 text-gray-500'
-                                    }`}
-                            >
-                                {index < ORDER_STATUSES.indexOf(orderStatus) + 1 ? (
-                                    <CheckCircle2 size={20} />
-                                ) : (
-                                    index + 1
-                                )}
-                            </div>
-                            <span className="text-xs mt-1">{status}</span>
-                        </div>
-                    ))}
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                        className="bg-green-500 h-2.5 rounded-full" 
-                        style={{ width: `${progressPercentage}%` }}
-                    ></div>
-                </div>
-            </div>
-        );
-    };
 
     return (
         <div className="max-w-md mx-auto p-4 bg-white shadow-md rounded-lg">

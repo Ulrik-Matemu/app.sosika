@@ -196,7 +196,7 @@ const RegisterPage: React.FC = () => {
 
         setLoadingLocation(true);
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+            () => {
 
                 setFormData((prevData) => ({
                     ...prevData,

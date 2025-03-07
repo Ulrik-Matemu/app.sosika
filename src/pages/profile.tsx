@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User, MapPin, Save, Loader2, X } from 'lucide-react';
+import { User,  Save, Loader2, X } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import Footer from '../components/my-components/footer';
 import ThemeToggle from '../components/my-components/themeToggle';
@@ -48,6 +48,11 @@ const ProfileManagement = () => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
+
+    const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    }
 
     const handleSave = async () => {
         try {
@@ -138,7 +143,7 @@ const ProfileManagement = () => {
                                 <select
                                     name="college_id"
                                     value={formData.college_id || ''}
-                                    onChange={handleInputChange}
+                                    onChange={handleSelectChange}
                                     disabled={!isEditing}
                                     className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
                                 >

@@ -4,7 +4,6 @@ import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshC
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
-import OrderTracking from '../components/my-components/orderTracking';
 
 // Define interfaces for menu items and vendor data
 interface MenuItem {
@@ -44,7 +43,7 @@ const MenuExplorer = () => {
     const [error, setError] = useState<string | null>(null);
 
     const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState<boolean>(false);
-    const [trackedOrderId, setTrackedOrderId] = useState<string | null>(null);
+    const [, setTrackedOrderId] = useState<string | null>(null);
 
     // Cart state
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -207,12 +206,6 @@ const MenuExplorer = () => {
         setCart([]);
     };
 
-    const openOrderTracking = (orderId?: string) => {
-        if (orderId) {
-            setTrackedOrderId(orderId);
-        }
-        setIsOrderTrackingOpen(true);
-    };
 
     const closeOrderTracking = () => {
         setIsOrderTrackingOpen(false);
