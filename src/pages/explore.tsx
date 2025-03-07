@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon } from 'lucide-react';
+import { Search, Utensils, DollarSign, GlassWater, Sandwich,  Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
+
+const predefinedLocations = [
+    { name: "Hostel A", lat: 12.3456, lng: 78.9101 },
+    { name: "Hostel B", lat: 12.3467, lng: 78.9112 },
+    { name: "Library", lat: 12.3478, lng: 78.9123 },
+    { name: "Cafeteria", lat: 12.3489, lng: 78.9134 },
+    { name: "Admin Block", lat: 12.3490, lng: 78.9145 },
+    { name: "Sports Complex", lat: 12.3501, lng: 78.9156 }
+];
 
 // Define interfaces for menu items and vendor data
 interface MenuItem {
@@ -41,6 +50,9 @@ const MenuExplorer = () => {
     const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [isLocationOpen, setIsLocationOpen] = useState(false);
+    const [, setSelectedLocation] = useState("");
+
 
     const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState<boolean>(false);
     const [, setTrackedOrderId] = useState<string | null>(null);
@@ -58,6 +70,37 @@ const MenuExplorer = () => {
     const [vendorFilter, setVendorFilter] = useState<string>('');
     const [vendors, setVendors] = useState<number[]>([]);
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
+
+    const handleSelectLocation = async (location: { name: string; lat: number; lng: number }) => {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+            console.error("User ID not found");
+            return;
+        }
+    
+        setSelectedLocation(location.name);
+        setIsLocationOpen(false);
+    
+        try {
+            const response = await axios.post("https://your-backend.com/api/auth/update-location", {
+                userId,
+                custom_address: { lat: location.lat, lng: location.lng },
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+    
+            console.log("Location updated successfully:", response.data);
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error("Error updating location:", error.response?.data || error.message);
+            } else {
+                console.error("Unexpected error:", error);
+            }
+        }
+    };
+    
 
     // Fetch all menu items when component mounts
     useEffect(() => {
@@ -304,24 +347,58 @@ const MenuExplorer = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
-            <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b]  px-6 py-4">
-                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
-                <div className="flex items-center gap-4">
-               
-                    <button
-                        onClick={() => setIsCartOpen(true)}
-                        className="relative p-2"
-                    >
-                        <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
-                        {cart.length > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                            </span>
-                        )}
-                    </button>
-                    <ThemeToggle />
+           <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-6 py-4">
+    <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
+    <div className="flex items-center gap-4">
+        {/* Location Toggle Button */}
+        <button
+            onClick={() => setIsLocationOpen(true)}
+            className="p-2 rounded-md  dark:border-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+        >
+            <MapPin />
+        </button>
+
+        <button
+            onClick={() => setIsCartOpen(true)}
+            className="relative p-2"
+        >
+            <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
+            {cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                </span>
+            )}
+        </button>
+        <ThemeToggle />
+    </div>
+</header>
+
+ {/* Location Selection Modal */}
+ {isLocationOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-80">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-bold text-[#00bfff]">Select Location</h2>
+                            <button onClick={() => setIsLocationOpen(false)}>
+                                <X className="h-5 w-5 text-gray-600 dark:text-white" />
+                            </button>
+                        </div>
+
+                        <ul className="mt-4 space-y-2">
+                            {predefinedLocations.map((location) => (
+                                <li
+                                    key={location.name}
+                                    onClick={() => handleSelectLocation(location)}
+                                    className="p-2 rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                                >
+                                    {location.name}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
-            </header>
+            )}
+
 
             <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
                 <div className="mb-4">
