@@ -40,12 +40,6 @@ const OrderTracking: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const { orderId } = useParams<{ orderId: string }>();
 
-    const ORDER_STATUSES = [
-        "Pending", 
-        "In Progress", 
-        "Out for Delivery", 
-        "Delivered"
-    ];
 
     // Calculate progress percentage
 
