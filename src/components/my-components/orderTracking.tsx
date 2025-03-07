@@ -48,6 +48,22 @@ const OrderTracking: React.FC = () => {
         const map = useMap();
 
         useEffect(() => {
+            // Fetch user location from backend
+            const fetchUserLocation = async () => {
+                const userId = localStorage.getItem('userId');
+                try {
+                    const response = await axios.get(`https://sosika-backend.onrender.com/api/auth/users/location`, {
+                        timeout: 10000, // 10 second timeout
+                        params: { userId }
+                    });
+                    setUserLocation(response.data.custom_address);
+                } catch (error) {
+                    console.error("Error fetching user location:", error);
+                }
+            };
+
+            fetchUserLocation();
+
             // Fit bounds to include both delivery and user locations
             if (deliveryLocation && userLocation) {
                 const bounds = L.latLngBounds(

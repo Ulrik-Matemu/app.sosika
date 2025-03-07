@@ -5,13 +5,15 @@ import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
 
+
+
 const predefinedLocations = [
-    { name: "Hostel A", lat: 12.3456, lng: 78.9101 },
-    { name: "Hostel B", lat: 12.3467, lng: 78.9112 },
-    { name: "Library", lat: 12.3478, lng: 78.9123 },
-    { name: "Cafeteria", lat: 12.3489, lng: 78.9134 },
-    { name: "Admin Block", lat: 12.3490, lng: 78.9145 },
-    { name: "Sports Complex", lat: 12.3501, lng: 78.9156 }
+    { name: "Mamiro Hostel", lat: -3.4157279004216874, lng: 36.71139864504578 },
+    { name: "Mamuya Hostel", lat: -3.4159921797731134, lng: 36.712876253216784 },
+    { name: "Old Hostel", lat: -3.4152137532524893, lng: 36.70962012663434 },
+    { name: "New Hostel", lat: -3.414513577401153, lng: 36.71026451427121 },
+    { name: "Jackson Hostel", lat: -3.4158120478706007, lng: 36.713987296139855 },
+    { name: "Shumbusho", lat: -3.418037404417581, lng: 36.71300246986059 }
 ];
 
 // Define interfaces for menu items and vendor data
@@ -82,7 +84,7 @@ const MenuExplorer = () => {
         setIsLocationOpen(false);
     
         try {
-            const response = await axios.post("https://your-backend.com/api/auth/update-location", {
+            const response = await axios.post("https://sosika-backend.onrender.com/api/auth/update-location", {
                 userId,
                 custom_address: { lat: location.lat, lng: location.lng },
             }, {
@@ -92,6 +94,7 @@ const MenuExplorer = () => {
             });
     
             console.log("Location updated successfully:", response.data);
+            alert("Location updated successfully");
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 console.error("Error updating location:", error.response?.data || error.message);
@@ -261,63 +264,48 @@ const MenuExplorer = () => {
             return;
         }
     
-        if (!navigator.geolocation) {
-            alert("Geolocation is not supported by your browser.");
-            return;
-        }
-    
         try {
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const { latitude, longitude } = position.coords;
+            const user_id = localStorage.getItem('userId');
+            const vendor_id = cart[0].vendor_id;
+            const delivery_fee = 1000; // Example fee
+            const requested_asap = true; // User wants ASAP delivery
     
-                const user_id = localStorage.getItem('userId');
-                const vendor_id = cart[0].vendor_id;
-                const delivery_fee = 1000; // Example fee
-                const requested_asap = true; // User wants ASAP delivery
+            // Prompt user for confirmation
+            const confirmOrder = window.confirm(`
+                Confirm your order:
+                - Total Items: ${cart.length}
+                - Delivery Fee: ${delivery_fee}
+                - Payment: Cash on Delivery
+                Click OK to place your order.
+            `);
     
-                // Prompt user for confirmation
-                const confirmOrder = window.confirm(`
-                    Confirm your order:
-                    - Total Items: ${cart.length}
-                    - Delivery Fee: ${delivery_fee}
-                    - Payment: Cash on Delivery
-                    - Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}
-                    Click OK to place your order.
-                `);
+            if (!confirmOrder) return;
     
-                if (!confirmOrder) return;
+            // Prepare order payload
+            const orderData = {
+                user_id,
+                vendor_id,
+                delivery_fee,
+                requested_asap,
+                payment_method: "Cash on Delivery",
+                order_items: cart.map(item => ({
+                    menu_item_id: item.id,
+                    quantity: item.quantity,
+                    price: parseFloat(item.price)
+                }))
+            };
     
-                // Prepare order payload
-                const orderData = {
-                    user_id,
-                    vendor_id,
-                    delivery_fee,
-                    requested_asap,
-                    location: { latitude, longitude },
-                    payment_method: "Cash on Delivery",
-                    order_items: cart.map(item => ({
-                        menu_item_id: item.id,
-                        quantity: item.quantity,
-                        price: parseFloat(item.price)
-                    }))
-                };
+            // Send order request
+            const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
     
-                // Send order request
-                const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
-    
-                if (response.status === 201) {
-                    alert(`🎉 Order placed successfully! Order ID: ${response.data.order_id}
-                    
-                    Delivery is on the way! 🚀`);
-                    setCart([]); // Clear cart after successful order
-                    setIsCartOpen(false); // Close cart modal                    
-                    window.location.href = `#/order-tracking/${response.data.order_id}`;
-                }
-            }, (error) => {
-                console.error("Geolocation error:", error);
-                alert("Unable to fetch location. Please enable location access and try again.");
-            });
-    
+            if (response.status === 201) {
+                alert(`🎉 Order placed successfully! Order ID: ${response.data.order_id}
+                
+                Delivery is on the way! 🚀`);
+                setCart([]); // Clear cart after successful order
+                setIsCartOpen(false); // Close cart modal                    
+                window.location.href = `#/order-tracking/${response.data.order_id}`;
+            }
         } catch (error) {
             console.error("Checkout error:", error);
             alert("Failed to place order. Please try again.");
