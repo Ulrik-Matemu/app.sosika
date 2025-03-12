@@ -1,10 +1,9 @@
-import { useState, useEffect, SVGProps } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar,  MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen, PhoneCallIcon } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
-import { JSX } from 'react/jsx-runtime';
 
 // Define interfaces for order data
 interface OrderItem {
