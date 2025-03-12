@@ -618,7 +618,7 @@ const MenuExplorer = () => {
                                             <div className="flex-grow">
                                                 <h3 className="font-medium dark:text-white">{item.name}</h3>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                    ${parseFloat(item.price).toFixed(2)} each
+                                                    TZS {parseFloat(item.price).toFixed(2)} each
                                                 </p>
                                                 <div className="flex items-center justify-between mt-2">
                                                     <div className="flex items-center">
@@ -647,7 +647,7 @@ const MenuExplorer = () => {
                                                 </div>
                                             </div>
                                             <div className="font-semibold text-[#00bfff]">
-                                                ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                                                TZS {(parseFloat(item.price) * item.quantity).toFixed(2)}
                                             </div>
                                         </div>
                                     ))}
@@ -659,7 +659,7 @@ const MenuExplorer = () => {
                             <div className="p-4 border-t mt-auto">
                                 <div className="flex justify-between mb-2">
                                     <span className="font-medium dark:text-white">Subtotal:</span>
-                                    <span className="font-semibold text-[#00bfff]">${cartTotal.toFixed(2)}</span>
+                                    <span className="font-semibold text-[#00bfff]">TZS {cartTotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex gap-2">
                                     <button
