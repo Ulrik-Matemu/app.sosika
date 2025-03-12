@@ -531,7 +531,7 @@ const MenuExplorer = () => {
                                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
                                                     Vendor #{item.vendor_id}
                                                 </span>
-                                                <span className="text-lg font-semibold text-[#00bfff]">${parseFloat(item.price).toFixed(2)}</span>
+                                                <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
                                             </div>
                                             <button
                                                 onClick={() => addToCart(item)}

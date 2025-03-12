@@ -326,8 +326,8 @@ const OrdersPage = () => {
                                                 Vendor #{order.vendor_id}
                                             </span>
                                             <span className="flex items-center">
-                                                <DollarSign className="w-4 h-4 mr-1" /> 
-                                                ${order.total_amount}
+                                                
+                                                TZS{order.total_amount}
                                             </span>
                                         </div>
                                     </div>
@@ -351,7 +351,7 @@ const OrdersPage = () => {
                                                         </span>
                                                         <span className="dark:text-white">Item #{item.menu_item_id}</span>
                                                     </div>
-                                                    <span className="font-medium text-[#00bfff]">${(item.price * item.quantity).toFixed(2)}</span>
+                                                    <span className="font-medium text-[#00bfff]">TZS{(item.price * item.quantity).toFixed(2)}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -359,15 +359,15 @@ const OrdersPage = () => {
                                         <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mb-3">
                                             <div className="flex justify-between items-center mb-2">
                                                 <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                                                <span className="dark:text-white">${(order.total_amount - order.delivery_fee).toFixed(2)}</span>
+                                                <span className="dark:text-white">TZS{(order.total_amount - order.delivery_fee).toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between items-center mb-2">
                                                 <span className="text-gray-600 dark:text-gray-400">Delivery Fee</span>
-                                                <span className="dark:text-white">${order.delivery_fee}</span>
+                                                <span className="dark:text-white">TZS{order.delivery_fee}</span>
                                             </div>
                                             <div className="flex justify-between items-center font-semibold">
                                                 <span className="dark:text-white">Total</span>
-                                                <span className="text-[#00bfff]">${order.total_amount}</span>
+                                                <span className="text-[#00bfff]">TZS{order.total_amount}</span>
                                             </div>
                                         </div>
 
