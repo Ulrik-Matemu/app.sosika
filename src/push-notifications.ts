@@ -20,7 +20,7 @@ console.log("Current URL:", window.location.href);
 console.log("Expected SW URL:", `${window.location.origin}/firebase-messaging-sw.js`);
 
 // Function to request push notification permission and get token
-export const requestNotificationPermission = async (userId: string | undefined) => {
+export const requestNotificationPermission = async () => {
   try {
     console.log("Requesting notification permission...");
     
