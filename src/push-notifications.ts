@@ -68,25 +68,7 @@ export const requestNotificationPermission = async (userId: string | undefined) 
     localStorage.setItem("fcmToken", token);
     
     // Send token to backend
-    if (userId && token) {
-      console.log("Sending FCM token to backend for user:", userId);
-      
-      try {
-        const response = await fetch('https://your-backend-url/api/update-fcm-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, fcmToken: token })
-        });
-        
-        if (response.ok) {
-          console.log("FCM token successfully saved on server");
-        } else {
-          console.error("Failed to save FCM token on server");
-        }
-      } catch (apiError) {
-        console.error("API error while sending token:", apiError);
-      }
-    }
+    
     
     return token;
   } catch (error) {
