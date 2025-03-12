@@ -1,30 +1,31 @@
-importScripts("https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js");
+// Do NOT use import statements in service workers!
+// Use importScripts instead
 
-import { onMessage } from "firebase/messaging";
+importScripts('https://www.gstatic.com/firebasejs/9.19.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.19.1/firebase-messaging-compat.js');
 
-const firebaseConfig = {
-    apiKey: "AIzaSyA_Jw-BGThGsqhB8_t5_AH6D9AL1YLCjK8",
-    authDomain: "sosika-101.firebaseapp.com",
-    projectId: "sosika-101",
-    storageBucket: "sosika-101.firebasestorage.app",
-    messagingSenderId: "827695672687",
-    appId: "1:827695672687:web:85ce347456339ccfd80c9a",
-    measurementId: "G-692C6RSH31"
-  };
-
-firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage((payload) => {
-  console.log("Received background message: ", payload);
-  self.registration.showNotification(payload.notification.title, {
-    body: payload.notification.body,
-    icon: "/sosika.png",
-  });
+// Initialize Firebase with your config
+firebase.initializeApp({
+  apiKey: "AIzaSyA_Jw-BGThGsqhB8_t5_AH6D9AL1YLCjK8",
+  authDomain: "sosika-101.firebaseapp.com",
+  projectId: "sosika-101",
+  storageBucket: "sosika-101.firebasestorage.app",
+  messagingSenderId: "827695672687",
+  appId: "1:827695672687:web:85ce347456339ccfd80c9a",
+  measurementId: "G-692C6RSH31"
 });
 
-onMessage(messaging, (payload) => {
-    console.log("Message received in foreground:", payload);
-    alert(`New Notification: ${payload.notification?.title}`);
-  });
+const messaging = firebase.messaging();
+
+// Handle background messages
+messaging.onBackgroundMessage(function(payload) {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  
+  const notificationTitle = payload.notification.title || 'New Notification';
+  const notificationOptions = {
+    body: payload.notification.body || '',
+    icon: '/app.sosika/icon-192.png' // Adjust path based on your icon location
+  };
+  
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
