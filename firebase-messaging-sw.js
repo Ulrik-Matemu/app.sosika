@@ -1,6 +1,8 @@
 importScripts("https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js");
 
+import { onMessage } from "firebase/messaging";
+
 const firebaseConfig = {
     apiKey: "AIzaSyA_Jw-BGThGsqhB8_t5_AH6D9AL1YLCjK8",
     authDomain: "sosika-101.firebaseapp.com",
