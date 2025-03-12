@@ -17,7 +17,7 @@ const messaging = getMessaging(app);
 
 // Debug the current environment
 console.log("Current URL:", window.location.href);
-console.log("Expected SW URL:", `${window.location.origin}/app.sosika/firebase-messaging-sw.js`);
+console.log("Expected SW URL:", `${window.location.origin}/firebase-messaging-sw.js`);
 
 // Function to request push notification permission and get token
 export const requestNotificationPermission = async () => {
@@ -40,17 +40,15 @@ export const requestNotificationPermission = async () => {
     }
     
     // For GitHub Pages, we need to specify the complete service worker URL and scope
-    const swUrl = `${window.location.origin}/app.sosika/firebase-messaging-sw.js`;
-    const swScope = `${window.location.origin}/app.sosika/`;
+    const swUrl = `${window.location.origin}/firebase-messaging-sw.js`;
+    const swScope = `${window.location.origin}/`;
     
     console.log("Registering service worker at:", swUrl);
     console.log("With scope:", swScope);
     
     // Manually register the service worker first to debug any issues
     try {
-      const registration = await navigator.serviceWorker.register(swUrl, {
-        scope: swScope
-      });
+      const registration = await navigator.serviceWorker.register('https://ulrik-matemu.github.io/app.sosika/firebase-messaging-sw.js');
       console.log("Service Worker registered successfully:", registration);
     } catch (swError) {
       console.error("Service Worker registration failed:", swError);
