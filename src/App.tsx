@@ -11,12 +11,10 @@ import "./App.css";
 import { requestNotificationPermission, setupMessageListener } from './push-notifications'
 
 function App() {
-  let userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    if (userId) {
-      requestNotificationPermission(userId);
-    }
+      requestNotificationPermission();
+
     setupMessageListener();
   }, []);
 
