@@ -39,23 +39,7 @@ export const requestNotificationPermission = async () => {
       return null;
     }
     
-    // For GitHub Pages, we need to specify the complete service worker URL and scope
-    const swUrl = `${window.location.origin}/app.sosika/firebase-messaging-sw.js`;
-    const swScope = `${window.location.origin}/app.sosika/`;
     
-    console.log("Registering service worker at:", swUrl);
-    console.log("With scope:", swScope);
-    
-    // Manually register the service worker first to debug any issues
-    try {
-      const registration = await navigator.serviceWorker.register(swUrl, {
-        scope: swScope
-      });
-      console.log("Service Worker registered successfully:", registration);
-    } catch (swError) {
-      console.error("Service Worker registration failed:", swError);
-      // Continue anyway as getToken will try to register the SW again
-    }
     
     // Now get the FCM token
     console.log("Getting FCM token...");
@@ -78,23 +62,28 @@ export const requestNotificationPermission = async () => {
 };
 
 // Listen for foreground messages
-export const setupMessageListener = () => {
-  console.log("Setting up foreground message listener");
+export const listenForForegroundMessages = () => {
+  console.log("Listening for foreground messages...");
   onMessage(messaging, (payload) => {
-    console.log("Message received in foreground:", payload);
-    
-    if (payload.notification) {
-      const { title, body } = payload.notification;
-      
-      // Display notification
-      if (Notification.permission === "granted") {
-        navigator.serviceWorker.ready.then(registration => {
-          registration.showNotification(title || "New Notification", {
-            body: body || "",
-            icon: '/app.sosika/sosika.png' // Adjust path based on your icon location
-          });
-        });
-      }
-    }
+    console.log("Message received. ", payload);
+    // Customize notification here
+    const notificationTitle = payload.notification?.title || "New Notification";
+    const notificationOptions = {
+      body: payload.notification?.body,
+      icon: payload.notification?.icon,
+    };
+
+    new Notification(notificationTitle, notificationOptions);
   });
 };
+onMessage(messaging, (payload) => {
+  console.log("Message received. ", payload);
+  // Customize notification here
+  const notificationTitle = payload.notification?.title || "New Notification";
+  const notificationOptions = {
+    body: payload.notification?.body,
+    icon: payload.notification?.icon,
+  };
+
+  new Notification(notificationTitle, notificationOptions);
+});

@@ -8,14 +8,14 @@ import OrderTracking from "./components/my-components/orderTracking";
 import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
 import "./App.css";
-import { requestNotificationPermission, setupMessageListener } from './push-notifications'
+import { requestNotificationPermission, listenForForegroundMessages } from './push-notifications'
 
 function App() {
 
   useEffect(() => {
       requestNotificationPermission();
 
-    setupMessageListener();
+      listenForForegroundMessages();
   }, []);
 
 
