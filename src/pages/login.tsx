@@ -70,6 +70,7 @@ const LoginPage: React.FC = () => {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
+          fcmToken: localStorage.getItem('fcmToken'),
         }),
       });
 
@@ -260,11 +261,10 @@ const LoginPage: React.FC = () => {
 
           <div className="mt-8 text-center">
             <p className="text-[#a0a0a0]">
-              Don't have an account?{' '} <Link to="/register">
-                <a href="#" className="text-[#e7e7e7] font-medium hover:underline">
-                  Sign up
-                </a>
-              </Link>
+              Don't have an account?{' '}<Link to="/register" className="text-[#e7e7e7] font-medium hover:underline">
+  Register
+</Link>
+
             </p>
           </div>
         </div>

@@ -145,6 +145,7 @@ const RegisterPage: React.FC = () => {
               setLoading(false);
               console.log(data);
               alert('Registration successful!');
+              window.location.href = '#/explore';
               // Optionally, redirect user after successful registration
             }, 1500);
           } else {

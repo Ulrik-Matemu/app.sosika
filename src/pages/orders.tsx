@@ -1,6 +1,6 @@
 import { useState, useEffect, SVGProps } from 'react';
 import axios from 'axios';
-import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar,  MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen } from 'lucide-react';
+import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar,  MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen, PhoneCallIcon } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
@@ -309,6 +309,12 @@ const OrdersPage = () => {
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="font-semibold dark:text-white">Order #{order.id}</span>
                                             {renderOrderStatus(order.order_status)}
+                                        </div>
+                                        <div>
+                                            <span className='flex items-center'> 
+                                                <PhoneCallIcon className='w-4 h-4 mr-1' />
+                                            <p className='text-[12px] text-gray-500 dark:text-gray-400'>+255 760 903 468</p>
+                                            </span>
                                         </div>
                                         <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-4 gap-y-1">
                                             <span className="flex items-center">
