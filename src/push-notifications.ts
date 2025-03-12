@@ -47,7 +47,7 @@ export const setupMessageListener = () => {
       if (Notification.permission === "granted") {
         new Notification(title || "No Title", {
           body,
-          icon: '/notification-icon.png' // Add your app's icon path
+          icon: '/app.sosika/sosika.png' // Add your app's icon path
         });
       } else {
         // Fallback for when notification permission exists but notification can't be created
