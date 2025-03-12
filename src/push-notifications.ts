@@ -61,7 +61,7 @@ export const requestNotificationPermission = async () => {
     console.log("Getting FCM token...");
     const token = await getToken(messaging, {
       vapidKey: "BEC4ncuS652Wnb0J2QC2M2ylbtdpwHXj7NVEHrprgj1PcvHjZpo2jID6-YGKCXSy25P5mTrVWlJmzQhWIzoLJ_k",
-      serviceWorkerRegistration: undefined // Let Firebase handle it
+      serviceWorkerRegistration: await navigator.serviceWorker.register('/app.sosika/firebase-messaging-sw.js')
     });
     
     console.log("FCM token received:", token);
