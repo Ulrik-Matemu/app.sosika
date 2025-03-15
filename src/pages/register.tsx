@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 interface College {
     id: number;
     name: string;
 }
+
 
 interface FormData {
     fullName: string;
@@ -22,7 +22,7 @@ interface FormErrors {
     [key: string]: string;
 }
 
-const RegisterPage: React.FC = () => {
+export const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({
         fullName: '',
         email: '',
@@ -37,10 +37,11 @@ const RegisterPage: React.FC = () => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [step, setStep] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
-    const [loadingLocation, setLoadingLocation] = useState(false);
+   
     const [colleges] = useState<College[]>([
         { id: 1, name: 'IAA' },
     ]);
+
 
     const validateStep = (currentStep: number): boolean => {
         const newErrors: FormErrors = {};
@@ -57,17 +58,11 @@ const RegisterPage: React.FC = () => {
             } else if (!/^\d{10,15}$/.test(formData.phoneNumber.replace(/[^0-9]/g, ''))) {
                 newErrors.phoneNumber = 'Phone number is invalid';
             }
+            if (!formData.collegeId) newErrors.collegeId = 'Please select your college';
         }
+
 
         if (currentStep === 2) {
-            if (!formData.collegeId) newErrors.collegeId = 'Please select your college';
-            if (!formData.collegeRegistrationNumber.trim()) {
-                newErrors.collegeRegistrationNumber = 'Registration number is required';
-            }
-            if (formData.customAddress.lat === 0 && formData.customAddress.lng === 0) newErrors.customAddress = 'Address is required';
-        }
-
-        if (currentStep === 3) {
             if (!formData.password) {
                 newErrors.password = 'Password is required';
             } else if (formData.password.length < 8) {
@@ -116,52 +111,48 @@ const RegisterPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-      
+
         try {
-          const response = await fetch('https://sosika-backend.onrender.com/api/auth/register', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              fullName: formData.fullName,
-              email: formData.email,
-              phoneNumber: formData.phoneNumber,
-              collegeId: formData.collegeId,
-              regNumber: formData.collegeRegistrationNumber,
-              customAddress: {
-                lat: formData.customAddress.lat,
-                lng: formData.customAddress.lng,
-                address: formData.customAddress.address,
-              }, // Send lat/lng instead of string
-              password: formData.password,
-            }),
-          });
-      
-          const data = await response.json();
-          
-          if (response.ok) {
-            setTimeout(() => {
-              setLoading(false);
-              console.log(data);
-              alert('Registration successful!');
-              window.location.href = '#/explore';
-              // Optionally, redirect user after successful registration
-            }, 1500);
-          } else {
-            throw new Error(data.error || 'Registration failed');
-          }
+            const response = await fetch('https://sosika-backend.onrender.com/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fullName: formData.fullName,
+                    email: formData.email,
+                    phoneNumber: formData.phoneNumber,
+                    collegeId: formData.collegeId,
+                    password: formData.password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setTimeout(() => {
+                    setLoading(false);
+                    console.log(data);
+                    alert('Registration successful!');
+                    window.location.href = '#/explore';
+                    // Optionally, redirect user after successful registration
+                }, 1500);
+            } else {
+                throw new Error(data.error || 'Registration failed');
+            }
         } catch (error) {
-          console.error('Registration Error:', error);
-          if (error instanceof Error) {
-              alert(error.message);
-          } else {
-              alert('An unknown error occurred');
-          }
-          setLoading(false);
+            console.error('Registration Error:', error);
+            if (error instanceof Error) {
+                alert(error.message);
+            } else {
+                alert('An unknown error occurred');
+            }
+            setLoading(false);
         }
-      };
-      
+    };
+
+
+
 
     // Password strength indicator
     const getPasswordStrength = (password: string): { strength: number; label: string; color: string } => {
@@ -186,36 +177,9 @@ const RegisterPage: React.FC = () => {
     const passwordStrength = getPasswordStrength(formData.password);
 
     // Progress indicator
-    const progress = ((step - 1) / 3) * 100;
+    const progress = ((step - 1) / 2) * 100;
 
 
-    const getLocation = () => {
-        if (!navigator.geolocation) {
-            setErrors({ customAddress: "Geolocation is not supported by your browser." });
-            return;
-        }
-
-        setLoadingLocation(true);
-        navigator.geolocation.getCurrentPosition(
-            () => {
-
-                setFormData((prevData) => ({
-                    ...prevData,
-                    customAddress: {
-                        lat: -3.4139310388717097, // Hardcoded for production in IAA only
-                        lng: 36.710932851305486,
-                        address: `Lat: -3.4139310388717097, Lng: 36.710932851305486`, // Display coords
-                    },
-                }));
-
-                setLoadingLocation(false);
-            },
-            () => {
-                setErrors({ customAddress: "Failed to get location. Please enter manually." });
-                setLoadingLocation(false);
-            }
-        );
-    };
 
     return (
         <div className="min-h-screen bg-[#2b2b2b] text-[#e7e7e7]">
@@ -234,9 +198,8 @@ const RegisterPage: React.FC = () => {
 
                 <div className="flex justify-between mt-2 text-sm text-[#a0a0a0]">
                     <span className={step >= 1 ? "text-[#e7e7e7] font-medium" : ""}>Personal</span>
-                    <span className={step >= 2 ? "text-[#e7e7e7] font-medium" : ""}>College</span>
-                    <span className={step >= 3 ? "text-[#e7e7e7] font-medium" : ""}>Security</span>
-                    <span className={step >= 4 ? "text-[#e7e7e7] font-medium" : ""}>Done</span>
+                    <span className={step >= 2 ? "text-[#e7e7e7] font-medium" : ""}>Security</span>
+                    <span className={step >= 3 ? "text-[#e7e7e7] font-medium" : ""}>Done</span>
                 </div>
             </header>
 
@@ -301,16 +264,6 @@ const RegisterPage: React.FC = () => {
                                         <p className="mt-1 text-red-500 text-sm">{errors.phoneNumber}</p>
                                     )}
                                 </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 2: College Information */}
-                    {step === 2 && (
-                        <div className="space-y-6 animate-fadeIn">
-                            <h2 className="text-2xl font-bold mb-6">College Information</h2>
-
-                            <div className="space-y-4">
                                 <div>
                                     <label htmlFor="collegeId" className="block text-sm font-medium mb-1">
                                         Select Your College
@@ -333,67 +286,14 @@ const RegisterPage: React.FC = () => {
                                         <p className="mt-1 text-red-500 text-sm">{errors.collegeId}</p>
                                     )}
                                 </div>
-
-                                <div>
-                                    <label htmlFor="collegeRegistrationNumber" className="block text-sm font-medium mb-1">
-                                        College Registration Number
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="collegeRegistrationNumber"
-                                        name="collegeRegistrationNumber"
-                                        value={formData.collegeRegistrationNumber}
-                                        onChange={handleChange}
-                                        className={`w-full px-4 py-3 bg-[#3a3a3a] border ${errors.collegeRegistrationNumber ? 'border-red-500' : 'border-[#555555]'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e7e7e7] transition`}
-                                        placeholder="Enter your registration number"
-                                    />
-                                    {errors.collegeRegistrationNumber && (
-                                        <p className="mt-1 text-red-500 text-sm">{errors.collegeRegistrationNumber}</p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label htmlFor="customAddress" className="block text-sm font-medium mb-1">
-                                        Delivery Address
-                                    </label>
-                                  
-                                    {errors.customAddress && <p className="mt-1 text-red-500 text-sm">{errors.customAddress}</p>}
-                                </div>
-
-                                {/* Get Location Button */}
-                                <button
-                                    type="button"
-                                    onClick={getLocation}
-                                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                                >
-                                    {loadingLocation ? "Fetching Location..." : "Use My College Location (For Now)"}
-                                </button>
-
-                                {/* Show Coordinates Fields */}
-                                <div className="mt-2">
-                                    <input
-                                        type="number"
-                                        name="lat"
-                                        placeholder="Latitude"
-                                        value={formData.customAddress.lat ?? ''}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2 border rounded-lg bg-[#3a3a3a] border-[#555555]"
-                                    />
-                                    <input
-                                        type="number"
-                                        name="lng"
-                                        placeholder="Longitude"
-                                        value={formData.customAddress.lng ?? ''}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2 border rounded-lg bg-[#3a3a3a] border-[#555555] mt-2"
-                                    />
-                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Step 3: Security Information */}
-                    {step === 3 && (
+                   
+
+                    {/* Step 2: Security Information */}
+                    {step === 2 && (
                         <div className="space-y-6 animate-fadeIn">
                             <h2 className="text-2xl font-bold mb-6">Create Password</h2>
 
@@ -536,18 +436,9 @@ const RegisterPage: React.FC = () => {
                     )}
                 </form>
 
-                {/* Login link */}
-                {step < 4 && (
-                    <div className="text-center mt-8">
-                        
-                        <p className="text-[#a0a0a0]">
-                            Already have an account? <Link to="/login"> <a href="#" className="text-[#e7e7e7] underline">Log in</a></Link>
-                        </p>
-                    </div>
-                )}
+
+               
             </main>
         </div>
     );
 };
-
-export default RegisterPage;

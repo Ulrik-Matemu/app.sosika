@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Utensils, DollarSign, GlassWater, Sandwich,  Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin } from 'lucide-react';
+import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
+import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/tooltip";
 
 
 
@@ -54,6 +55,7 @@ const MenuExplorer = () => {
     const [error, setError] = useState<string | null>(null);
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [, setSelectedLocation] = useState("");
+    const [showTooltip, setShowTooltip] = useState(false);
 
 
     const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState<boolean>(false);
@@ -79,10 +81,10 @@ const MenuExplorer = () => {
             console.error("User ID not found");
             return;
         }
-    
+
         setSelectedLocation(location.name);
         setIsLocationOpen(false);
-    
+
         try {
             const response = await axios.post("https://sosika-backend.onrender.com/api/auth/update-location", {
                 userId,
@@ -92,7 +94,7 @@ const MenuExplorer = () => {
                     "Content-Type": "application/json",
                 },
             });
-    
+
             console.log("Location updated successfully:", response.data);
             alert("Location updated successfully");
         } catch (error) {
@@ -103,7 +105,7 @@ const MenuExplorer = () => {
             }
         }
     };
-    
+
 
     // Fetch all menu items when component mounts
     useEffect(() => {
@@ -185,6 +187,16 @@ const MenuExplorer = () => {
         setFilteredItems(result);
     }, [searchTerm, selectedCategory, priceRange, availableOnly, vendorFilter, sortOption, menuItems]);
 
+    useEffect(() => {
+        setShowTooltip(true); // Show tooltip on page load
+
+        const timer = setTimeout(() => {
+            setShowTooltip(false); // Hide after 6 seconds
+        }, 6000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
     // Sort function
     const sortItems = (items: MenuItem[], option: string) => {
         const sortedItems = [...items];
@@ -263,13 +275,13 @@ const MenuExplorer = () => {
             alert("Your cart is empty.");
             return;
         }
-    
+
         try {
             const user_id = localStorage.getItem('userId');
             const vendor_id = cart[0].vendor_id;
             const delivery_fee = 1000; // Example fee
             const requested_asap = true; // User wants ASAP delivery
-    
+
             // Prompt user for confirmation
             const confirmOrder = window.confirm(`
                 Confirm your order:
@@ -278,9 +290,9 @@ const MenuExplorer = () => {
                 - Payment: Cash on Delivery
                 Click OK to place your order.
             `);
-    
+
             if (!confirmOrder) return;
-    
+
             // Prepare order payload
             const orderData = {
                 user_id,
@@ -294,10 +306,10 @@ const MenuExplorer = () => {
                     price: parseFloat(item.price)
                 }))
             };
-    
+
             // Send order request
             const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
-    
+
             if (response.status === 201) {
                 alert(`🎉 Order placed successfully! Order ID: ${response.data.order_id}
                 
@@ -335,34 +347,42 @@ const MenuExplorer = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
-           <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-6 py-4">
-    <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
-    <div className="flex items-center gap-4">
-        {/* Location Toggle Button */}
-        <button
-            onClick={() => setIsLocationOpen(true)}
-            className="p-2 rounded-md  dark:border-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-        >
-            <MapPin />
-        </button>
+            <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-6 py-4">
+                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
+                <div className="flex items-center gap-4">
+                    <Tooltip open={showTooltip}>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={() => setIsLocationOpen(true)}
+                                className="relative p-2 rounded-md dark:border-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                            >
+                                <MapPin />
+                            </button>
+                        </TooltipTrigger>
+                        <div >
+                            <TooltipContent className='w-[250px]'>
+                                Make sure to select your location before placing an order!
+                            </TooltipContent>
+                        </div>
+                    </Tooltip>
 
-        <button
-            onClick={() => setIsCartOpen(true)}
-            className="relative p-2"
-        >
-            <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
-            {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                </span>
-            )}
-        </button>
-        <ThemeToggle />
-    </div>
-</header>
+                    <button
+                        onClick={() => setIsCartOpen(true)}
+                        className="relative p-2"
+                    >
+                        <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
+                        {cart.length > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                            </span>
+                        )}
+                    </button>
+                    <ThemeToggle />
+                </div>
+            </header>
 
- {/* Location Selection Modal */}
- {isLocationOpen && (
+            {/* Location Selection Modal */}
+            {isLocationOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-80">
                         <div className="flex justify-between items-center">
@@ -555,8 +575,8 @@ const MenuExplorer = () => {
                 </div>
             </div>
 
-             {/* Order Tracking Modal */}
-             {isOrderTrackingOpen && (
+            {/* Order Tracking Modal */}
+            {isOrderTrackingOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
                     <div className="w-full max-w-md bg-white dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
                         <div className="p-4 border-b flex justify-between items-center">
@@ -571,9 +591,9 @@ const MenuExplorer = () => {
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
-                        
+
                         <div className="flex-grow overflow-auto p-4">
-                          
+
                         </div>
                     </div>
                 </div>
