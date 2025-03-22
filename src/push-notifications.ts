@@ -15,14 +15,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-// Debug the current environment
-console.log("Current URL:", window.location.href);
-console.log("Expected SW URL:", `${window.location.origin}/firebase-messaging-sw.js`);
+
 
 // Function to request push notification permission and get token
 export const requestNotificationPermission = async () => {
   try {
-    console.log("Requesting notification permission...");
     
     // Check if browser supports notifications
     if (!("Notification" in window)) {
@@ -43,8 +40,7 @@ export const requestNotificationPermission = async () => {
     const swUrl = `${window.location.origin}/app.sosika/firebase-messaging-sw.js`;
     const swScope = `${window.location.origin}/app.sosika/`;
     
-    console.log("Registering service worker at:", swUrl);
-    console.log("With scope:", swScope);
+
     
     // Manually register the service worker first to debug any issues
     try {
@@ -57,8 +53,6 @@ export const requestNotificationPermission = async () => {
       // Continue anyway as getToken will try to register the SW again
     }
     
-    // Now get the FCM token
-    console.log("Getting FCM token...");
     const token = await getToken(messaging, {
       vapidKey: "BEC4ncuS652Wnb0J2QC2M2ylbtdpwHXj7NVEHrprgj1PcvHjZpo2jID6-YGKCXSy25P5mTrVWlJmzQhWIzoLJ_k",
       serviceWorkerRegistration: await navigator.serviceWorker.register('/app.sosika/firebase-messaging-sw.js')
