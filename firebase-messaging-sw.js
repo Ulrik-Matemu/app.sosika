@@ -1,8 +1,8 @@
 // Do NOT use import statements in service workers!
 // Use importScripts instead
 
-importScripts('https://www.gstatic.com/firebasejs/9.19.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.19.1/firebase-messaging-compat.js');
+importScripts("https://cdnjs.cloudflare.com/ajax/libs/firebase/10.0.0/firebase-app-compat.min.js");
+importScripts("https://cdnjs.cloudflare.com/ajax/libs/firebase/10.0.0/firebase-messaging-compat.min.js");
 
 // Initialize Firebase with your config
 firebase.initializeApp({
@@ -16,6 +16,17 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
+
+messaging.onMessage(function(payload) {
+  console.log("Received notification:", payload);
+  const notificationTitle = payload.notification.title || 'New Notification';
+  const notificationOptions = {
+    body: payload.notification.body || '',
+    icon: '/app.sosika/sosika.png' // Adjust path based on your icon location
+  };
+  
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+})
 
 // Handle background messages
 messaging.onBackgroundMessage(function(payload) {
