@@ -17,6 +17,22 @@ const messaging = getMessaging(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-
+export const onMessageListener = () =>
+  new Promise((resolve) => {
+    const messaging = getMessaging();
+    onMessage(messaging, (payload) => {
+      console.log("Foreground message received:", payload);
+      
+      // Optional: Show browser notification
+      if (Notification.permission === 'granted') {
+        new Notification(payload.notification?.title || 'New Notification', {
+          body: payload.notification?.body || '',
+          icon: payload.notification?.icon || undefined
+        });
+      }
+      
+      resolve(payload);
+    });
+  });
 
 export { messaging, getToken, onMessage, auth, provider, signInWithPopup };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import NotificationHandler from '../components/my-components/notification-handler';
 
 interface LoginFormData {
   email: string;
@@ -119,6 +120,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#2b2b2b] text-[#e7e7e7] flex flex-col">
+      <NotificationHandler />
       {/* Top wave decoration */}
       <div className="relative h-40 overflow-hidden">
         <svg className="absolute top-0 w-full" viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg">

@@ -4,6 +4,7 @@ import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshC
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
+import NotificationHandler from '../components/my-components/notification-handler';
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/tooltip";
 
 
@@ -347,6 +348,7 @@ const MenuExplorer = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
+            <NotificationHandler />
             <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-6 py-4">
                 <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
                 <div className="flex items-center gap-4">

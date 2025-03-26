@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
+import NotificationHandler from '../components/my-components/notification-handler';
 
 const WelcomePage: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -51,6 +52,7 @@ const WelcomePage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#2b2b2b] text-[#e7e7e7]">
+      <NotificationHandler />
       {/* Logo and Header */}
       <div className="py-8 px-6 flex justify-center items-center">
         <div className="flex items-center">
