@@ -37,8 +37,8 @@ export const requestNotificationPermission = async () => {
     }
     
     // For GitHub Pages, we need to specify the complete service worker URL and scope
-    const swUrl = `${window.location.origin}/app.sosika/firebase-messaging-sw.js`;
-    const swScope = `${window.location.origin}/app.sosika/`;
+    const swUrl = `${window.location.origin}/firebase-messaging-sw.js`;
+    const swScope = `${window.location.origin}/`;
     
 
     
@@ -55,7 +55,7 @@ export const requestNotificationPermission = async () => {
     
     const token = await getToken(messaging, {
       vapidKey: "BEC4ncuS652Wnb0J2QC2M2ylbtdpwHXj7NVEHrprgj1PcvHjZpo2jID6-YGKCXSy25P5mTrVWlJmzQhWIzoLJ_k",
-      serviceWorkerRegistration: await navigator.serviceWorker.register('/app.sosika/firebase-messaging-sw.js')
+      serviceWorkerRegistration: await navigator.serviceWorker.register('/firebase-messaging-sw.js')
     });
     
     console.log("FCM token received:", token);
