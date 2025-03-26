@@ -22,7 +22,7 @@ messaging.onMessage(function(payload) {
   const notificationTitle = payload.notification.title || 'New Notification';
   const notificationOptions = {
     body: payload.notification.body || '',
-    icon: '/app.sosika/sosika.png' // Adjust path based on your icon location
+    icon: '/sosika.png' // Adjust path based on your icon location
   };
   
   return self.registration.showNotification(notificationTitle, notificationOptions);
@@ -35,7 +35,7 @@ messaging.onBackgroundMessage(function(payload) {
   const notificationTitle = payload.notification.title || 'New Notification';
   const notificationOptions = {
     body: payload.notification.body || '',
-    icon: '/app.sosika/sosika.png' // Adjust path based on your icon location
+    icon: '/sosika.png' // Adjust path based on your icon location
   };
   
   return self.registration.showNotification(notificationTitle, notificationOptions);

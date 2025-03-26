@@ -44,7 +44,7 @@ export default defineConfig({
       "Cross-Origin-Embedder-Policy": "require-corp",
     },
     hmr: {
-      path: "/app.sosika/__hmr",
+      path: "/__hmr",
       protocol: "ws",
       clientPort: 5173,
     },
