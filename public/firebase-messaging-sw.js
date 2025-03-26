@@ -1,11 +1,7 @@
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
-// Do NOT use import statements in service workers!
-// Use importScripts instead
-
-importScripts("https://cdnjs.cloudflare.com/ajax/libs/firebase/10.0.0/firebase-app-compat.min.js");
-importScripts("https://cdnjs.cloudflare.com/ajax/libs/firebase/10.0.0/firebase-messaging-compat.min.js");
-
-// Initialize Firebase with your config
+// Initialize Firebase
 firebase.initializeApp({
   apiKey: "AIzaSyA_Jw-BGThGsqhB8_t5_AH6D9AL1YLCjK8",
   authDomain: "sosika-101.firebaseapp.com",
@@ -18,26 +14,15 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onMessage(function(payload) {
-  console.log("Received notification:", payload);
-  const notificationTitle = payload.notification.title || 'New Notification';
-  const notificationOptions = {
-    body: payload.notification.body || '',
-    icon: '/sosika.png' // Adjust path based on your icon location
-  };
-  
-  return self.registration.showNotification(notificationTitle, notificationOptions);
-})
+messaging.onBackgroundMessage((payload) => {
+  console.log("Received background notification:", payload);
 
-// Handle background messages
-messaging.onBackgroundMessage(function(payload) {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  
-  const notificationTitle = payload.notification.title || 'New Notification';
+  const notificationTitle = payload.notification.title || "New Notification";
   const notificationOptions = {
-    body: payload.notification.body || '',
-    icon: '/sosika.png' // Adjust path based on your icon location
+    body: payload.notification.body || "",
+    icon: "/sosika.png",
+    badge: "/sosika-badge.png" // Optional
   };
-  
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });

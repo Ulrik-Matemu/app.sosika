@@ -4,6 +4,7 @@ import './index.css'
 import { applyStoredTheme } from "./utils/theme.ts"
 import App from './App.tsx'
 
+
 applyStoredTheme();
 
 if ("serviceWorker" in navigator) {
