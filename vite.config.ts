@@ -9,27 +9,15 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
-      strategies: "generateSW", // Still using Workbox for caching
+      strategies: "injectManifest", // Changed from generateSW to injectManifest
+      srcDir: "src",
+      filename: "sw.js", // Your custom service worker file
       manifest: false, // Prevents automatic manifest generation
-      workbox: {
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.destination === "document",
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "html-cache",
-            },
-          },
-          {
-            urlPattern: ({ request }) =>
-              ["style", "script", "worker"].includes(request.destination),
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "assets-cache",
-            },
-          },
-        ],
-      },
+      injectManifest: {
+        injectionPoint: 'self.__WB_MANIFEST',
+        swSrc: './src/sw.js',  // Source service worker
+        swDest: 'dist/sw.js',  // Destination after build
+      }
     }),
   ],
   base: "/",
