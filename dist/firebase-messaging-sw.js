@@ -1,10 +1,8 @@
-// Do NOT use import statements in service workers!
-// Use importScripts instead
+const { type } = require("os");
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
-importScripts("https://cdnjs.cloudflare.com/ajax/libs/firebase/10.0.0/firebase-app-compat.min.js");
-importScripts("https://cdnjs.cloudflare.com/ajax/libs/firebase/10.0.0/firebase-messaging-compat.min.js");
-
-// Initialize Firebase with your config
+// Initialize Firebase
 firebase.initializeApp({
   apiKey: "AIzaSyA_Jw-BGThGsqhB8_t5_AH6D9AL1YLCjK8",
   authDomain: "sosika-101.firebaseapp.com",
@@ -16,27 +14,55 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
+messaging.onBackgroundMessage((payload) => {
+  console.log("Received background notification:", payload);
 
-messaging.onMessage(function(payload) {
-  console.log("Received notification:", payload);
-  const notificationTitle = payload.notification.title || 'New Notification';
+  const notificationTitle = payload.notification.title || "New Notification";
   const notificationOptions = {
-    body: payload.notification.body || '',
-    icon: '/sosika.png' // Adjust path based on your icon location
+    body: payload.notification.body || "",
+    icon: "/app.sosika/sosika.png"
   };
-  
-  return self.registration.showNotification(notificationTitle, notificationOptions);
-})
 
-// Handle background messages
-messaging.onBackgroundMessage(function(payload) {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  
-  const notificationTitle = payload.notification.title || 'New Notification';
-  const notificationOptions = {
-    body: payload.notification.body || '',
-    icon: '/sosika.png' // Adjust path based on your icon location
-  };
-  
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
+self.addEventListener("install", (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+const CACHE_NAME = "sosika-cache-v1";
+const ASSETS_TO_CACHE = ["/", "/index.html"];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => 
+      cache.addAll(ASSETS_TO_CACHE))
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => response ||
+    fetch(event.request))
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      if (clientList.length > 0) {
+        clientList[0].focus();
+      } else {
+        clients.openWindow("/");
+      }
+    })
+  );
+});
+
+
+
