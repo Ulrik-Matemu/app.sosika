@@ -20,7 +20,7 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification.title || "New Notification";
   const notificationOptions = {
     body: payload.notification.body || "",
-    icon: "/app.sosika/sosika.png"
+    icon: "/sosika.png"
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
