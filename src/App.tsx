@@ -44,7 +44,7 @@ function App() {
               
               // Get FCM token
               getToken(messaging, { 
-                vapidKey: 'YOUR_VAPID_KEY_HERE',
+                vapidKey: 'BEC4ncuS652Wnb0J2QC2M2ylbtdpwHXj7NVEHrprgj1PcvHjZpo2jID6-YGKCXSy25P5mTrVWlJmzQhWIzoLJ_k',
                 serviceWorkerRegistration: registration 
               }).then((token) => {
                 console.log('FCM Token:', token);
