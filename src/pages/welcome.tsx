@@ -50,6 +50,20 @@ const WelcomePage: React.FC = () => {
     setTimeout(() => setAnimating(false), 500);
   };
 
+  const autoLogin = async () => {
+    const email = localStorage.getItem('email');
+    const password = localStorage.getItem('password');
+
+    if (email && password) {
+      window.location.href = '#/login';
+    }
+    
+  }
+
+  useEffect(() => {
+    autoLogin();
+  })
+
   return (
     <div className="flex flex-col min-h-screen bg-[#2b2b2b] text-[#e7e7e7]">
       <NotificationHandler />
