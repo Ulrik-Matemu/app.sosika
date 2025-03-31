@@ -8,13 +8,59 @@ import OrderTracking from "./components/my-components/orderTracking";
 import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
 import "./App.css";
+import { initializeApp } from 'firebase/app';
+import { getMessaging, getToken } from 'firebase/messaging';
 import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct import
-import { requestNotificationPermission, listenForForegroundMessages } from './push-notifications'
+import {  listenForForegroundMessages } from './push-notifications'
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA_Jw-BGThGsqhB8_t5_AH6D9AL1YLCjK8",
+  authDomain: "sosika-101.firebaseapp.com",
+  projectId: "sosika-101",
+  storageBucket: "sosika-101.firebasestorage.app",
+  messagingSenderId: "827695672687",
+  appId: "1:827695672687:web:85ce347456339ccfd80c9a",
+  measurementId: "G-692C6RSH31"
+};
 
 function App() {
 
   useEffect(() => {
-      requestNotificationPermission();
+    const app = initializeApp(firebaseConfig);
+    
+    // Register Firebase service worker separately
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('Firebase Messaging SW registered successfully:', registration.scope);
+          
+          // Request notification permission
+          Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+              console.log('Notification permission granted.');
+              
+              // Get messaging instance
+              const messaging = getMessaging(app);
+              
+              // Get FCM token
+              getToken(messaging, { 
+                vapidKey: 'YOUR_VAPID_KEY_HERE',
+                serviceWorkerRegistration: registration 
+              }).then((token) => {
+                console.log('FCM Token:', token);
+                // Save token to server or local storage
+              }).catch((err) => {
+                console.error('Error getting token:', err);
+              });
+            } else {
+              console.log('Unable to get permission to notify.');
+            }
+          });
+        })
+        .catch((err) => {
+          console.error('Service Worker registration failed:', err);
+        });
+    }
 
       listenForForegroundMessages();
   }, []);
