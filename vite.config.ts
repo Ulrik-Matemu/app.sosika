@@ -32,7 +32,7 @@ export default defineConfig({
       },
     }),
   ],
-  base: "/",
+  base: "/app.sosika/",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
