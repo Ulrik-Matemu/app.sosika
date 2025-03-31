@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Utensils, DollarSign, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin } from 'lucide-react';
+import { Search, Utensils, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
@@ -349,7 +349,7 @@ const MenuExplorer = () => {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
-            <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-6 py-4">
+            <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-4 py-4">
                 <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
                 <div className="flex items-center gap-4">
                     <Tooltip open={showTooltip}>
@@ -411,33 +411,34 @@ const MenuExplorer = () => {
 
 
             <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
-                <div className="mb-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 " />
+                <div className="mb-4 flex justify-between">
+                    <div className="relative w-[85%]">
+                        <Search className="absolute left-3 top-5 -translate-y-1/2 h-5 w-5 text-gray-400 " />
                         <input
                             type="text"
                             placeholder="Search menu items..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-3xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all dark:bg-gray-500 dark:text-black"
+                            className="w-full h-10 pl-10 pr-4 py-3 rounded-3xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all dark:bg-gray-500 dark:text-black"
                         />
+                    </div>
+                    <div className="justify-right mb-1">
+                        <button
+                            onClick={resetFilters}
+                            className="text-sm text-[#00bfff] hover:text-blue-700  gap-1"
+                        >
+                            <RefreshCw className="h-10 w-10" />
+                        </button>
                     </div>
                 </div>
 
                 <div className="lg:grid lg:grid-cols-12 lg:gap-6">
                     {/* Filters Sidebar */}
                     <div className="lg:col-span-3 mb-6 lg:mb-0">
-                        <div className="dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]">
-                            <div className="justify-right mb-1">
-                                <button
-                                    onClick={resetFilters}
-                                    className="text-sm text-[#00bfff] hover:text-blue-700  gap-1"
-                                >
-                                    <RefreshCw className="h-4 w-4" />
-                                </button>
-                            </div>
+                        <div className="dark:bg-[#2b2b2b] p-0 rounded-xl  border border-[transparent] dark:border-[transparent]">
 
-                            <div className="space-y-6">
+
+                            <div className="space-y-4">
                                 <div>
                                     <div className="flex gap-4 overflow-x-auto py-2">
                                         {categories.map(({ label, value, icon: Icon }) => (
@@ -453,12 +454,12 @@ const MenuExplorer = () => {
                                         ))}
                                     </div>
                                 </div>
-                                <div className='flex justify-center overflow-auto h-full gap-2'>
-                                    <div className='w-full'>
+                                <div className='flex  overflow-auto h-full w-full gap-2'>
+                                    <div className=''>
                                         <select
                                             value={vendorFilter}
                                             onChange={(e) => setVendorFilter(e.target.value)}
-                                            className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
+                                            className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a] w-48"
                                         >
                                             <option value="">All Vendors</option>
                                             {vendors.map(vendorId => (
@@ -466,11 +467,11 @@ const MenuExplorer = () => {
                                             ))}
                                         </select>
                                     </div>
-                                    <div className='w-full'>
+                                    <div className=''>
                                         <select
                                             value={sortOption}
                                             onChange={(e) => setSortOption(e.target.value as "name-asc" | "name-desc" | "price-asc" | "price-desc")}
-                                            className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
+                                            className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a] w-48"
                                         >
                                             <option value="name-asc">Name (A-Z)</option>
                                             <option value="name-desc">Name (Z-A)</option>
@@ -480,33 +481,9 @@ const MenuExplorer = () => {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1 dark:text-white">
-                                        <DollarSign className="h-4 w-4 dark:text-white" />
-                                        Price Range (${priceRange.min} - ${priceRange.max})
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max={Math.max(...menuItems.map(item => parseFloat(item.price)))}
-                                        value={priceRange.max}
-                                        onChange={(e) => setPriceRange({ ...priceRange, max: parseFloat(e.target.value) })}
-                                        className="w-full mt-2"
-                                    />
-                                </div>
 
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        type="checkbox"
-                                        id="availableOnly"
-                                        checked={availableOnly}
-                                        onChange={(e) => setAvailableOnly(e.target.checked)}
-                                        className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
-                                    />
-                                    <label htmlFor="availableOnly" className="text-sm text-gray-700 dark:text-white">
-                                        Show available only
-                                    </label>
-                                </div>
+
+
                             </div>
                         </div>
                     </div>

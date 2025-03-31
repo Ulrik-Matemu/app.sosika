@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      injectRegister: "script",
       strategies: "generateSW", // Changed back to generateSW
       manifest: false,
       workbox: {
