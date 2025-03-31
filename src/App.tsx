@@ -8,10 +8,10 @@ import OrderTracking from "./components/my-components/orderTracking";
 import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
 import "./App.css";
-import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken } from 'firebase/messaging';
+import { getToken } from 'firebase/messaging';
 import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct import
 import {  listenForForegroundMessages } from './push-notifications'
+import { messaging } from "./firebase";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA_Jw-BGThGsqhB8_t5_AH6D9AL1YLCjK8",
@@ -26,41 +26,48 @@ const firebaseConfig = {
 function App() {
 
   useEffect(() => {
-    const app = initializeApp(firebaseConfig);
-    
-    // Register Firebase service worker separately
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then((registration) => {
-          console.log('Firebase Messaging SW registered successfully:', registration.scope);
+    async function setupPushNotifications() {
+      try {
+        // Check if service workers are supported
+        if ('serviceWorker' in navigator) {
+          // First, unregister any existing firebase-messaging-sw.js
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            if (registration.scope.includes('firebase-messaging-sw.js')) {
+              await registration.unregister();
+              console.log('Unregistered old Firebase service worker');
+            }
+          }
+          
+          // Register Firebase messaging service worker
+          console.log('Attempting to register Firebase messaging service worker...');
+          const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+          console.log('Firebase messaging service worker registered:', registration.scope);
           
           // Request notification permission
-          Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-              console.log('Notification permission granted.');
-              
-              // Get messaging instance
-              const messaging = getMessaging(app);
-              
-              // Get FCM token
-              getToken(messaging, { 
-                vapidKey: 'BEC4ncuS652Wnb0J2QC2M2ylbtdpwHXj7NVEHrprgj1PcvHjZpo2jID6-YGKCXSy25P5mTrVWlJmzQhWIzoLJ_k',
-                serviceWorkerRegistration: registration 
-              }).then((token) => {
-                console.log('FCM Token:', token);
-                // Save token to server or local storage
-              }).catch((err) => {
-                console.error('Error getting token:', err);
-              });
-            } else {
-              console.log('Unable to get permission to notify.');
-            }
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            throw new Error('Notification permission not granted');
+          }
+          
+          // Get FCM token with the registered service worker
+          const vapidKey = 'BEC4ncuS652Wnb0J2QC2M2ylbtdpwHXj7NVEHrprgj1PcvHjZpo2jID6-YGKCXSy25P5mTrVWlJmzQhWIzoLJ_k';
+          console.log('Getting FCM token with VAPID key:', vapidKey);
+          
+          const token = await getToken(messaging, {
+            vapidKey: vapidKey,
+            serviceWorkerRegistration: registration
           });
-        })
-        .catch((err) => {
-          console.error('Service Worker registration failed:', err);
-        });
+          
+          console.log('FCM Token:', token);
+          // Save this token to your server for sending notifications
+        }
+      } catch (error) {
+        console.error('Error setting up push notifications:', error);
+      }
     }
+    
+    setupPushNotifications();
 
       listenForForegroundMessages();
   }, []);

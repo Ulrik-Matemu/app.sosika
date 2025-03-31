@@ -1,7 +1,8 @@
+// firebase-messaging-sw.js
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
-// Initialize Firebase
+// Initialize Firebase with your config
 firebase.initializeApp({
   apiKey: "AIzaSyA_Jw-BGThGsqhB8_t5_AH6D9AL1YLCjK8",
   authDomain: "sosika-101.firebaseapp.com",
@@ -12,51 +13,42 @@ firebase.initializeApp({
   measurementId: "G-692C6RSH31"
 });
 
+// Get Firebase Messaging instance
 const messaging = firebase.messaging();
 
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
-  console.log("[sw.js] Received background message ", payload);
+  console.log("[firebase-messaging-sw.js] Received background message:", payload);
   
-  // Check if payload contains notification data
   const notificationTitle = payload.notification?.title || payload.data?.title || "New Notification";
   const notificationBody = payload.notification?.body || payload.data?.body || "";
   const notificationIcon = payload.notification?.icon || payload.data?.icon || "/sosika.png";
   
-  const notificationOptions = {
+  return self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: notificationIcon,
     data: payload.data || {}
-  };
-
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+  });
 });
 
+// Install event - immediately activate the service worker
 self.addEventListener("install", (event) => {
-  console.log("[sw.js] Service Worker installing");
+  console.log("[firebase-messaging-sw.js] Installing Firebase messaging service worker");
   self.skipWaiting();
 });
 
+// Activate event - claim clients so the SW is in control
 self.addEventListener("activate", (event) => {
-  console.log("[sw.js] Service Worker activating");
+  console.log("[firebase-messaging-sw.js] Activating Firebase messaging service worker");
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
-});
-
+// Handle notification clicks
 self.addEventListener("notificationclick", (event) => {
-  console.log("[sw.js] Notification clicked", event);
+  console.log("[firebase-messaging-sw.js] Notification clicked");
   event.notification.close();
   
-  // Add custom data handling if present
-  const data = event.notification.data;
-  const url = data?.url || '/';
+  const url = event.notification.data?.url || '/';
   
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
@@ -69,28 +61,4 @@ self.addEventListener("notificationclick", (event) => {
       return clients.openWindow(url);
     })
   );
-});
-
-// Add push event listener to handle incoming push events
-self.addEventListener('push', (event) => {
-  console.log('[sw.js] Push received', event);
-  
-  if (!event.data) {
-    console.log('[sw.js] Push event but no data');
-    return;
-  }
-  
-  try {
-    const data = event.data.json();
-    const title = data.notification?.title || data.title || 'New Message';
-    const options = {
-      body: data.notification?.body || data.body || '',
-      icon: data.notification?.icon || data.icon || '/sosika.png',
-      data: data.data || data
-    };
-    
-    event.waitUntil(self.registration.showNotification(title, options));
-  } catch (e) {
-    console.error('[sw.js] Error showing notification', e);
-  }
 });
