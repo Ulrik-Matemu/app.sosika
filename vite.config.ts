@@ -9,7 +9,6 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
-      strategies: "generateSW", // Still using Workbox for caching
       manifest: false, // Prevents automatic manifest generation
       workbox: {
         runtimeCaching: [
