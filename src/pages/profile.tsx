@@ -17,6 +17,12 @@ interface UserProfile {
     custom_address: string;
 }
 
+const logout = () => {
+    localStorage.removeItem('email');
+    localStorage.removeItem('password');
+    window.location.href = '#/login';
+}
+
 const ProfileManagement = () => {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -191,6 +197,11 @@ const ProfileManagement = () => {
                             </div>
                         </div>
                     )}
+                </div>
+                <div className='my-8 flex justify-center bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
+                    <button className='text-3xl text-[red] font-bold' onClick={logout}>
+                        Logout
+                    </button>
                 </div>
             </div>
 

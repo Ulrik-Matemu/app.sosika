@@ -62,7 +62,6 @@ const LoginPage: React.FC = () => {
     const password = localStorage.getItem('password');
   
     if (!email || !password) {
-      alert('Email or password is missing.');
       return;
     }
   
