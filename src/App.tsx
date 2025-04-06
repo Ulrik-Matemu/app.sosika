@@ -51,6 +51,7 @@ function App() {
           });
           
           console.log('FCM Token:', token);
+          localStorage.setItem('fcmToken', token);
           // Save this token to your server for sending notifications
         }
       } catch (error) {

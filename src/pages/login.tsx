@@ -74,7 +74,6 @@ const LoginPage: React.FC = () => {
         body: JSON.stringify({
           email,
           password,
-          fcmToken: localStorage.getItem('fcmToken'),
         }),
       });
   
@@ -119,7 +118,6 @@ const LoginPage: React.FC = () => {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          fcmToken: localStorage.getItem('fcmToken'),
         }),
       });
 

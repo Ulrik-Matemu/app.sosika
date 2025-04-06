@@ -48,6 +48,35 @@ const categories = [
     { label: "Drinks", value: "drinks", icon: GlassWater },
 ];
 
+
+const submitFcmToken = async (fcmToken: string) => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+        console.error("User ID not found");
+        return;
+    }
+
+    try {
+        const response = await axios.post("https://sosika-backend.onrender.com/api/auth/fcm-token", {
+            userId,
+            fcmToken,
+        }, {
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        console.log("FCM token updated successfully:", response.data);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error updating FCM token:", error.response?.data || error.message);
+        } else {
+            console.error("Unexpected error:", error);
+        }
+    }
+}
+
+
 const MenuExplorer = () => {
     // State for menu items and filters
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -345,6 +374,13 @@ const MenuExplorer = () => {
             </div>
         );
     }
+
+    useEffect(() => {
+        const fcmToken = localStorage.getItem("fcmToken");
+        if (fcmToken) {
+            submitFcmToken(fcmToken);
+        }
+    });
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
