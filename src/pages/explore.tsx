@@ -105,6 +105,13 @@ const MenuExplorer = () => {
     const [vendors, setVendors] = useState<number[]>([]);
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
 
+    useEffect(() => {
+        const fcmToken = localStorage.getItem("fcmToken");
+        if (fcmToken) {
+            submitFcmToken(fcmToken);
+        }
+    }, []);
+
     const handleSelectLocation = async (location: { name: string; lat: number; lng: number }) => {
         const userId = localStorage.getItem("userId");
         if (!userId) {
@@ -375,13 +382,7 @@ const MenuExplorer = () => {
         );
     }
 
-    useEffect(() => {
-        const fcmToken = localStorage.getItem("fcmToken");
-        if (fcmToken) {
-            submitFcmToken(fcmToken);
-        }
-    });
-
+    
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
