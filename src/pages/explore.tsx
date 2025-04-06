@@ -18,6 +18,8 @@ const predefinedLocations = [
     { name: "Shumbusho", lat: -3.418037404417581, lng: 36.71300246986059 }
 ];
 
+
+
 // Define interfaces for menu items and vendor data
 interface MenuItem {
     id: number;
@@ -141,6 +143,29 @@ const MenuExplorer = () => {
                 console.error("Unexpected error:", error);
             }
         }
+    };
+
+    const addCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+            return;
+        }
+    
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                const currentLocation = {
+                    name: "Current Location",
+                    lat: latitude,
+                    lng: longitude,
+                };
+                handleSelectLocation(currentLocation);
+            },
+            (error) => {
+                console.error("Error fetching location:", error);
+                alert("Unable to fetch your location. Please try again.");
+            }
+        );
     };
 
 
@@ -441,6 +466,12 @@ const MenuExplorer = () => {
                                     {location.name}
                                 </li>
                             ))}
+                            <li
+                                onClick={addCurrentLocation}
+                                className="p-2 rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-blue-500 font-medium"
+                            >
+                                Use My Current Location
+                            </li>
                         </ul>
                     </div>
                 </div>
