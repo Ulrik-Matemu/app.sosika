@@ -6,6 +6,17 @@ import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
 import NotificationHandler from '../components/my-components/notification-handler';
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/tooltip";
+import Autoplay from "embla-carousel-autoplay"
+import { Card, CardContent } from "../components/ui/card";
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+  } from "../components/ui/carousel";
+import React from 'react';
+
 
 
 
@@ -17,6 +28,66 @@ const predefinedLocations = [
     { name: "Jackson Hostel", lat: -3.4158120478706007, lng: 36.713987296139855 },
     { name: "Shumbusho", lat: -3.418037404417581, lng: 36.71300246986059 }
 ];
+
+const specialOffers = [
+  {
+    image: "/icons/1.png",
+    title: "Buy 1 Get 1 Free!",
+    description: "Available this weekend only."
+  },
+  {
+    image: "/icons/2.png",
+    title: "Buy 1 Get 1 Free!",
+    description: "Available this weekend only."
+  },
+  {
+    image: "/icons/3.png",
+    title: "Buy 1 Get 1 Free!",
+    description: "Available this weekend only."
+  },
+  {
+    image: "/icons/4.png",
+    title: "Buy 1 Get 1 Free!",
+    description: "Available this weekend only."
+  },
+]
+
+ function CarouselPlugin() {
+    const plugin = React.useRef(
+      Autoplay({ delay: 4000, stopOnInteraction: false })
+    )
+  
+    return (
+      <Carousel
+        plugins={[plugin.current]}
+        className="w-full"
+        onMouseEnter={plugin.current.stop}
+        onMouseLeave={plugin.current.reset}
+        opts={{
+          align: "start",
+          loop: true
+        }}
+      >
+        <CarouselContent>
+          {specialOffers.map((item, index) => (
+            <CarouselItem key={index}>
+              <div className="p-2">
+                <Card>
+                  <CardContent className="p-0">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full  object-cover rounded-lg"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+    )
+  }
 
 
 
@@ -151,7 +222,7 @@ const MenuExplorer = () => {
             alert("Geolocation is not supported by your browser.");
             return;
         }
-    
+
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
@@ -408,7 +479,7 @@ const MenuExplorer = () => {
         );
     }
 
-    
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
@@ -491,6 +562,7 @@ const MenuExplorer = () => {
                             className="w-full h-10 pl-10 pr-4 py-3 rounded-3xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all dark:bg-gray-500 dark:text-black"
                         />
                     </div>
+                    
                     <div className="justify-right mb-1">
                         <button
                             onClick={resetFilters}
@@ -500,6 +572,8 @@ const MenuExplorer = () => {
                         </button>
                     </div>
                 </div>
+
+                <CarouselPlugin />
 
                 <div className="lg:grid lg:grid-cols-12 lg:gap-6">
                     {/* Filters Sidebar */}
@@ -557,194 +631,196 @@ const MenuExplorer = () => {
                         </div>
                     </div>
 
+                    
+
                     {/* Results */}
                     <div className="lg:col-span-9 mb-8">
-    <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-600 font-bold dark:text-white">
-            Showing {filteredItems.length} of {menuItems.length} items
-        </p>
-        <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-            <button
-                onClick={() => setLayout('grid')}
-                className={`p-1.5 rounded-md ${layout === 'grid' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
-                title="Grid view"
-            >
-                <LayoutGrid className="h-4 w-4" />
-            </button>
-            <button
-                onClick={() => setLayout('list')}
-                className={`p-1.5 rounded-md ${layout === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
-                title="List view"
-            >
-                <List className="h-4 w-4" />
-            </button>
-            <button
-                onClick={() => setLayout('compact')}
-                className={`p-1.5 rounded-md ${layout === 'compact' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
-                title="Compact view"
-            >
-                <Columns className="h-4 w-4" />
-            </button>
-        </div>
-    </div>
-
-    {filteredItems.length > 0 ? (
-        <>
-            {layout === 'grid' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:mb-12">
-                    {filteredItems.map((item) => (
-                        <div
-                            key={item.id}
-                            className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
-                        >
-                            <div className="relative aspect-square rounded-t-xl overflow-hidden">
-                                {item.image_url ? (
-                                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                        <ImageIcon className="h-12 w-12 text-gray-400" />
-                                    </div>
-                                )}
-                                {!item.is_available && (
-                                    <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                                        <X className="h-3 w-3" />
-                                        Unavailable
-                                    </div>
-                                )}
-                                <div className="absolute bottom-2 left-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                                    {item.category}
-                                </div>
-                            </div>
-                            <div className="p-4">
-                                <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
-                                    {item.description || "No description available"}
-                                </p>
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
-                                        Vendor #{item.vendor_id}
-                                    </span>
-                                    <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
-                                </div>
+                        <div className="mb-4 flex items-center justify-between">
+                            <p className="text-sm text-gray-600 font-bold dark:text-white">
+                                Showing {filteredItems.length} of {menuItems.length} items
+                            </p>
+                            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                                 <button
-                                    onClick={() => addToCart(item)}
-                                    disabled={!item.is_available}
-                                    className="w-full bg-[#00bfff] text-white py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                    onClick={() => setLayout('grid')}
+                                    className={`p-1.5 rounded-md ${layout === 'grid' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
+                                    title="Grid view"
                                 >
-                                    {item.is_available ? "Add to Cart" : "Unavailable"}
+                                    <LayoutGrid className="h-4 w-4" />
+                                </button>
+                                <button
+                                    onClick={() => setLayout('list')}
+                                    className={`p-1.5 rounded-md ${layout === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
+                                    title="List view"
+                                >
+                                    <List className="h-4 w-4" />
+                                </button>
+                                <button
+                                    onClick={() => setLayout('compact')}
+                                    className={`p-1.5 rounded-md ${layout === 'compact' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
+                                    title="Compact view"
+                                >
+                                    <Columns className="h-4 w-4" />
                                 </button>
                             </div>
                         </div>
-                    ))}
-                </div>
-            )}
 
-            {layout === 'list' && (
-                <div className="flex flex-col gap-4 md:mb-12">
-                    {filteredItems.map((item) => (
-                        <div
-                            key={item.id}
-                            className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex ${!item.is_available ? "opacity-70" : ""}`}
-                        >
-                            <div className="relative h-32 w-32 rounded-l-xl overflow-hidden flex-shrink-0">
-                                {item.image_url ? (
-                                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                        <ImageIcon className="h-8 w-8 text-gray-400" />
-                                    </div>
-                                )}
-                                {!item.is_available && (
-                                    <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                                        <X className="h-3 w-3" />
-                                        Unavailable
-                                    </div>
-                                )}
-                            </div>
-                            <div className="p-4 flex-grow flex flex-col justify-between">
-                                <div>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
-                                            <div className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium mb-2">
-                                                {item.category}
+                        {filteredItems.length > 0 ? (
+                            <>
+                                {layout === 'grid' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:mb-12">
+                                        {filteredItems.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
+                                            >
+                                                <div className="relative aspect-square rounded-t-xl overflow-hidden">
+                                                    {item.image_url ? (
+                                                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                            <ImageIcon className="h-12 w-12 text-gray-400" />
+                                                        </div>
+                                                    )}
+                                                    {!item.is_available && (
+                                                        <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                                                            <X className="h-3 w-3" />
+                                                            Unavailable
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute bottom-2 left-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                                        {item.category}
+                                                    </div>
+                                                </div>
+                                                <div className="p-4">
+                                                    <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
+                                                        {item.description || "No description available"}
+                                                    </p>
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
+                                                            Vendor #{item.vendor_id}
+                                                        </span>
+                                                        <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => addToCart(item)}
+                                                        disabled={!item.is_available}
+                                                        className="w-full bg-[#00bfff] text-white py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                    >
+                                                        {item.is_available ? "Add to Cart" : "Unavailable"}
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                        ))}
                                     </div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                                        {item.description || "No description available"}
-                                    </p>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
-                                        Vendor #{item.vendor_id}
-                                    </span>
-                                    <button
-                                        onClick={() => addToCart(item)}
-                                        disabled={!item.is_available}
-                                        className="bg-[#00bfff] text-white px-4 py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                    >
-                                        {item.is_available ? "Add to Cart" : "Unavailable"}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                                )}
 
-            {layout === 'compact' && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:mb-12">
-                    {filteredItems.map((item) => (
-                        <div
-                            key={item.id}
-                            className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
-                        >
-                            <div className="relative aspect-video rounded-t-xl overflow-hidden">
-                                {item.image_url ? (
-                                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                                {layout === 'list' && (
+                                    <div className="flex flex-col gap-4 md:mb-12">
+                                        {filteredItems.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex ${!item.is_available ? "opacity-70" : ""}`}
+                                            >
+                                                <div className="relative h-32 w-32 rounded-l-xl overflow-hidden flex-shrink-0">
+                                                    {item.image_url ? (
+                                                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                            <ImageIcon className="h-8 w-8 text-gray-400" />
+                                                        </div>
+                                                    )}
+                                                    {!item.is_available && (
+                                                        <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                                                            <X className="h-3 w-3" />
+                                                            Unavailable
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="p-4 flex-grow flex flex-col justify-between">
+                                                    <div>
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
+                                                                <div className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium mb-2">
+                                                                    {item.category}
+                                                                </div>
+                                                            </div>
+                                                            <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                                            {item.description || "No description available"}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
+                                                            Vendor #{item.vendor_id}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => addToCart(item)}
+                                                            disabled={!item.is_available}
+                                                            className="bg-[#00bfff] text-white px-4 py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                        >
+                                                            {item.is_available ? "Add to Cart" : "Unavailable"}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
-                                {!item.is_available && (
-                                    <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-1 py-0.5 rounded-full text-xs font-medium flex items-center gap-0.5">
-                                        <X className="h-2 w-2" />
-                                        Unavailable
+
+                                {layout === 'compact' && (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:mb-12">
+                                        {filteredItems.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
+                                            >
+                                                <div className="relative aspect-video rounded-t-xl overflow-hidden">
+                                                    {item.image_url ? (
+                                                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                            <ImageIcon className="h-8 w-8 text-gray-400" />
+                                                        </div>
+                                                    )}
+                                                    {!item.is_available && (
+                                                        <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-1 py-0.5 rounded-full text-xs font-medium flex items-center gap-0.5">
+                                                            <X className="h-2 w-2" />
+                                                            Unavailable
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="p-3">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-medium">
+                                                            {item.category}
+                                                        </span>
+                                                        <span className="text-sm font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                    </div>
+                                                    <h3 className="font-bold text-gray-900 dark:text-gray-200 text-sm mb-1 line-clamp-1">{item.name}</h3>
+                                                    <button
+                                                        onClick={() => addToCart(item)}
+                                                        disabled={!item.is_available}
+                                                        className="w-full bg-[#00bfff] text-white py-1 text-sm rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                    >
+                                                        {item.is_available ? "Add to Cart" : "Unavailable"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
+                            </>
+                        ) : (
+                            <div className="text-center py-12">
+                                <Frown className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
+                                <p className="text-gray-500">Try adjusting your filters or search terms</p>
                             </div>
-                            <div className="p-3">
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-medium">
-                                        {item.category}
-                                    </span>
-                                    <span className="text-sm font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
-                                </div>
-                                <h3 className="font-bold text-gray-900 dark:text-gray-200 text-sm mb-1 line-clamp-1">{item.name}</h3>
-                                <button
-                                    onClick={() => addToCart(item)}
-                                    disabled={!item.is_available}
-                                    className="w-full bg-[#00bfff] text-white py-1 text-sm rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                >
-                                    {item.is_available ? "Add to Cart" : "Unavailable"}
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </>
-    ) : (
-        <div className="text-center py-12">
-            <Frown className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
-            <p className="text-gray-500">Try adjusting your filters or search terms</p>
-        </div>
-    )}
-</div>
+                        )}
+                    </div>
                 </div>
             </div>
 
