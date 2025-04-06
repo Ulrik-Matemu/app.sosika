@@ -75,6 +75,7 @@ const specialOffers = [
                     <img
                       src={item.image}
                       alt={item.title}
+                      loading="lazy"
                       className="w-full  object-cover rounded-lg"
                     />
                   </CardContent>
@@ -643,7 +644,7 @@ const MenuExplorer = () => {
                                     className={`p-1.5 rounded-md ${layout === 'grid' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
                                     title="Grid view"
                                 >
-                                    <LayoutGrid className="h-4 w-4" />
+                                    <Columns className="h-4 w-4" />
                                 </button>
                                 <button
                                     onClick={() => setLayout('list')}
@@ -657,7 +658,7 @@ const MenuExplorer = () => {
                                     className={`p-1.5 rounded-md ${layout === 'compact' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
                                     title="Compact view"
                                 >
-                                    <Columns className="h-4 w-4" />
+                                    <LayoutGrid className="h-4 w-4" />
                                 </button>
                             </div>
                         </div>
