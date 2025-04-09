@@ -1,214 +1,221 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap
+} from "react-leaflet";
 import { useParams } from "react-router-dom";
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { Loader2Icon, MapPinIcon, NavigationIcon } from 'lucide-react';
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import {
+  Loader2Icon,
+  MapPinIcon,
+  NavigationIcon
+} from "lucide-react";
 
-// Custom icon creation function
-const createCustomIcon = (color: string) => {
-    const svgIcon = L.divIcon({
-        className: 'custom-marker-icon',
-        html: `
-            <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                width="32" 
-                height="32" 
-                fill="${color}"
-                stroke="white"
-                stroke-width="2"
-            >
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                <circle cx="12" cy="10" r="3" fill="white" stroke="${color}" stroke-width="2" />
-            </svg>
-        `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -32]
-    });
+// Helper to create a custom map icon
+const createCustomIcon = (color: string) =>
+  L.divIcon({
+    className: "custom-marker-icon",
+    html: `
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        width="32" 
+        height="32" 
+        fill="${color}"
+        stroke="white"
+        stroke-width="2"
+      >
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+        <circle cx="12" cy="10" r="3" fill="white" stroke="${color}" stroke-width="2" />
+      </svg>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
 
-    return svgIcon;
+// Sub-component to automatically zoom map to include both markers
+const LocationTracker: React.FC<{
+  userLocation: { lat: number; lng: number };
+  deliveryLocation: { lat: number; lng: number };
+}> = ({ userLocation, deliveryLocation }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    const bounds = L.latLngBounds(
+      [userLocation.lat, userLocation.lng],
+      [deliveryLocation.lat, deliveryLocation.lng]
+    );
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }, [userLocation, deliveryLocation, map]);
+
+  return null;
 };
 
 const OrderTracking: React.FC = () => {
-    const [orderStatus, setOrderStatus] = useState<string>("Pending");
-    const [deliveryLocation, setDeliveryLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const { orderId } = useParams<{ orderId: string }>();
+  const { orderId } = useParams<{ orderId: string }>();
 
+  const [orderStatus, setOrderStatus] = useState<string>("Pending");
+  const [deliveryLocation, setDeliveryLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-    // Calculate progress percentage
+  // Fetch order details
+  useEffect(() => {
+    let isMounted = true;
 
-    // Location tracking component
-    const LocationTracker = () => {
-        const map = useMap();
+    const fetchOrderStatus = async () => {
+      if (!orderId) {
+        setError("Invalid Order ID.");
+        setIsLoading(false);
+        return;
+      }
 
-        useEffect(() => {
-            // Fetch user location from backend
-            const fetchUserLocation = async () => {
-                const userId = localStorage.getItem('userId');
-                try {
-                    const response = await axios.get(`https://sosika-backend.onrender.com/api/auth/users/location`, {
-                        timeout: 10000, // 10 second timeout
-                        params: { userId }
-                    });
-                    setUserLocation(response.data.custom_address);
-                } catch (error) {
-                    console.error("Error fetching user location:", error);
-                }
-            };
+      try {
+        setIsLoading(true);
+        const { data } = await axios.get(
+          `https://sosika-backend.onrender.com/api/orders/${orderId}/status`,
+          { timeout: 10000 }
+        );
 
-            fetchUserLocation();
-
-            // Fit bounds to include both delivery and user locations
-            if (deliveryLocation && userLocation) {
-                const bounds = L.latLngBounds(
-                    [deliveryLocation.lat, deliveryLocation.lng],
-                    [userLocation.lat, userLocation.lng]
-                );
-                map.fitBounds(bounds, { padding: [50, 50] });
-            }
-        }, [deliveryLocation, userLocation, map]);
-
-        return null;
+        if (isMounted) {
+          setOrderStatus(data.status || "Pending");
+          setDeliveryLocation(data.delivery_location);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("Order status error:", err);
+        if (isMounted) setError("Failed to fetch order status. Please try again.");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
     };
 
-    // Fetch order status
-    useEffect(() => {
-        let isMounted = true;
-        const fetchOrderStatus = async () => {
-            if (!orderId) {
-                setError("Invalid Order ID");
-                setIsLoading(false);
-                return;
-            }
+    fetchOrderStatus();
+    const interval = setInterval(fetchOrderStatus, 10000);
 
-            try {
-                setIsLoading(true);
-                const response = await axios.get(`https://sosika-backend.onrender.com/api/orders/${orderId}/status`, {
-                    timeout: 10000 // 10 second timeout
-                });
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [orderId]);
 
-                if (isMounted) {
-                    setOrderStatus(response.data.status || "Pending");
-                    setDeliveryLocation(response.data.delivery_location);
-                    setError(null);
-                }
-            } catch (error) {
-                if (isMounted) {
-                    console.error("Error fetching order status:", error);
-                    setError("Unable to fetch order status. Please try again.");
-                }
-            } finally {
-                if (isMounted) {
-                    setIsLoading(false);
-                }
-            }
-        };
+  // Fetch user location from backend
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
 
-        fetchOrderStatus();
-        const interval = setInterval(fetchOrderStatus, 10000);
+        const { data } = await axios.get(
+          `https://sosika-backend.onrender.com/api/auth/users/location`,
+          {
+            timeout: 10000,
+            params: { userId }
+          }
+        );
 
-        return () => {
-            isMounted = false;
-            clearInterval(interval);
-        };
-    }, [orderId]);
-
-    // Get user's location
-    useEffect(() => {
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setUserLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    });
-                },
-                (error) => {
-                    console.error("Error getting location:", error);
-                }
-            );
+        if (data?.custom_address) {
+          setUserLocation(data.custom_address);
         }
-    }, []);
+      } catch (err) {
+        console.error("User location error:", err);
+      }
+    };
 
-    // Render error state
-    if (error) {
-        return (
-            <div className="max-w-md mx-auto p-4 bg-red-50 text-red-600 text-center">
-                <MapPinIcon className="mx-auto mb-4" size={48} />
-                <p>{error}</p>
-            </div>
-        );
+    fetchUserLocation();
+
+    // Optional: fallback to browser geolocation
+    if ("geolocation" in navigator && !userLocation) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          setUserLocation({ lat: coords.latitude, lng: coords.longitude });
+        },
+        (err) => {
+          console.error("Geolocation error:", err);
+        }
+      );
     }
+  }, []);
 
-    // Render loading state
-    if (isLoading) {
-        return (
-            <div className="max-w-md mx-auto p-4 flex justify-center items-center">
-                <Loader2Icon className="animate-spin" size={48} />
-            </div>
-        );
-    }
-
-    // Order status progress bar
-
+  if (error) {
     return (
-        <div className="max-w-md mx-auto p-4 bg-white shadow-md rounded-lg">
-            <h2 className="text-lg text-black font-bold text-center mb-4">Your Order</h2>
-            
-            {/* Order Status Progress */}
-           
-
-            {(deliveryLocation && userLocation) && (
-                <MapContainer 
-                    center={[
-                        (deliveryLocation.lat + userLocation.lat) / 2, 
-                        (deliveryLocation.lng + userLocation.lng) / 2
-                    ]} 
-                    zoom={12} 
-                    className="h-64 w-full rounded-lg overflow-hidden shadow-md"
-                >
-                    <LocationTracker />
-                    <TileLayer 
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
-                    {/* Delivery Location Marker */}
-                    <Marker 
-                        position={[deliveryLocation.lat, deliveryLocation.lng]}
-                        icon={createCustomIcon('blue')}
-                    >
-                        <Popup>Delivery Location 🚚</Popup>
-                    </Marker>
-                    
-                    {/* User Location Marker */}
-                    <Marker 
-                        position={[userLocation.lat, userLocation.lng]}
-                        icon={createCustomIcon('green')}
-                    >
-                        <Popup>Your Location 📍</Popup>
-                    </Marker>
-                </MapContainer>
-            )}
-
-            <div className="flex justify-between mt-4 text-gray-600">
-                <p>
-                    Status: <span className="font-bold text-green-600">{orderStatus}</span>
-                </p>
-                {userLocation && (
-                    <p className="flex items-center">
-                        <NavigationIcon size={16} className="mr-2 text-blue-500" />
-                        Location Tracked
-                    </p>
-                )}
-            </div>
-        </div>
+      <div className="max-w-md mx-auto p-4 bg-red-50 text-red-600 text-center">
+        <MapPinIcon className="mx-auto mb-4" size={48} />
+        <p>{error}</p>
+      </div>
     );
+  }
+
+  if (isLoading) {
+    return (
+        <div className="flex flex-col justify-center items-center h-screen bg-black text-gray-400">
+        <Loader2Icon size={48} className="animate-spin text-blue-400 mb-4" />
+        <p className="text-sm">Connecting to your order...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-screen overflow-hidden">
+  {(userLocation && deliveryLocation) && (
+    <MapContainer
+      center={[
+        (userLocation.lat + deliveryLocation.lat) / 2,
+        (userLocation.lng + deliveryLocation.lng) / 2
+      ]}
+      zoom={13}
+      className="absolute top-0 left-0 w-full h-full z-0"
+    >
+      <LocationTracker userLocation={userLocation} deliveryLocation={deliveryLocation} />
+
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      />
+
+      <Marker position={[deliveryLocation.lat, deliveryLocation.lng]} icon={createCustomIcon("deepskyblue")}>
+        <Popup className="font-semibold text-sm text-blue-700">Delivery Location 🚚</Popup>
+      </Marker>
+
+      <Marker position={[userLocation.lat, userLocation.lng]} icon={createCustomIcon("limegreen")}>
+        <Popup className="font-semibold text-sm text-green-700">Your Location 📍</Popup>
+      </Marker>
+    </MapContainer>
+  )}
+
+  {/* Floating Card */}
+  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] sm:w-[400px] bg-black/70 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl text-white px-6 py-5 z-10 animate-fade-in-up">
+    <h2 className="text-lg sm:text-xl font-bold mb-2 tracking-wide">Tracking Your Order</h2>
+
+    <div className="flex justify-between items-center mb-4">
+      <span className="text-sm text-gray-300">Status</span>
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-medium
+          ${orderStatus === "Pending"
+            ? "bg-yellow-600/20 text-yellow-400 animate-pulse"
+            : "bg-green-600/20 text-green-400 animate-bounce"}`}
+      >
+        {orderStatus}
+      </span>
+    </div>
+
+    {userLocation && (
+      <div className="flex items-center gap-2 text-sm font-medium text-blue-300">
+        <NavigationIcon size={18} className="animate-wiggle" />
+        Live location tracked
+      </div>
+    )}
+  </div>
+</div>
+
+  );
 };
 
 export default OrderTracking;

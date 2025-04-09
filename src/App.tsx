@@ -4,7 +4,7 @@ import { RegisterPage } from "./pages/register";
 import WelcomePage from "./pages/welcome";
 import LoginPage from "./pages/login";
 import MenuExplorer from "./pages/explore";
-import OrderTracking from "./components/my-components/orderTracking";
+import OrderTrackingWithErrorBoundary from "./components/my-components/orderTracking";
 import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
 import "./App.css";
@@ -73,7 +73,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/explore" element={<MenuExplorer />} />
-        <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
+        <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/profile" element={<ProfileManagement />} />
       </Routes>

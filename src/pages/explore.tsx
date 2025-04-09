@@ -472,7 +472,8 @@ const MenuExplorer = () => {
             <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
                 <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
                     <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
-                    <p className="text-red-700 font-medium">{error}</p>
+                    <p className="text-red-700 font-medium">Oops! {error}</p>
+                    <button className='text-black border px-4 py-1 rounded text-2xl font-bold'>Retry</button>
                 </div>
             </div>
         );
