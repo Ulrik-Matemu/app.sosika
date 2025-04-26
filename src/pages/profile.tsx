@@ -71,7 +71,7 @@ const ProfileManagement = () => {
     const handleSave = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.put(`https://sosika-backend.onrender.com/api/auths/profile/${userId}`, formData);
+            const response = await axios.put(`https://sosika-backend.onrender.com/api/auth/profile/${userId}`, formData);
             setProfile(response.data.user);
             setIsEditing(false);
             setIsLoading(false);

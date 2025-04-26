@@ -7,6 +7,8 @@ import MenuExplorer from "./pages/explore";
 import OrderTrackingWithErrorBoundary from "./components/my-components/orderTracking";
 import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
+import ForgotPassword from "./pages/forgot-password";
+import ResetPassword from "./pages/reset-password";
 import "./App.css";
 import { getToken } from 'firebase/messaging';
 import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct import
@@ -76,6 +78,8 @@ function App() {
         <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/profile" element={<ProfileManagement />} />
+        <Route path="/reset-password" element={<ForgotPassword />} />
+        <Route path="/forgot-password" element={<ResetPassword />} />
       </Routes>
       </TooltipProvider>
     </Router>
