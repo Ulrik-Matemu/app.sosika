@@ -227,7 +227,7 @@ const ProfileManagement = () => {
                 </div>
                 <div className='my-8 flex justify-center bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
                     <div className="grid w-full gap-2">
-                        <Label htmlFor="message-2" className='font-bold'>Enjoying your experience? Share your thoughts and help us improve!</Label>
+                        <Label htmlFor="message-2" className='font-bold'><span className='text-green-400 font-extrabold'>Enjoying your experience?</span> Share your thoughts and help us improve!</Label>
                         <Textarea
                             value={reviewData.review}
                             placeholder="Type your message here."

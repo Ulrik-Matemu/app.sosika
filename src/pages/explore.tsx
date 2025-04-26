@@ -166,7 +166,10 @@ const MenuExplorer = () => {
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [, setSelectedLocation] = useState("");
     const [showTooltip, setShowTooltip] = useState(false);
-    const [layout, setLayout] = useState('compact'); // 'grid', 'list', or 'compact'
+    const [layout, setLayout] = useState(() => {
+        // On first load, try to get the saved layout
+        return localStorage.getItem("layout") || "compact";
+      });
 
 
     const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState<boolean>(false);
@@ -295,6 +298,11 @@ const MenuExplorer = () => {
         }, 0);
         setCartTotal(total);
     }, [cart]);
+
+    useEffect(() => {
+        // Whenever layout changes, save it
+        localStorage.setItem("layout", layout);
+      }, [layout]);
 
     // Apply filters whenever filter states change
     useEffect(() => {
