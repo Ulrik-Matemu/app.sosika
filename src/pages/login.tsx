@@ -316,7 +316,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div className="mt-8 text-center">
-            <p className='text-[#a0a0a0] mb-10'>Forgot Password.<Link to="/reset-password" className='text-blue-400'>Click Me</Link></p>
+            <p className='text-[#a0a0a0] mb-10'>Forgot Password.<Link to="/forgot-password" className='text-blue-400'>Click Me</Link></p>
             <p className="text-[#a0a0a0]">
               Don't have an account?{' '}<Link to="/register" className="text-[#e7e7e7] font-medium hover:underline">
   Register

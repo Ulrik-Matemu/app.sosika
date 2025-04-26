@@ -78,8 +78,8 @@ function App() {
         <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/profile" element={<ProfileManagement />} />
-        <Route path="/reset-password" element={<ForgotPassword />} />
-        <Route path="/forgot-password" element={<ResetPassword />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
       </TooltipProvider>
     </Router>
