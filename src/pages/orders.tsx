@@ -203,7 +203,7 @@ const OrdersPage = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
             <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-6 py-4">
-                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
+                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
                 <div className="flex items-center gap-4">
                     <ThemeToggle />
                 </div>

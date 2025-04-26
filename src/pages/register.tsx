@@ -189,7 +189,7 @@ export const RegisterPage: React.FC = () => {
             {/* Header with logo and progress */}
             <header className="pt-8 pb-4 px-6">
                 <div className="flex items-center justify-center mb-6">
-                    <h1 className="ml-3 text-2xl font-extrabold text-[#00bfff]">Sosika</h1>
+                    <h1 className="ml-3 text-2xl font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
                 </div>
 
                 <div className="w-full bg-[#3a3a3a] h-2 rounded-full overflow-hidden">

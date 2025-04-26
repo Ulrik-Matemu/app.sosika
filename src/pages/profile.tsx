@@ -19,6 +19,10 @@ interface UserProfile {
     custom_address: string;
 }
 
+interface Reviews {
+    review: string;
+}
+
 const logout = () => {
     localStorage.removeItem('email');
     localStorage.removeItem('password');
@@ -28,9 +32,11 @@ const logout = () => {
 const ProfileManagement = () => {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [formData, setFormData] = useState<Partial<UserProfile>>({});
+    const [reviewData, setReviewData] = useState<Partial<Reviews>>({});
 
     const userId = localStorage.getItem('userId');
 
@@ -76,6 +82,23 @@ const ProfileManagement = () => {
         }
     };
 
+    const handleReviewSubmit = async () => {
+        try {
+            setLoading(true);
+            setReviewData({ review: '' });
+            const response = await axios.post(`https://sosika-backend.onrender.com/api/auth/reviews`, {
+                review_text: reviewData.review,
+                user_id: userId,
+            });
+            alert('Review submitted successfully!');
+            setLoading(false);
+        } catch (err) {
+            setError('Failed to submit review. Please try again later.');
+            setLoading(false);
+            console.error(err);
+        }
+    }
+
     if (isLoading) {
         return (
             <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
@@ -99,7 +122,7 @@ const ProfileManagement = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
             <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b]  px-6 py-4">
-                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
+                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
                 <div className="flex items-center gap-4">
                     <ThemeToggle />
                 </div>
@@ -202,9 +225,22 @@ const ProfileManagement = () => {
                 </div>
                 <div className='my-8 flex justify-center bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
                     <div className="grid w-full gap-2">
-                    <Label htmlFor="message-2" className='font-bold'>Enjoying your experience? Share your thoughts and help us improve!</Label>
-                        <Textarea placeholder="Type your message here." />
-                        <Button>SUBMIT REVIEW</Button>
+                        <Label htmlFor="message-2" className='font-bold'>Enjoying your experience? Share your thoughts and help us improve!</Label>
+                        <Textarea
+                            value={reviewData.review}
+                            placeholder="Type your message here."
+                            onChange={(e) => setReviewData({ review: e.target.value })}
+                        />
+                        <Button onClick={handleReviewSubmit}>
+                        {loading ? (
+                  <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  'SUBMIT REVIEW'
+                )}
+                        </Button>
                     </div>
                 </div>
                 <div className='my-8 flex justify-center bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>

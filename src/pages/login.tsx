@@ -188,7 +188,7 @@ const LoginPage: React.FC = () => {
       {/* Logo */}
       <div className="flex justify-center -mt-4 mb-4">
         <div className="flex items-center justify-center mb-4">
-          <h1 className="ml-3 text-3xl font-extrabold text-[#00bfff]">Sosika</h1>
+          <h1 className="ml-3 text-3xl font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
         </div>
 
       </div>
