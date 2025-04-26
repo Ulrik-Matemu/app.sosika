@@ -158,7 +158,7 @@ const MenuExplorer = () => {
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [, setSelectedLocation] = useState("");
     const [showTooltip, setShowTooltip] = useState(false);
-    const [layout, setLayout] = useState('grid'); // 'grid', 'list', or 'compact'
+    const [layout, setLayout] = useState('compact'); // 'grid', 'list', or 'compact'
 
 
     const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState<boolean>(false);

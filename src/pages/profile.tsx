@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User,  Save, Loader2, X } from 'lucide-react';
+import { User, Save, Loader2, X } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import Footer from '../components/my-components/footer';
 import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
-
+import { Button } from '../components/ui/button';
+import { Textarea } from '../components/ui/textarea';
+import { Label } from '../components/ui/label';
 
 interface UserProfile {
     id: number;
@@ -197,6 +199,13 @@ const ProfileManagement = () => {
                             </div>
                         </div>
                     )}
+                </div>
+                <div className='my-8 flex justify-center bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
+                    <div className="grid w-full gap-2">
+                    <Label htmlFor="message-2" className='font-bold'>Enjoying your experience? Share your thoughts and help us improve!</Label>
+                        <Textarea placeholder="Type your message here." />
+                        <Button>SUBMIT REVIEW</Button>
+                    </div>
                 </div>
                 <div className='my-8 flex justify-center bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
                     <button className='text-3xl text-[red] font-bold' onClick={logout}>
