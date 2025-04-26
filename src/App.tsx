@@ -12,7 +12,7 @@ import ResetPassword from "./pages/reset-password";
 import "./App.css";
 import { getToken } from 'firebase/messaging';
 import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct import
-import {  listenForForegroundMessages } from './push-notifications'
+import { listenForForegroundMessages } from './push-notifications'
 import { messaging } from "./firebase";
 
 
@@ -31,27 +31,27 @@ function App() {
               console.log('Unregistered old Firebase service worker');
             }
           }
-          
+
           // Register Firebase messaging service worker
           console.log('Attempting to register Firebase messaging service worker...');
           const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
           console.log('Firebase messaging service worker registered:', registration.scope);
-          
+
           // Request notification permission
           const permission = await Notification.requestPermission();
           if (permission !== 'granted') {
             throw new Error('Notification permission not granted');
           }
-          
+
           // Get FCM token with the registered service worker
           const vapidKey = 'BEC4ncuS652Wnb0J2QC2M2ylbtdpwHXj7NVEHrprgj1PcvHjZpo2jID6-YGKCXSy25P5mTrVWlJmzQhWIzoLJ_k';
           console.log('Getting FCM token with VAPID key:', vapidKey);
-          
+
           const token = await getToken(messaging, {
             vapidKey: vapidKey,
             serviceWorkerRegistration: registration
           });
-          
+
           console.log('FCM Token:', token);
           localStorage.setItem('fcmToken', token);
           // Save this token to your server for sending notifications
@@ -60,27 +60,27 @@ function App() {
         console.error('Error setting up push notifications:', error);
       }
     }
-    
+
     setupPushNotifications();
 
-      listenForForegroundMessages();
+    listenForForegroundMessages();
   }, []);
 
 
   return (
     <Router>
       <TooltipProvider>
-      <Routes>
-        <Route path="/" element={<WelcomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/explore" element={<MenuExplorer />} />
-        <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
-        <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/profile" element={<ProfileManagement />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-      </Routes>
+        <Routes>
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/" element={<WelcomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/explore" element={<MenuExplorer />} />
+          <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/profile" element={<ProfileManagement />} />
+        </Routes>
       </TooltipProvider>
     </Router>
   );
@@ -89,4 +89,4 @@ function App() {
 
 
 
-export default  App;
+export default App;
