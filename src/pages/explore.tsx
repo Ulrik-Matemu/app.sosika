@@ -699,19 +699,38 @@ const MenuExplorer = () => {
                                 </div>
                             </div>
 
-                            {filteredItems.length > 0 ? (
-                                <>
-                                    {layout === 'grid' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:mb-12">
-                                            {loadingMenu ? (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                                    {Array.from({ length: 6 }).map((_, i) => (
-                                                        <SkeletonCard key={i} />
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                filteredItems.map((item) => (
-                                                    <div
+                            {loadingMenu ? (
+  // 👇 Show Skeletons (depending on layout)
+  <>
+    {layout === 'grid' && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    )}
+    {layout === 'list' && (
+      <div className="flex flex-col gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    )}
+    {layout === 'compact' && (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    )}
+  </>
+) : filteredItems.length > 0 ? (
+  // 👇 Show actual items when done loading
+  <>
+    {layout === 'grid' && (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredItems.map((item) => (
+           <div
                                                         key={item.id}
                                                         className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
                                                     >
@@ -753,16 +772,13 @@ const MenuExplorer = () => {
                                                             </button>
                                                         </div>
                                                     </div>
-                                                ))
-                                            )}
-
-                                        </div>
-                                    )}
-
-                                    {layout === 'list' && (
-                                        <div className="flex flex-col gap-4 md:mb-12">
-                                            {filteredItems.map((item) => (
-                                                <div
+        ))}
+      </div>
+    )}
+    {layout === 'list' && (
+      <div className="flex flex-col gap-4">
+        {filteredItems.map((item) => (
+          <div
                                                     key={item.id}
                                                     className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex ${!item.is_available ? "opacity-70" : ""}`}
                                                 >
@@ -810,35 +826,13 @@ const MenuExplorer = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {layout === 'compact' && (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:mb-12">
-                                            {loadingMenu ? (
-                                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:mb-12">
-                                                    {Array.from({ length: 8 }).map((_, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="bg-white dark:bg-[#1a1919] rounded-xl shadow-sm animate-pulse"
-                                                        >
-                                                            <div className="relative aspect-video rounded-t-xl overflow-hidden bg-gray-200 dark:bg-gray-700"></div>
-                                                            <div className="p-3 space-y-2">
-                                                                <div className="flex items-center justify-between mb-1">
-                                                                    <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                                                                    <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                                                                </div>
-                                                                <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                                                                <div className="h-8 w-full bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-
-                                            ) : (
-                                                filteredItems.map((item) => (
-                                                    <div
+        ))}
+      </div>
+    )}
+    {layout === 'compact' && (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {filteredItems.map((item) => (
+          <div
                                                         key={item.id}
                                                         className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
                                                     >
@@ -874,19 +868,21 @@ const MenuExplorer = () => {
                                                             </button>
                                                         </div>
                                                     </div>
-                                                ))
-                                            )}
+        ))}
+      </div>
+    )}
+  </>
+) : (
+  // 👇 Show Frown when no items found and not loading
+  <div className="text-center py-12">
+    <Frown className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+    <h3 className="text-lg font-semibold text-gray-700 dark:text-white mb-2">No items found</h3>
+    <p className="text-sm text-gray-500 dark:text-gray-400">
+      Try adjusting your filters or check back later.
+    </p>
+  </div>
+)}
 
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <Frown className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
-                                    <p className="text-gray-500">Try adjusting your filters or search terms</p>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
