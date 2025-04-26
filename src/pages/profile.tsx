@@ -90,7 +90,8 @@ const ProfileManagement = () => {
                 review_text: reviewData.review,
                 user_id: userId,
             });
-            alert('Review submitted successfully!');
+            console.log(response.data);
+            alert('Thank you for your review!, We will work on it ASAP!');
             setLoading(false);
         } catch (err) {
             setError('Failed to submit review. Please try again later.');
