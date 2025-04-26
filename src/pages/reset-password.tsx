@@ -7,7 +7,7 @@ export default function ResetPassword() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
 
-  const [password, setPassword] = useState("");
+  const [newPassword, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -17,7 +17,7 @@ export default function ResetPassword() {
     setMessage("");
     setError("");
 
-    if (password !== confirmPassword) {
+    if (newPassword !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
@@ -30,7 +30,7 @@ export default function ResetPassword() {
     try {
       await axios.post('https://sosika-backend.onrender.com/api/auth/reset-password', {
         token,
-        password,
+        newPassword,
       });
       setMessage("Password reset successful! You can now log in.");
     } catch (err) {
@@ -52,7 +52,7 @@ export default function ResetPassword() {
               id="password"
               type="password"
               required
-              value={password}
+              value={newPassword}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
             />
