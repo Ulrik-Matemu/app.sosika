@@ -10,6 +10,7 @@ import ProfileManagement from "./pages/profile";
 import "./App.css";
 import { getToken } from 'firebase/messaging';
 import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct import
+import { motion } from "framer-motion";
 import {  listenForForegroundMessages } from './push-notifications'
 import { messaging } from "./firebase";
 
@@ -82,4 +83,7 @@ function App() {
   );
 }
 
-export default App;
+
+
+
+export default  App;

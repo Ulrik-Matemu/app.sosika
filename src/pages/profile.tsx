@@ -8,6 +8,7 @@ import NotificationHandler from '../components/my-components/notification-handle
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
+import PageWrapper from '../services/page-transition';
 
 interface UserProfile {
     id: number;
@@ -31,7 +32,7 @@ const logout = () => {
 
 const ProfileManagement = () => {
     const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -43,7 +44,6 @@ const ProfileManagement = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                setIsLoading(true);
                 const response = await axios.get(`https://sosika-backend.onrender.com/api/auth/profile/${userId}`);
                 setProfile(response.data);
                 setFormData(response.data);
@@ -128,6 +128,7 @@ const ProfileManagement = () => {
                     <ThemeToggle />
                 </div>
             </header>
+            <PageWrapper>
 
             <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
                 <div className="bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]">
@@ -250,7 +251,7 @@ const ProfileManagement = () => {
                     </button>
                 </div>
             </div>
-
+            </PageWrapper>
             <Footer />
             <Navbar />
         </div>

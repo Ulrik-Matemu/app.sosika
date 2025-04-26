@@ -5,6 +5,7 @@ import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import Footer from '../components/my-components/footer';
 import NotificationHandler from '../components/my-components/notification-handler';
+import PageWrapper from '../services/page-transition';
 
 // Define interfaces for order data
 interface OrderItem {
@@ -71,7 +72,7 @@ const formatDate = (dateString: string) => {
 
 const OrdersPage = () => {
     const [orders, setOrders] = useState<Order[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
     const [filters, setFilters] = useState<FilterOptions>({
@@ -84,7 +85,6 @@ const OrdersPage = () => {
 
     const fetchOrders = async () => {
         try {
-            setIsLoading(true);
             const userId = localStorage.getItem('userId');
             
             if (!userId) {
@@ -208,6 +208,7 @@ const OrdersPage = () => {
                     <ThemeToggle />
                 </div>
             </header>
+            <PageWrapper>
 
             <div className="max-w-4xl mx-auto px-4 py-2 pb-12">
                 <div className="mb-6">
@@ -472,7 +473,7 @@ const OrdersPage = () => {
                     </div>
                 </div>
             )}
-
+</PageWrapper>
             <Footer />
             <Navbar />
         </div>

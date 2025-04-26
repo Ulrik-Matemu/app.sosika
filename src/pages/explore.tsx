@@ -15,7 +15,7 @@ import {
   } from "../components/ui/carousel";
 import React from 'react';
 import { Link } from 'react-router-dom';
-
+import  PageWrapper  from '../services/page-transition'
 
 
 
@@ -160,7 +160,7 @@ const MenuExplorer = () => {
     // State for menu items and filters
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [, setSelectedLocation] = useState("");
@@ -258,7 +258,6 @@ const MenuExplorer = () => {
     useEffect(() => {
         const fetchMenuItems = async () => {
             try {
-                setIsLoading(true);
                 const response = await axios.get('https://sosika-backend.onrender.com/api/menuItems');
                 setMenuItems(response.data);
                 setFilteredItems(response.data);
@@ -530,6 +529,7 @@ const MenuExplorer = () => {
                     <ThemeToggle />
                 </div>
             </header>
+            <PageWrapper>
 
             {/* Location Selection Modal */}
             {isLocationOpen && (
@@ -985,6 +985,7 @@ const MenuExplorer = () => {
                     </div>
                 </div>
             )}
+            </PageWrapper>
             <Footer />
             <Navbar />
         </div>
