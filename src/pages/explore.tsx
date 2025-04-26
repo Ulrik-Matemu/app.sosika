@@ -14,6 +14,7 @@ import {
     CarouselItem,
   } from "../components/ui/carousel";
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 
 
@@ -31,22 +32,26 @@ const specialOffers = [
   {
     image: "/icons/1.png",
     title: "Buy 1 Get 1 Free!",
-    description: "Available this weekend only."
+    description: "Available this weekend only.",
+    link: "#"
   },
   {
     image: "/icons/2.png",
     title: "Buy 1 Get 1 Free!",
-    description: "Available this weekend only."
+    description: "Available this weekend only.",
+    link: "#"
   },
   {
     image: "/icons/3.png",
     title: "Buy 1 Get 1 Free!",
-    description: "Available this weekend only."
+    description: "Available this weekend only.",
+    link: "https://ulrik-matemu.github.io/sosika-delivery/"
   },
   {
     image: "/icons/4.png",
     title: "Buy 1 Get 1 Free!",
-    description: "Available this weekend only."
+    description: "Available this weekend only.",
+    link:"https://ulrik-matemu.github.io/sosika-vendor/"
   },
 ]
 
@@ -72,12 +77,14 @@ const specialOffers = [
               <div className="p-2">
                 <Card>
                   <CardContent className="p-0">
+                    <Link to={item.link}>
                     <img
                       src={item.image}
                       alt={item.title}
                       loading="lazy"
                       className="w-full  object-cover rounded-lg"
                     />
+                    </Link>
                   </CardContent>
                 </Card>
               </div>
