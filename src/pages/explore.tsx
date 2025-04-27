@@ -169,7 +169,7 @@ const MenuExplorer = () => {
     const [layout, setLayout] = useState(() => {
         // On first load, try to get the saved layout
         return localStorage.getItem("layout") || "compact";
-      });
+    });
 
 
     const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState<boolean>(false);
@@ -186,7 +186,14 @@ const MenuExplorer = () => {
     const [priceRange, setPriceRange] = useState<PriceRange>({ min: 0, max: 1000 });
     const [availableOnly, setAvailableOnly] = useState<boolean>(false);
     const [vendorFilter, setVendorFilter] = useState<string>('');
-    const [vendors, setVendors] = useState<number[]>([]);
+    type Vendor = {
+        id: string;
+        name: string;
+        // any other fields you expect from your backend
+    };
+
+    const [vendors, setVendors] = useState<Vendor[]>([]);
+
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
 
 
@@ -267,8 +274,7 @@ const MenuExplorer = () => {
                 setFilteredItems(response.data);
 
                 // Extract unique vendors
-                const uniqueVendors: number[] = [...new Set((response.data as MenuItem[]).map((item: MenuItem) => item.vendor_id))];
-                setVendors(uniqueVendors);
+
 
                 // Find price extremes
                 if (response.data.length > 0) {
@@ -291,6 +297,20 @@ const MenuExplorer = () => {
         fetchMenuItems();
     }, []);
 
+    //Fetch vendors for names in filter
+    useEffect(() => {
+        const fetchVendors = async () => {
+            try {
+                const response = await axios.get('https://sosika-backend.onrender.com/api/vendor');
+                setVendors(response.data);
+            } catch (err) {
+                console.error('Failed to fetch vendors:', err);
+            }
+        };
+
+        fetchVendors();
+    }, []);
+
     // Calculate cart total whenever cart changes
     useEffect(() => {
         const total = cart.reduce((sum, item) => {
@@ -302,7 +322,7 @@ const MenuExplorer = () => {
     useEffect(() => {
         // Whenever layout changes, save it
         localStorage.setItem("layout", layout);
-      }, [layout]);
+    }, [layout]);
 
     // Apply filters whenever filter states change
     useEffect(() => {
@@ -435,7 +455,10 @@ const MenuExplorer = () => {
         try {
             const user_id = localStorage.getItem('userId');
             const vendor_id = cart[0].vendor_id;
-            const delivery_fee = 1000; // Example fee
+            let delivery_fee = 2000; // Example fee
+            if (vendor_id === 1) {
+                delivery_fee = 0;
+            }
             const requested_asap = true; // User wants ASAP delivery
 
             // Prompt user for confirmation
@@ -648,10 +671,13 @@ const MenuExplorer = () => {
                                                 className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a] w-48"
                                             >
                                                 <option value="">All Vendors</option>
-                                                {vendors.map(vendorId => (
-                                                    <option className='' key={vendorId} value={vendorId}>Vendor {vendorId}</option>
+                                                {vendors.map(vendor => (
+                                                    <option key={vendor.id} value={vendor.id}>
+                                                        {vendor.name}
+                                                    </option>
                                                 ))}
                                             </select>
+
                                         </div>
                                         <div className=''>
                                             <select
@@ -708,85 +734,85 @@ const MenuExplorer = () => {
                             </div>
 
                             {loadingMenu ? (
-  // 👇 Show Skeletons (depending on layout)
-  <>
-    {layout === 'grid' && (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <SkeletonCard key={i} />
-        ))}
-      </div>
-    )}
-    {layout === 'list' && (
-      <div className="flex flex-col gap-4">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <SkeletonCard key={i} />
-        ))}
-      </div>
-    )}
-    {layout === 'compact' && (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <SkeletonCard key={i} />
-        ))}
-      </div>
-    )}
-  </>
-) : filteredItems.length > 0 ? (
-  // 👇 Show actual items when done loading
-  <>
-    {layout === 'grid' && (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredItems.map((item) => (
-           <div
-                                                        key={item.id}
-                                                        className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
-                                                    >
-                                                        <div className="relative aspect-square rounded-t-xl overflow-hidden">
-                                                            {item.image_url ? (
-                                                                <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                                                    <ImageIcon className="h-12 w-12 text-gray-400" />
-                                                                </div>
-                                                            )}
-                                                            {!item.is_available && (
-                                                                <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                                                                    <X className="h-3 w-3" />
-                                                                    Unavailable
-                                                                </div>
-                                                            )}
-                                                            <div className="absolute bottom-2 left-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                                                                {item.category}
+                                // 👇 Show Skeletons (depending on layout)
+                                <>
+                                    {layout === 'grid' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {Array.from({ length: 6 }).map((_, i) => (
+                                                <SkeletonCard key={i} />
+                                            ))}
+                                        </div>
+                                    )}
+                                    {layout === 'list' && (
+                                        <div className="flex flex-col gap-4">
+                                            {Array.from({ length: 6 }).map((_, i) => (
+                                                <SkeletonCard key={i} />
+                                            ))}
+                                        </div>
+                                    )}
+                                    {layout === 'compact' && (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            {Array.from({ length: 8 }).map((_, i) => (
+                                                <SkeletonCard key={i} />
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            ) : filteredItems.length > 0 ? (
+                                // 👇 Show actual items when done loading
+                                <>
+                                    {layout === 'grid' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {filteredItems.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
+                                                >
+                                                    <div className="relative aspect-square rounded-t-xl overflow-hidden">
+                                                        {item.image_url ? (
+                                                            <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                                <ImageIcon className="h-12 w-12 text-gray-400" />
                                                             </div>
-                                                        </div>
-                                                        <div className="p-4">
-                                                            <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
-                                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
-                                                                {item.description || "No description available"}
-                                                            </p>
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
-                                                                    Vendor #{item.vendor_id}
-                                                                </span>
-                                                                <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                        )}
+                                                        {!item.is_available && (
+                                                            <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                                                                <X className="h-3 w-3" />
+                                                                Unavailable
                                                             </div>
-                                                            <button
-                                                                onClick={() => addToCart(item)}
-                                                                disabled={!item.is_available}
-                                                                className="w-full bg-[#00bfff] text-white py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                                            >
-                                                                {item.is_available ? "Add to Cart" : "Unavailable"}
-                                                            </button>
+                                                        )}
+                                                        <div className="absolute bottom-2 left-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                                            {item.category}
                                                         </div>
                                                     </div>
-        ))}
-      </div>
-    )}
-    {layout === 'list' && (
-      <div className="flex flex-col gap-4">
-        {filteredItems.map((item) => (
-          <div
+                                                    <div className="p-4">
+                                                        <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
+                                                            {item.description || "No description available"}
+                                                        </p>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
+                                                                Vendor #{item.vendor_id}
+                                                            </span>
+                                                            <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => addToCart(item)}
+                                                            disabled={!item.is_available}
+                                                            className="w-full bg-[#00bfff] text-white py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                        >
+                                                            {item.is_available ? "Add to Cart" : "Unavailable"}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {layout === 'list' && (
+                                        <div className="flex flex-col gap-4">
+                                            {filteredItems.map((item) => (
+                                                <div
                                                     key={item.id}
                                                     className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex ${!item.is_available ? "opacity-70" : ""}`}
                                                 >
@@ -834,62 +860,62 @@ const MenuExplorer = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-        ))}
-      </div>
-    )}
-    {layout === 'compact' && (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {filteredItems.map((item) => (
-          <div
-                                                        key={item.id}
-                                                        className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
-                                                    >
-                                                        <div className="relative aspect-video rounded-t-xl overflow-hidden">
-                                                            {item.image_url ? (
-                                                                <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                                                    <ImageIcon className="h-8 w-8 text-gray-400" />
-                                                                </div>
-                                                            )}
-                                                            {!item.is_available && (
-                                                                <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-1 py-0.5 rounded-full text-xs font-medium flex items-center gap-0.5">
-                                                                    <X className="h-2 w-2" />
-                                                                    Unavailable
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="p-3">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-medium">
-                                                                    {item.category}
-                                                                </span>
-                                                                <span className="text-sm font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {layout === 'compact' && (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            {filteredItems.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
+                                                >
+                                                    <div className="relative aspect-video rounded-t-xl overflow-hidden">
+                                                        {item.image_url ? (
+                                                            <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                                <ImageIcon className="h-8 w-8 text-gray-400" />
                                                             </div>
-                                                            <h3 className="font-bold text-gray-900 dark:text-gray-200 text-sm mb-1 line-clamp-1">{item.name}</h3>
-                                                            <button
-                                                                onClick={() => addToCart(item)}
-                                                                disabled={!item.is_available}
-                                                                className="w-full bg-[#00bfff] text-white py-1 text-sm rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                                            >
-                                                                {item.is_available ? "Add to Cart" : "Unavailable"}
-                                                            </button>
-                                                        </div>
+                                                        )}
+                                                        {!item.is_available && (
+                                                            <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-1 py-0.5 rounded-full text-xs font-medium flex items-center gap-0.5">
+                                                                <X className="h-2 w-2" />
+                                                                Unavailable
+                                                            </div>
+                                                        )}
                                                     </div>
-        ))}
-      </div>
-    )}
-  </>
-) : (
-  // 👇 Show Frown when no items found and not loading
-  <div className="text-center py-12">
-    <Frown className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-    <h3 className="text-lg font-semibold text-gray-700 dark:text-white mb-2">No items found</h3>
-    <p className="text-sm text-gray-500 dark:text-gray-400">
-      Try adjusting your filters or check back later.
-    </p>
-  </div>
-)}
+                                                    <div className="p-3">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-medium">
+                                                                {item.category}
+                                                            </span>
+                                                            <span className="text-sm font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                        </div>
+                                                        <h3 className="font-bold text-gray-900 dark:text-gray-200 text-sm mb-1 line-clamp-1">{item.name}</h3>
+                                                        <button
+                                                            onClick={() => addToCart(item)}
+                                                            disabled={!item.is_available}
+                                                            className="w-full bg-[#00bfff] text-white py-1 text-sm rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                        >
+                                                            {item.is_available ? "Add to Cart" : "Unavailable"}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                // 👇 Show Frown when no items found and not loading
+                                <div className="text-center py-12">
+                                    <Frown className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                                    <h3 className="text-lg font-semibold text-gray-700 dark:text-white mb-2">No items found</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Try adjusting your filters or check back later.
+                                    </p>
+                                </div>
+                            )}
 
                         </div>
                     </div>
