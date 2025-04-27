@@ -135,7 +135,6 @@ const LoginPage: React.FC = () => {
           console.log(data.userId);
           localStorage.setItem('userId', data.userId);
 
-          alert('Login Successful')
 
           // Navigate to explore page
           window.location.href = '#/explore';
