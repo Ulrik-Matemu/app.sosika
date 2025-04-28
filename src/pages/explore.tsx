@@ -1060,7 +1060,7 @@ const MenuExplorer = () => {
                             </div>
 
                             {cart.length > 0 && (
-                                <div className="p-4 border-t mt-auto">
+                                <div className="relative p-4 border-t mt-auto bottom-20">
                                     <div className="flex justify-between mb-2">
                                         <span className="font-medium dark:text-white">Subtotal:</span>
                                         <span className="font-semibold text-[#00bfff]">TZS {cartTotal.toFixed(2)}</span>
