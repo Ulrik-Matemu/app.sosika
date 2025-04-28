@@ -15,7 +15,12 @@ import {
 } from "../components/ui/carousel";
 import React from 'react';
 import { Link } from 'react-router-dom';
-import PageWrapper from '../services/page-transition'
+import PageWrapper from '../services/page-transition';
+import { Bounce, toast, ToastContainer } from 'react-toastify';
+import Swal from 'sweetalert2';
+
+
+
 
 
 
@@ -231,7 +236,19 @@ const MenuExplorer = () => {
 
             setLoading(false);
             setIsLocationOpen(false);
-            alert('Location updated successfully! You can now place your order.');
+            // alert('Location updated successfully! You can now place your order.');
+           toast('Location updated successfully',  {
+            position: "top-right",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+            });
+
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 console.error("Error updating location:", error.response?.data || error.message);
@@ -448,10 +465,14 @@ const MenuExplorer = () => {
 
     const checkout = async () => {
         if (cart.length === 0) {
-            alert("Your cart is empty.");
+            Swal.fire({
+                title: 'Empty Cart',
+                text: 'Your cart is empty.',
+                icon: 'warning'
+            });
             return;
         }
-
+        
         try {
             const user_id = localStorage.getItem('userId');
             const vendor_id = cart[0].vendor_id;
@@ -460,18 +481,27 @@ const MenuExplorer = () => {
                 delivery_fee = 0;
             }
             const requested_asap = true; // User wants ASAP delivery
-
-            // Prompt user for confirmation
-            const confirmOrder = window.confirm(`
-                Confirm your order:
-                - Total Items: ${cart.length}
-                - Delivery Fee: ${delivery_fee}
-                - Payment: Cash on Delivery
-                Click OK to place your order.
-            `);
-
-            if (!confirmOrder) return;
-
+            
+            // Replace confirm with SweetAlert
+            const result = await Swal.fire({
+                title: 'Confirm Your Order',
+                html: `
+                    <div>
+                        <p>Total Items: ${cart.length}</p>
+                        <p>Delivery Fee: ${delivery_fee}</p>
+                        <p>Payment: Cash on Delivery</p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Place Order',
+                cancelButtonText: 'Cancel'
+            });
+            
+            if (!result.isConfirmed) return;
+            
             // Prepare order payload
             const orderData = {
                 user_id,
@@ -485,21 +515,28 @@ const MenuExplorer = () => {
                     price: parseFloat(item.price)
                 }))
             };
-
+            
             // Send order request
             const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
-
+            
             if (response.status === 201) {
-                alert(`🎉 Order placed successfully! Order ID: ${response.data.order_id}
-                
-                Delivery is on the way! 🚀`);
+                Swal.fire({
+                    title: 'Order Placed',
+                    text: `Order ID: ${response.data.order_id} placed successfully! 🚀`,
+                    icon: "success"
+                });
                 setCart([]); // Clear cart after successful order
-                setIsCartOpen(false); // Close cart modal                    
+                setIsCartOpen(false); // Close cart modal
+                
                 window.location.href = `#/order-tracking/${response.data.order_id}`;
             }
         } catch (error) {
             console.error("Checkout error:", error);
-            alert("Failed to place order. Please try again.");
+            Swal.fire({
+                title: 'Error',
+                text: 'Failed to place order. Please try again.',
+                icon: 'error'
+            });
         }
     };
 
@@ -539,6 +576,8 @@ const MenuExplorer = () => {
 
 
     return (
+        <>
+        <ToastContainer />
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
             <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-4 py-4">
@@ -1065,6 +1104,7 @@ const MenuExplorer = () => {
             <Footer />
             <Navbar />
         </div>
+        </>
     );
 };
 
