@@ -252,7 +252,6 @@ const ProfileManagement = () => {
                 </div>
             </div>
             </PageWrapper>
-            <Footer />
             <Navbar />
         </div>
     );

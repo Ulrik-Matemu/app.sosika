@@ -474,7 +474,6 @@ const OrdersPage = () => {
                 </div>
             )}
 </PageWrapper>
-            <Footer />
             <Navbar />
         </div>
     );

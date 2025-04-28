@@ -13,22 +13,29 @@ export default function Navbar() {
   const [active, setActive] = useState("/");
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1a1919] shadow-md p-3 flex justify-around md:hidden">
-      {navItems.map(({ name, icon: Icon, path }) => (
-        <Link to={path}>
+    <nav className="fixed bottom-4 left-4 right-4 z-50 bg-[#e0e0de] dark:bg-[#363634] shadow-xl rounded-2xl p-2 flex justify-around md:hidden border border-gray-100 dark:border-gray-800">
+    {navItems.map(({ name, icon: Icon, path }) => (
+      <Link key={name} to={path} className="w-full">
         <button
-          key={name}
           onClick={() => setActive(path)}
-          className={cn(
-            "flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 transition",
-            active === path && "text-[#00bfff] dark:text-blue-400"
-          )}
+          className={`
+            flex flex-col items-center justify-center w-full py-1 px-2 rounded-full
+            transition-all duration-200 ease-in-out
+            ${active === path 
+              ? "text-blue-600 dark:text-blue-400" 
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"}
+          `}
         >
-          <Icon size={24} />
-          <span className="text-xs">{name}</span>
+          <div className={`
+            p-1 mb-1 rounded-full 
+            ${active === path && "bg-blue-100 dark:bg-blue-900/30"}
+          `}>
+            <Icon size={30} className={active === path ? "animate-pulse" : ""} />
+          </div>
+        
         </button>
-        </Link>
-      ))}
-    </nav>
+      </Link>
+    ))}
+  </nav>
   );
 }

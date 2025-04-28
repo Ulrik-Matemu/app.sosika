@@ -487,9 +487,9 @@ const MenuExplorer = () => {
                 title: 'Confirm Your Order',
                 html: `
                     <div>
-                        <p>Total Items: ${cart.length}</p>
-                        <p>Delivery Fee: ${delivery_fee}</p>
-                        <p>Payment: Cash on Delivery</p>
+                        <p>Total Items: <b>${cart.length}</b></p>
+                        <p>Delivery Fee: <b>${delivery_fee}</b></p>
+                        <p>Payment: <b>Cash on Delivery</b></p>
                     </div>
                 `,
                 icon: 'question',
@@ -1101,7 +1101,6 @@ const MenuExplorer = () => {
                     </div>
                 )}
             </PageWrapper>
-            <Footer />
             <Navbar />
         </div>
         </>
