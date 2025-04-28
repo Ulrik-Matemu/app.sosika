@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar,  MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen, PhoneCallIcon } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
-import Footer from '../components/my-components/footer';
 import NotificationHandler from '../components/my-components/notification-handler';
 import PageWrapper from '../services/page-transition';
 

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Home, User, History } from "lucide-react";
-import { cn } from "../../lib/utils"; // Utility function for class merging
 import { Link } from 'react-router-dom';
 
 const navItems = [

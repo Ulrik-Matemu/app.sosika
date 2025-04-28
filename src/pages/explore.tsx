@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Search, Utensils, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
-import Footer from '../components/my-components/footer';
 import NotificationHandler from '../components/my-components/notification-handler';
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/tooltip";
 import Autoplay from "embla-carousel-autoplay"

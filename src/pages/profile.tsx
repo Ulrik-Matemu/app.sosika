@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { User, Save, Loader2, X } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
-import Footer from '../components/my-components/footer';
 import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
 import { Button } from '../components/ui/button';
