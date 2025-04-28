@@ -12,7 +12,7 @@ export default function Navbar() {
   const [active, setActive] = useState("/");
 
   return (
-    <nav className="fixed bottom-4 left-4 right-4 z-50 bg-[#e0e0de] dark:bg-[#363634] shadow-xl rounded-2xl p-2 flex justify-around md:hidden border border-gray-100 dark:border-gray-800">
+    <nav className="fixed bottom-4 left-4 right-4 z-50 bg-[#e0e0de] dark:bg-[#363634] shadow-xl rounded-xl p-2 flex justify-around md:hidden border border-gray-100 dark:border-gray-800">
     {navItems.map(({ name, icon: Icon, path }) => (
       <Link key={name} to={path} className="w-full">
         <button
