@@ -16,9 +16,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PageWrapper from '../services/page-transition';
 import Swal from 'sweetalert2';
-import { Toaster } from '../components/ui/toaster';
 import { useToast } from '../hooks/use-toast';
-import { ToastAction } from '../components/ui/toast';
+import { Toaster } from '../components/ui/toaster';
+
 
 
 
@@ -163,11 +163,13 @@ const submitFcmToken = async (fcmToken: string) => {
 
 
 const MenuExplorer = () => {
+    const toast = useToast();
     // State for menu items and filters
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [loadingMenu, isLoadingMenu] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [, setSelectedLocation] = useState("");
     const [showTooltip, setShowTooltip] = useState(false);
@@ -200,9 +202,10 @@ const MenuExplorer = () => {
     const [vendors, setVendors] = useState<Vendor[]>([]);
 
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
-    const { toast } = useToast();
+
 
     const [loading, setLoading] = useState<boolean>(false);
+    
 
     useEffect(() => {
         const fcmToken = localStorage.getItem("fcmToken");
@@ -212,6 +215,7 @@ const MenuExplorer = () => {
     }, []);
 
     const handleSelectLocation = async (location: { name: string; lat: number; lng: number }) => {
+       
         setLoading(true);
         const userId = localStorage.getItem("userId");
         if (!userId) {
@@ -237,10 +241,9 @@ const MenuExplorer = () => {
             setLoading(false);
             setIsLocationOpen(false);
             // alert('Location updated successfully! You can now place your order.');
-           // use shadcn toast
-           toast({
-            description: "Your location has been updated successfully!",
-           })
+           toast.toast({
+                description: 'Location updated successfully!'
+           });
 
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -298,12 +301,7 @@ const MenuExplorer = () => {
                 setIsLoading(false);
                 isLoadingMenu(false);
             } catch (err) {
-                toast({
-                    title: "Uh oh! Something went wrong.",
-                    description: "There was a problem with your request.",
-                    action: <ToastAction altText="Try again">Try again</ToastAction>,
-                    variant: "destructive",
-                  })
+                setError('Failed to fetch menu items. Please try again later.');
                 setIsLoading(false);
                 console.error(err);
             }
@@ -463,10 +461,10 @@ const MenuExplorer = () => {
 
     const checkout = async () => {
         if (cart.length === 0) {
-            toast({
+            Swal.fire({
                 title: 'Empty Cart',
-                description: 'Your cart is empty. ',
-                variant: "destructive",
+                text: 'Your cart is empty.',
+                icon: 'warning'
             });
             return;
         }
@@ -548,7 +546,17 @@ const MenuExplorer = () => {
     }
 
     // Render error state
-   
+    if (error) {
+        return (
+            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+                <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
+                    <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
+                    <p className="text-red-700 font-medium">Oops! {error}</p>
+                    <button className='text-black border px-4 py-1 rounded text-2xl font-bold'>Retry</button>
+                </div>
+            </div>
+        );
+    }
 
     const SkeletonCard = () => (
         <div className="bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse">
@@ -1080,7 +1088,14 @@ const MenuExplorer = () => {
                     </div>
                 )}
 
-               
+                {error && (
+                    <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+                        <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
+                            <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
+                            <p className="text-red-700 font-medium">{error}</p>
+                        </div>
+                    </div>
+                )}
             </PageWrapper>
             <Navbar />
         </div>
