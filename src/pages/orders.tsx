@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar,  MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen, PhoneCallIcon } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
-import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
 import PageWrapper from '../services/page-transition';
+import { Header } from '../components/my-components/header';
+import { Toaster } from '../components/ui/toaster';
+import { useToast } from '../hooks/use-toast';
+import { ToastAction } from '../components/ui/toast';
+
 
 // Define interfaces for order data
 interface OrderItem {
@@ -72,7 +76,6 @@ const formatDate = (dateString: string) => {
 const OrdersPage = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
     const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
     const [filters, setFilters] = useState<FilterOptions>({
         status: '',
@@ -81,6 +84,9 @@ const OrdersPage = () => {
     const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
     const [ratingOrder, setRatingOrder] = useState<number | null>(null);
     const [ratings, setRatings] = useState({ vendor: 0, delivery: 0 });
+
+    const toast = useToast();
+
 
     const fetchOrders = async () => {
         try {
@@ -108,7 +114,12 @@ const OrdersPage = () => {
             setIsLoading(false);
         } catch (err) {
             console.error('Error fetching orders:', err);
-            setError(err instanceof Error ? err.message : 'Failed to fetch orders');
+            toast.toast({
+                variant: "destructive",
+                title: "Uh oh! Something went wrong.",
+                description: "There was a problem with your request.",
+                action: <ToastAction altText="Try again" onClick={fetchOrders}>Try again</ToastAction>,
+              });
             setIsLoading(false);
         }
     };
@@ -161,17 +172,8 @@ const OrdersPage = () => {
             </div>
         );
     }
-
-    if (error) {
-        return (
-            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
-                <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
-                    <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
-                    <p className="text-red-700 font-medium">{error}</p>
-                </div>
-            </div>
-        );
-    }
+// 
+  
 
     const renderOrderStatus = (status: string) => {
         const StatusIcon = ORDER_STATUS_ICONS[status as keyof typeof ORDER_STATUS_ICONS] || AlertCircle;
@@ -199,14 +201,11 @@ const OrdersPage = () => {
     };
 
     return (
+        <>
+        <Toaster />
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
-            <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-6 py-4">
-                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
-                <div className="flex items-center gap-4">
-                    <ThemeToggle />
-                </div>
-            </header>
+          <Header />
             <PageWrapper>
 
             <div className="max-w-4xl mx-auto px-4 py-2 pb-12">
@@ -475,6 +474,7 @@ const OrdersPage = () => {
 </PageWrapper>
             <Navbar />
         </div>
+        </>
     );
 };
 

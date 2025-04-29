@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { User, Save, Loader2, X } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
-import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import PageWrapper from '../services/page-transition';
+import { Header } from '../components/my-components/header';
+
+import { Toaster } from '../components/ui/toaster';
+import { useToast } from '../hooks/use-toast';
+import { ToastAction } from '../components/ui/toast';
 
 interface UserProfile {
     id: number;
@@ -38,6 +42,7 @@ const ProfileManagement = () => {
     const [formData, setFormData] = useState<Partial<UserProfile>>({});
     const [reviewData, setReviewData] = useState<Partial<Reviews>>({});
 
+    const toast = useToast();
     const userId = localStorage.getItem('userId');
 
     useEffect(() => {
@@ -48,7 +53,12 @@ const ProfileManagement = () => {
                 setFormData(response.data);
                 setIsLoading(false);
             } catch (err) {
-                setError('Failed to fetch profile. Please try again later.');
+                toast.toast({
+                    variant: "destructive",
+                    title: "Uh oh! Something went wrong.",
+                    description: "There was a problem with your request.",
+                    action: <ToastAction altText="Try again" onClick={fetchProfile}>Try again</ToastAction>,
+                  });
                 setIsLoading(false);
                 console.error(err);
             }
@@ -90,7 +100,9 @@ const ProfileManagement = () => {
                 user_id: userId,
             });
             console.log(response.data);
-            alert('Thank you for your review!, We will work on it ASAP!');
+            toast.toast({
+                description: "Thank you for your review!",
+            })
             setLoading(false);
         } catch (err) {
             setError('Failed to submit review. Please try again later.');
@@ -119,14 +131,11 @@ const ProfileManagement = () => {
     }
 
     return (
+        <>
+        <Toaster />
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
-            <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b]  px-6 py-4">
-                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
-                <div className="flex items-center gap-4">
-                    <ThemeToggle />
-                </div>
-            </header>
+            <Header />
             <PageWrapper>
 
             <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
@@ -253,6 +262,7 @@ const ProfileManagement = () => {
             </PageWrapper>
             <Navbar />
         </div>
+        </>
     );
 };
 

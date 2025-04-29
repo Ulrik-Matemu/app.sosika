@@ -9,6 +9,8 @@ import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
 import ForgotPassword from "./pages/forgot-password";
 import ResetPassword from "./pages/reset-password";
+import { Printing } from "./pages/printing";
+import { Services } from "./pages/services";
 import "./App.css";
 import { getToken } from 'firebase/messaging';
 import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct import
@@ -80,6 +82,8 @@ function App() {
           <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/profile" element={<ProfileManagement />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/printing" element={<Printing />} />
         </Routes>
       </TooltipProvider>
     </Router>

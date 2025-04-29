@@ -87,7 +87,6 @@ const LoginPage: React.FC = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('userId', data.userId);
   
-      alert('Login Successful');
       window.location.href = '#/explore'; 
     } catch (error) {
       console.error('Login Error:', error);

@@ -15,8 +15,10 @@ import {
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PageWrapper from '../services/page-transition';
-import { Bounce, toast, ToastContainer } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { Toaster } from '../components/ui/toaster';
+import { useToast } from '../hooks/use-toast';
+import { ToastAction } from '../components/ui/toast';
 
 
 
@@ -166,7 +168,6 @@ const MenuExplorer = () => {
     const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [loadingMenu, isLoadingMenu] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [, setSelectedLocation] = useState("");
     const [showTooltip, setShowTooltip] = useState(false);
@@ -199,7 +200,7 @@ const MenuExplorer = () => {
     const [vendors, setVendors] = useState<Vendor[]>([]);
 
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
-
+    const { toast } = useToast();
 
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -236,17 +237,10 @@ const MenuExplorer = () => {
             setLoading(false);
             setIsLocationOpen(false);
             // alert('Location updated successfully! You can now place your order.');
-           toast('Location updated successfully',  {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Bounce,
-            });
+           // use shadcn toast
+           toast({
+            description: "Your location has been updated successfully!",
+           })
 
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -304,7 +298,12 @@ const MenuExplorer = () => {
                 setIsLoading(false);
                 isLoadingMenu(false);
             } catch (err) {
-                setError('Failed to fetch menu items. Please try again later.');
+                toast({
+                    title: "Uh oh! Something went wrong.",
+                    description: "There was a problem with your request.",
+                    action: <ToastAction altText="Try again">Try again</ToastAction>,
+                    variant: "destructive",
+                  })
                 setIsLoading(false);
                 console.error(err);
             }
@@ -464,10 +463,10 @@ const MenuExplorer = () => {
 
     const checkout = async () => {
         if (cart.length === 0) {
-            Swal.fire({
+            toast({
                 title: 'Empty Cart',
-                text: 'Your cart is empty.',
-                icon: 'warning'
+                description: 'Your cart is empty. ',
+                variant: "destructive",
             });
             return;
         }
@@ -549,17 +548,7 @@ const MenuExplorer = () => {
     }
 
     // Render error state
-    if (error) {
-        return (
-            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
-                <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
-                    <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
-                    <p className="text-red-700 font-medium">Oops! {error}</p>
-                    <button className='text-black border px-4 py-1 rounded text-2xl font-bold'>Retry</button>
-                </div>
-            </div>
-        );
-    }
+   
 
     const SkeletonCard = () => (
         <div className="bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse">
@@ -576,7 +565,7 @@ const MenuExplorer = () => {
 
     return (
         <>
-        <ToastContainer />
+        <Toaster />
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
             <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-4 py-4">
@@ -1091,14 +1080,7 @@ const MenuExplorer = () => {
                     </div>
                 )}
 
-                {error && (
-                    <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
-                        <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
-                            <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
-                            <p className="text-red-700 font-medium">{error}</p>
-                        </div>
-                    </div>
-                )}
+               
             </PageWrapper>
             <Navbar />
         </div>
