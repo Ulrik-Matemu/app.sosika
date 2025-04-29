@@ -18,6 +18,7 @@ import PageWrapper from '../services/page-transition';
 import Swal from 'sweetalert2';
 import { useToast } from '../hooks/use-toast';
 import { Toaster } from '../components/ui/toaster';
+import { ToastAction } from '../components/ui/toast';
 
 
 
@@ -169,7 +170,7 @@ const MenuExplorer = () => {
     const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [loadingMenu, isLoadingMenu] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [, setSelectedLocation] = useState("");
     const [showTooltip, setShowTooltip] = useState(false);
@@ -301,7 +302,12 @@ const MenuExplorer = () => {
                 setIsLoading(false);
                 isLoadingMenu(false);
             } catch (err) {
-                setError('Failed to fetch menu items. Please try again later.');
+               toast.toast({
+                variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: "Try checking you Internet connection.",
+          action: <ToastAction altText="Try again">Try again</ToastAction>,
+               })
                 setIsLoading(false);
                 console.error(err);
             }
