@@ -19,11 +19,15 @@ import Swal from 'sweetalert2';
 import { useToast } from '../hooks/use-toast';
 import { Toaster } from '../components/ui/toaster';
 import { ToastAction } from '../components/ui/toast';
-
-
-
-
-
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "../components/ui/pagination";
 
 
 const predefinedLocations = [
@@ -206,7 +210,11 @@ const MenuExplorer = () => {
 
 
     const [loading, setLoading] = useState<boolean>(false);
-    
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        totalPages: 1,
+    });
+
 
     useEffect(() => {
         const fcmToken = localStorage.getItem("fcmToken");
@@ -216,7 +224,7 @@ const MenuExplorer = () => {
     }, []);
 
     const handleSelectLocation = async (location: { name: string; lat: number; lng: number }) => {
-       
+
         setLoading(true);
         const userId = localStorage.getItem("userId");
         if (!userId) {
@@ -242,9 +250,9 @@ const MenuExplorer = () => {
             setLoading(false);
             setIsLocationOpen(false);
             // alert('Location updated successfully! You can now place your order.');
-           toast.toast({
+            toast.toast({
                 description: 'Location updated successfully!'
-           });
+            });
 
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -281,18 +289,21 @@ const MenuExplorer = () => {
 
     // Fetch all menu items when component mounts
     useEffect(() => {
-        const fetchMenuItems = async () => {
+        const fetchMenuItems = async (page: number = 1) => {
             try {
-                const response = await axios.get('https://sosika-backend.onrender.com/api/menuItems');
-                setMenuItems(response.data);
-                setFilteredItems(response.data);
+                const response = await axios.get("https://sosika-backend.onrender.com/api/menuItems", {
+                    params: {
+                        page, 
+                        limit: 4, // change to your preferred value
+                    },
+                });
 
-                // Extract unique vendors
+                setMenuItems(response.data.data);
+                let menuData = response.data.data;
+                setPagination(response.data.pagination);
 
-
-                // Find price extremes
-                if (response.data.length > 0) {
-                    const prices = response.data.map((item: MenuItem) => parseFloat(item.price));
+                if (menuData.length > 0) {
+                    const prices = menuData.map((item: MenuItem) => parseFloat(item.price));
                     setPriceRange({
                         min: 0,
                         max: Math.ceil(Math.max(...prices))
@@ -302,19 +313,26 @@ const MenuExplorer = () => {
                 setIsLoading(false);
                 isLoadingMenu(false);
             } catch (err) {
-               toast.toast({
-                variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: "Try checking you Internet connection.",
-          action: <ToastAction altText="Try again">Try again</ToastAction>,
-               })
+                toast.toast({
+                    variant: "destructive",
+                    title: "Uh oh! Something went wrong.",
+                    description: "Try checking your Internet connection.",
+                    action: <ToastAction altText="Try again">Try again</ToastAction>,
+                });
                 setIsLoading(false);
                 console.error(err);
             }
         };
 
-        fetchMenuItems();
-    }, []);
+        fetchMenuItems(pagination.currentPage);
+    }, [pagination.currentPage]);
+
+    const handlePageChange = (page: number) => {
+        if (page > 0 && page <= pagination.totalPages) {
+            setPagination((prev) => ({ ...prev, currentPage: page }));
+        }
+    };
+
 
     //Fetch vendors for names in filter
     useEffect(() => {
@@ -474,7 +492,7 @@ const MenuExplorer = () => {
             });
             return;
         }
-        
+
         try {
             const user_id = localStorage.getItem('userId');
             const vendor_id = cart[0].vendor_id;
@@ -483,7 +501,7 @@ const MenuExplorer = () => {
                 delivery_fee = 0;
             }
             const requested_asap = true; // User wants ASAP delivery
-            
+
             // Replace confirm with SweetAlert
             const result = await Swal.fire({
                 title: 'Confirm Your Order',
@@ -501,9 +519,9 @@ const MenuExplorer = () => {
                 confirmButtonText: 'Place Order',
                 cancelButtonText: 'Cancel'
             });
-            
+
             if (!result.isConfirmed) return;
-            
+
             // Prepare order payload
             const orderData = {
                 user_id,
@@ -517,10 +535,10 @@ const MenuExplorer = () => {
                     price: parseFloat(item.price)
                 }))
             };
-            
+
             // Send order request
             const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
-            
+
             if (response.status === 201) {
                 Swal.fire({
                     title: 'Order Placed',
@@ -529,7 +547,7 @@ const MenuExplorer = () => {
                 });
                 setCart([]); // Clear cart after successful order
                 setIsCartOpen(false); // Close cart modal
-                
+
                 window.location.href = `#/order-tracking/${response.data.order_id}`;
             }
         } catch (error) {
@@ -579,532 +597,575 @@ const MenuExplorer = () => {
 
     return (
         <>
-        <Toaster />
-        <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
-            <NotificationHandler />
-            <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-4 py-4">
-                <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
-                <div className="flex items-center gap-4">
-                    <Tooltip open={showTooltip}>
-                        <TooltipTrigger asChild>
-                            <button
-                                onClick={() => setIsLocationOpen(true)}
-                                className="relative p-2 rounded-md dark:border-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                            >
-                                <MapPin />
-                            </button>
-                        </TooltipTrigger>
-                        <div >
-                            <TooltipContent className='w-[250px]'>
-                                Make sure to select your location before placing an order!
-                            </TooltipContent>
+            <Toaster />
+            <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
+                <NotificationHandler />
+                <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-4 py-4">
+                    <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
+                    <div className="flex items-center gap-4">
+                        <Tooltip open={showTooltip}>
+                            <TooltipTrigger asChild>
+                                <button
+                                    onClick={() => setIsLocationOpen(true)}
+                                    className="relative p-2 rounded-md dark:border-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                                >
+                                    <MapPin />
+                                </button>
+                            </TooltipTrigger>
+                            <div >
+                                <TooltipContent className='w-[250px]'>
+                                    Make sure to select your location before placing an order!
+                                </TooltipContent>
+                            </div>
+                        </Tooltip>
+
+                        <button
+                            onClick={() => setIsCartOpen(true)}
+                            className="relative p-2"
+                        >
+                            <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
+                            {cart.length > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                                </span>
+                            )}
+                        </button>
+                        <ThemeToggle />
+                    </div>
+                </header>
+                <PageWrapper>
+
+                    {/* Location Selection Modal */}
+                    {isLocationOpen && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                            <div className="bg-white dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-80">
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-lg font-bold text-[#00bfff]">Select Location</h2>
+                                    <button onClick={() => setIsLocationOpen(false)}>
+                                        <X className="h-5 w-5 text-gray-600 dark:text-white" />
+                                    </button>
+                                </div>
+
+                                <ul className="mt-4 space-y-2">
+                                    {predefinedLocations.map((location) => (
+                                        <li
+                                            key={location.name}
+                                            onClick={() => handleSelectLocation(location)}
+                                            className="p-2 rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                                        >
+                                            {location.name}
+                                        </li>
+                                    ))}
+                                    <li
+                                        onClick={addCurrentLocation}
+                                        className="p-2 flex justify-center rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-blue-500 font-medium"
+                                    >
+                                        {loading ? (
+                                            <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        ) : (
+                                            'Use my current location'
+                                        )}
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
-                    </Tooltip>
+                    )}
 
-                    <button
-                        onClick={() => setIsCartOpen(true)}
-                        className="relative p-2"
-                    >
-                        <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
-                        {cart.length > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                            </span>
-                        )}
-                    </button>
-                    <ThemeToggle />
-                </div>
-            </header>
-            <PageWrapper>
 
-                {/* Location Selection Modal */}
-                {isLocationOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                        <div className="bg-white dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-80">
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-lg font-bold text-[#00bfff]">Select Location</h2>
-                                <button onClick={() => setIsLocationOpen(false)}>
-                                    <X className="h-5 w-5 text-gray-600 dark:text-white" />
+                    <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
+                        <div className="mb-4 flex justify-between">
+                            <div className="relative w-[85%]">
+                                <Search className="absolute left-3 top-5 -translate-y-1/2 h-5 w-5 text-gray-400 " />
+                                <input
+                                    type="text"
+                                    placeholder="Search menu items..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full h-10 pl-10 pr-4 py-3 rounded-3xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all dark:bg-gray-500 dark:text-black"
+                                />
+                            </div>
+
+                            <div className="justify-right mb-1">
+                                <button
+                                    onClick={resetFilters}
+                                    className="text-sm text-[#00bfff] hover:text-blue-700  gap-1"
+                                >
+                                    <RefreshCw className="h-10 w-10" />
                                 </button>
                             </div>
-
-                            <ul className="mt-4 space-y-2">
-                                {predefinedLocations.map((location) => (
-                                    <li
-                                        key={location.name}
-                                        onClick={() => handleSelectLocation(location)}
-                                        className="p-2 rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                                    >
-                                        {location.name}
-                                    </li>
-                                ))}
-                                <li
-                                    onClick={addCurrentLocation}
-                                    className="p-2 flex justify-center rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-blue-500 font-medium"
-                                >
-                                    {loading ? (
-                                        <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                    ) : (
-                                        'Use my current location'
-                                    )}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                )}
-
-
-                <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
-                    <div className="mb-4 flex justify-between">
-                        <div className="relative w-[85%]">
-                            <Search className="absolute left-3 top-5 -translate-y-1/2 h-5 w-5 text-gray-400 " />
-                            <input
-                                type="text"
-                                placeholder="Search menu items..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full h-10 pl-10 pr-4 py-3 rounded-3xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all dark:bg-gray-500 dark:text-black"
-                            />
                         </div>
 
-                        <div className="justify-right mb-1">
-                            <button
-                                onClick={resetFilters}
-                                className="text-sm text-[#00bfff] hover:text-blue-700  gap-1"
-                            >
-                                <RefreshCw className="h-10 w-10" />
-                            </button>
-                        </div>
-                    </div>
+                        <CarouselPlugin />
 
-                    <CarouselPlugin />
-
-                    <div className="lg:grid lg:grid-cols-12 lg:gap-6">
-                        {/* Filters Sidebar */}
-                        <div className="lg:col-span-3 mb-6 lg:mb-0">
-                            <div className="dark:bg-[#2b2b2b] p-0 rounded-xl  border border-[transparent] dark:border-[transparent]">
+                        <div className="lg:grid lg:grid-cols-12 lg:gap-6">
+                            {/* Filters Sidebar */}
+                            <div className="lg:col-span-3 mb-6 lg:mb-0">
+                                <div className="dark:bg-[#2b2b2b] p-0 rounded-xl  border border-[transparent] dark:border-[transparent]">
 
 
-                                <div className="space-y-4">
-                                    <div>
-                                        <div className="flex gap-4 overflow-x-auto py-2">
-                                            {categories.map(({ label, value, icon: Icon }) => (
-                                                <button
-                                                    key={value}
-                                                    onClick={() => setSelectedCategory(value)}
-                                                    className={`flex flex-col dark:bg-[#7a7a7a] items-center justify-center p-2 border rounded-lg w-15 h-15 transition-all ${selectedCategory === value ? "bg-blue-500 text-white" : "bg-gray-100"
-                                                        }`}
-                                                >
-                                                    <Icon className="w-6 h-6 mb-2 dark:text-white" />
-                                                    <span className="text-sm font-medium dark:text-white">{label}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className='flex  overflow-auto h-full w-full gap-2'>
-                                        <div className=''>
-                                            <select
-                                                value={vendorFilter}
-                                                onChange={(e) => setVendorFilter(e.target.value)}
-                                                className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a] w-48"
-                                            >
-                                                <option value="">All Vendors</option>
-                                                {vendors.map(vendor => (
-                                                    <option key={vendor.id} value={vendor.id}>
-                                                        {vendor.name}
-                                                    </option>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <div className="flex gap-4 overflow-x-auto py-2">
+                                                {categories.map(({ label, value, icon: Icon }) => (
+                                                    <button
+                                                        key={value}
+                                                        onClick={() => setSelectedCategory(value)}
+                                                        className={`flex flex-col dark:bg-[#7a7a7a] items-center justify-center p-2 border rounded-lg w-15 h-15 transition-all ${selectedCategory === value ? "bg-blue-500 text-white" : "bg-gray-100"
+                                                            }`}
+                                                    >
+                                                        <Icon className="w-6 h-6 mb-2 dark:text-white" />
+                                                        <span className="text-sm font-medium dark:text-white">{label}</span>
+                                                    </button>
                                                 ))}
-                                            </select>
+                                            </div>
+                                        </div>
+                                        <div className='flex  overflow-auto h-full w-full gap-2'>
+                                            <div className=''>
+                                                <select
+                                                    value={vendorFilter}
+                                                    onChange={(e) => setVendorFilter(e.target.value)}
+                                                    className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a] w-48"
+                                                >
+                                                    <option value="">All Vendors</option>
+                                                    {vendors.map(vendor => (
+                                                        <option key={vendor.id} value={vendor.id}>
+                                                            {vendor.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
 
+                                            </div>
+                                            <div className=''>
+                                                <select
+                                                    value={sortOption}
+                                                    onChange={(e) => setSortOption(e.target.value as "name-asc" | "name-desc" | "price-asc" | "price-desc")}
+                                                    className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a] w-48"
+                                                >
+                                                    <option value="name-asc">Name (A-Z)</option>
+                                                    <option value="name-desc">Name (Z-A)</option>
+                                                    <option value="price-asc">Price (Low to High)</option>
+                                                    <option value="price-desc">Price (High to Low)</option>
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div className=''>
-                                            <select
-                                                value={sortOption}
-                                                onChange={(e) => setSortOption(e.target.value as "name-asc" | "name-desc" | "price-asc" | "price-desc")}
-                                                className="px-1 py-2 border rounded-3xl focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a] w-48"
-                                            >
-                                                <option value="name-asc">Name (A-Z)</option>
-                                                <option value="name-desc">Name (Z-A)</option>
-                                                <option value="price-asc">Price (Low to High)</option>
-                                                <option value="price-desc">Price (High to Low)</option>
-                                            </select>
-                                        </div>
+
+
+
+
                                     </div>
-
-
-
-
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                        {/* Results */}
-                        <div className="lg:col-span-9 mb-8">
-                            <div className="mb-4 flex items-center justify-between">
-                                <p className="text-sm text-gray-600 font-bold dark:text-white">
-                                    Showing {filteredItems.length} of {menuItems.length} items
-                                </p>
-                                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-                                    <button
-                                        onClick={() => setLayout('grid')}
-                                        className={`p-1.5 rounded-md ${layout === 'grid' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
-                                        title="Grid view"
-                                    >
-                                        <Columns className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => setLayout('list')}
-                                        className={`p-1.5 rounded-md ${layout === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
-                                        title="List view"
-                                    >
-                                        <List className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => setLayout('compact')}
-                                        className={`p-1.5 rounded-md ${layout === 'compact' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
-                                        title="Compact view"
-                                    >
-                                        <LayoutGrid className="h-4 w-4" />
-                                    </button>
                                 </div>
                             </div>
 
-                            {loadingMenu ? (
-                                // 👇 Show Skeletons (depending on layout)
-                                <>
-                                    {layout === 'grid' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {Array.from({ length: 6 }).map((_, i) => (
-                                                <SkeletonCard key={i} />
-                                            ))}
-                                        </div>
-                                    )}
-                                    {layout === 'list' && (
-                                        <div className="flex flex-col gap-4">
-                                            {Array.from({ length: 6 }).map((_, i) => (
-                                                <SkeletonCard key={i} />
-                                            ))}
-                                        </div>
-                                    )}
-                                    {layout === 'compact' && (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                            {Array.from({ length: 8 }).map((_, i) => (
-                                                <SkeletonCard key={i} />
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
-                            ) : filteredItems.length > 0 ? (
-                                // 👇 Show actual items when done loading
-                                <>
-                                    {layout === 'grid' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {filteredItems.map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
-                                                >
-                                                    <div className="relative aspect-square rounded-t-xl overflow-hidden">
-                                                        {item.image_url ? (
-                                                            <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                                                <ImageIcon className="h-12 w-12 text-gray-400" />
-                                                            </div>
-                                                        )}
-                                                        {!item.is_available && (
-                                                            <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                                                                <X className="h-3 w-3" />
-                                                                Unavailable
-                                                            </div>
-                                                        )}
-                                                        <div className="absolute bottom-2 left-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                                                            {item.category}
-                                                        </div>
-                                                    </div>
-                                                    <div className="p-4">
-                                                        <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
-                                                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
-                                                            {item.description || "No description available"}
-                                                        </p>
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
-                                                                Vendor #{item.vendor_id}
-                                                            </span>
-                                                            <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => addToCart(item)}
-                                                            disabled={!item.is_available}
-                                                            className="w-full bg-[#00bfff] text-white py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                                        >
-                                                            {item.is_available ? "Add to Cart" : "Unavailable"}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                    {layout === 'list' && (
-                                        <div className="flex flex-col gap-4">
-                                            {filteredItems.map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex ${!item.is_available ? "opacity-70" : ""}`}
-                                                >
-                                                    <div className="relative h-32 w-32 rounded-l-xl overflow-hidden flex-shrink-0">
-                                                        {item.image_url ? (
-                                                            <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                                                <ImageIcon className="h-8 w-8 text-gray-400" />
-                                                            </div>
-                                                        )}
-                                                        {!item.is_available && (
-                                                            <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                                                                <X className="h-3 w-3" />
-                                                                Unavailable
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="p-4 flex-grow flex flex-col justify-between">
-                                                        <div>
-                                                            <div className="flex justify-between items-start">
-                                                                <div>
-                                                                    <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
-                                                                    <div className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium mb-2">
-                                                                        {item.category}
-                                                                    </div>
+
+
+                            {/* Results */}
+                            <div className="lg:col-span-9 mb-8">
+                                <div className="mb-4 flex items-center justify-between">
+                                    <p className="text-sm text-gray-600 font-bold dark:text-white">
+                                        Showing {filteredItems.length} of {menuItems.length} items
+                                    </p>
+                                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                                        <button
+                                            onClick={() => setLayout('grid')}
+                                            className={`p-1.5 rounded-md ${layout === 'grid' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
+                                            title="Grid view"
+                                        >
+                                            <Columns className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setLayout('list')}
+                                            className={`p-1.5 rounded-md ${layout === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
+                                            title="List view"
+                                        >
+                                            <List className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setLayout('compact')}
+                                            className={`p-1.5 rounded-md ${layout === 'compact' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
+                                            title="Compact view"
+                                        >
+                                            <LayoutGrid className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {loadingMenu ? (
+                                    // 👇 Show Skeletons (depending on layout)
+                                    <>
+                                        {layout === 'grid' && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                {Array.from({ length: 6 }).map((_, i) => (
+                                                    <SkeletonCard key={i} />
+                                                ))}
+                                            </div>
+                                        )}
+                                        {layout === 'list' && (
+                                            <div className="flex flex-col gap-4">
+                                                {Array.from({ length: 6 }).map((_, i) => (
+                                                    <SkeletonCard key={i} />
+                                                ))}
+                                            </div>
+                                        )}
+                                        {layout === 'compact' && (
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                {Array.from({ length: 8 }).map((_, i) => (
+                                                    <SkeletonCard key={i} />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
+                                ) : filteredItems.length > 0 ? (
+                                    // 👇 Show actual items when done loading
+                                    <>
+                                        {layout === 'grid' && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                {filteredItems.map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
+                                                    >
+                                                        <div className="relative aspect-square rounded-t-xl overflow-hidden">
+                                                            {item.image_url ? (
+                                                                <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                                    <ImageIcon className="h-12 w-12 text-gray-400" />
                                                                 </div>
-                                                                <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                            )}
+                                                            {!item.is_available && (
+                                                                <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                                                                    <X className="h-3 w-3" />
+                                                                    Unavailable
+                                                                </div>
+                                                            )}
+                                                            <div className="absolute bottom-2 left-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                                                {item.category}
                                                             </div>
-                                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                                        </div>
+                                                        <div className="p-4">
+                                                            <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
+                                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
                                                                 {item.description || "No description available"}
                                                             </p>
-                                                        </div>
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
-                                                                Vendor #{item.vendor_id}
-                                                            </span>
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
+                                                                    Vendor #{item.vendor_id}
+                                                                </span>
+                                                                <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                            </div>
                                                             <button
                                                                 onClick={() => addToCart(item)}
                                                                 disabled={!item.is_available}
-                                                                className="bg-[#00bfff] text-white px-4 py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                                className="w-full bg-[#00bfff] text-white py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                                                             >
                                                                 {item.is_available ? "Add to Cart" : "Unavailable"}
                                                             </button>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                    {layout === 'compact' && (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                            {filteredItems.map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
-                                                >
-                                                    <div className="relative aspect-video rounded-t-xl overflow-hidden">
-                                                        {item.image_url ? (
-                                                            <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                                                <ImageIcon className="h-8 w-8 text-gray-400" />
-                                                            </div>
-                                                        )}
-                                                        {!item.is_available && (
-                                                            <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-1 py-0.5 rounded-full text-xs font-medium flex items-center gap-0.5">
-                                                                <X className="h-2 w-2" />
-                                                                Unavailable
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="p-3">
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-medium">
-                                                                {item.category}
-                                                            </span>
-                                                            <span className="text-sm font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
-                                                        </div>
-                                                        <h3 className="font-bold text-gray-900 dark:text-gray-200 text-sm mb-1 line-clamp-1">{item.name}</h3>
-                                                        <button
-                                                            onClick={() => addToCart(item)}
-                                                            disabled={!item.is_available}
-                                                            className="w-full bg-[#00bfff] text-white py-1 text-sm rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                                        >
-                                                            {item.is_available ? "Add to Cart" : "Unavailable"}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                // 👇 Show Frown when no items found and not loading
-                                <div className="text-center py-12">
-                                    <Frown className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-semibold text-gray-700 dark:text-white mb-2">No items found</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        Try adjusting your filters or check back later.
-                                    </p>
-                                </div>
-                            )}
-
-                        </div>
-                    </div>
-                </div>
-
-                {/* Order Tracking Modal */}
-                {isOrderTrackingOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-                        <div className="w-full max-w-md bg-white dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
-                            <div className="p-4 border-b flex justify-between items-center">
-                                <h2 className="text-xl font-bold flex items-center gap-2">
-                                    <MapPinIcon className="h-5 w-5" />
-                                    Order Tracking
-                                </h2>
-                                <button
-                                    onClick={closeOrderTracking}
-                                    className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                                >
-                                    <X className="h-6 w-6" />
-                                </button>
-                            </div>
-
-                            <div className="flex-grow overflow-auto p-4">
-
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Cart Drawer */}
-                {isCartOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-                        <div className="w-full max-w-md bg-white dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
-                            <div className="p-4 border-b flex justify-between items-center">
-                                <h2 className="text-xl font-bold flex items-center gap-2">
-                                    <ShoppingCart className="h-5 w-5" />
-                                    Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)
-                                </h2>
-                                <button
-                                    onClick={() => setIsCartOpen(false)}
-                                    className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                                >
-                                    <X className="h-6 w-6" />
-                                </button>
-                            </div>
-
-                            <div className="flex-grow overflow-auto p-4">
-                                {cart.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                                        <p className="text-gray-500">Your cart is empty</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {cart.map(item => (
-                                            <div key={item.id} className="bg-gray-50 dark:bg-[#3b3b3b] p-4 rounded-lg flex gap-4">
-                                                <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                                                    {item.image_url ? (
-                                                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center">
-                                                            <ImageIcon className="h-6 w-6 text-gray-400" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-grow">
-                                                    <h3 className="font-medium dark:text-white">{item.name}</h3>
-                                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                        TZS {parseFloat(item.price).toFixed(2)} each
-                                                    </p>
-                                                    <div className="flex items-center justify-between mt-2">
-                                                        <div className="flex items-center">
-                                                            <button
-                                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                                className="p-1 bg-gray-200 dark:bg-gray-700 rounded-l"
-                                                            >
-                                                                <Minus className="h-4 w-4" />
-                                                            </button>
-                                                            <span className="px-3 py-1 bg-white dark:bg-gray-600 text-center min-w-8">
-                                                                {item.quantity}
-                                                            </span>
-                                                            <button
-                                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                                className="p-1 bg-gray-200 dark:bg-gray-700 rounded-r"
-                                                            >
-                                                                <Plus className="h-4 w-4" />
-                                                            </button>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => removeFromCart(item.id)}
-                                                            className="p-1 text-red-500 hover:text-red-700"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div className="font-semibold text-[#00bfff]">
-                                                    TZS {(parseFloat(item.price) * item.quantity).toFixed(2)}
-                                                </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        )}
+                                        {layout === 'list' && (
+                                            <div className="flex flex-col gap-4">
+                                                {filteredItems.map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex ${!item.is_available ? "opacity-70" : ""}`}
+                                                    >
+                                                        <div className="relative h-32 w-32 rounded-l-xl overflow-hidden flex-shrink-0">
+                                                            {item.image_url ? (
+                                                                <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                                                                </div>
+                                                            )}
+                                                            {!item.is_available && (
+                                                                <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                                                                    <X className="h-3 w-3" />
+                                                                    Unavailable
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="p-4 flex-grow flex flex-col justify-between">
+                                                            <div>
+                                                                <div className="flex justify-between items-start">
+                                                                    <div>
+                                                                        <h3 className="font-bold text-gray-900 dark:text-gray-200 mb-1">{item.name}</h3>
+                                                                        <div className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium mb-2">
+                                                                            {item.category}
+                                                                        </div>
+                                                                    </div>
+                                                                    <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                                </div>
+                                                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                                                    {item.description || "No description available"}
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
+                                                                    Vendor #{item.vendor_id}
+                                                                </span>
+                                                                <button
+                                                                    onClick={() => addToCart(item)}
+                                                                    disabled={!item.is_available}
+                                                                    className="bg-[#00bfff] text-white px-4 py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                                >
+                                                                    {item.is_available ? "Add to Cart" : "Unavailable"}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {layout === 'compact' && (
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                {filteredItems.map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
+                                                    >
+                                                        <div className="relative aspect-video rounded-t-xl overflow-hidden">
+                                                            {item.image_url ? (
+                                                                <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                                                                </div>
+                                                            )}
+                                                            {!item.is_available && (
+                                                                <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-1 py-0.5 rounded-full text-xs font-medium flex items-center gap-0.5">
+                                                                    <X className="h-2 w-2" />
+                                                                    Unavailable
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="p-3">
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-medium">
+                                                                    {item.category}
+                                                                </span>
+                                                                <span className="text-sm font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
+                                                            </div>
+                                                            <h3 className="font-bold text-gray-900 dark:text-gray-200 text-sm mb-1 line-clamp-1">{item.name}</h3>
+                                                            <button
+                                                                onClick={() => addToCart(item)}
+                                                                disabled={!item.is_available}
+                                                                className="w-full bg-[#00bfff] text-white py-1 text-sm rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                            >
+                                                                {item.is_available ? "Add to Cart" : "Unavailable"}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    // 👇 Show Frown when no items found and not loading
+                                    <div className="text-center py-12">
+                                        <Frown className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                                        <h3 className="text-lg font-semibold text-gray-700 dark:text-white mb-2">No items found</h3>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            Try adjusting your filters or check back later.
+                                        </p>
+                                    </div>
+                                )}
+
+                            </div>
+                        </div>
+                        <Pagination className=''>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handlePageChange(pagination.currentPage - 1);
+                                          }}
+                                    />
+                                </PaginationItem>
+
+                                {[...Array(pagination.totalPages)].map((_, i) => {
+                                    const pageNum = i + 1;
+                                    return (
+                                        <PaginationItem key={pageNum}>
+                                            <PaginationLink
+                                                href="#"
+                                                isActive={pagination.currentPage === pageNum}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handlePageChange(pageNum);
+                                                  }}
+                                            >
+                                                {pageNum}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    );
+                                })}
+
+                                {pagination.totalPages > 5 && <PaginationEllipsis />}
+
+                                <PaginationItem>
+                                    <PaginationNext
+                                        href="#"
+                                        onClick={(e) => { 
+                                            e.preventDefault();
+                                            handlePageChange(pagination.currentPage + 1)}}
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+
+                    </div>
+
+                    {/* Order Tracking Modal */}
+                    {isOrderTrackingOpen && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
+                            <div className="w-full max-w-md bg-white dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
+                                <div className="p-4 border-b flex justify-between items-center">
+                                    <h2 className="text-xl font-bold flex items-center gap-2">
+                                        <MapPinIcon className="h-5 w-5" />
+                                        Order Tracking
+                                    </h2>
+                                    <button
+                                        onClick={closeOrderTracking}
+                                        className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    >
+                                        <X className="h-6 w-6" />
+                                    </button>
+                                </div>
+
+                                <div className="flex-grow overflow-auto p-4">
+
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Cart Drawer */}
+                    {isCartOpen && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
+                            <div className="w-full max-w-md bg-white dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
+                                <div className="p-4 border-b flex justify-between items-center">
+                                    <h2 className="text-xl font-bold flex items-center gap-2">
+                                        <ShoppingCart className="h-5 w-5" />
+                                        Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)
+                                    </h2>
+                                    <button
+                                        onClick={() => setIsCartOpen(false)}
+                                        className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                                    >
+                                        <X className="h-6 w-6" />
+                                    </button>
+                                </div>
+
+                                <div className="flex-grow overflow-auto p-4">
+                                    {cart.length === 0 ? (
+                                        <div className="text-center py-8">
+                                            <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                                            <p className="text-gray-500">Your cart is empty</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {cart.map(item => (
+                                                <div key={item.id} className="bg-gray-50 dark:bg-[#3b3b3b] p-4 rounded-lg flex gap-4">
+                                                    <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                                                        {item.image_url ? (
+                                                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                <ImageIcon className="h-6 w-6 text-gray-400" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-grow">
+                                                        <h3 className="font-medium dark:text-white">{item.name}</h3>
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                            TZS {parseFloat(item.price).toFixed(2)} each
+                                                        </p>
+                                                        <div className="flex items-center justify-between mt-2">
+                                                            <div className="flex items-center">
+                                                                <button
+                                                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                                    className="p-1 bg-gray-200 dark:bg-gray-700 rounded-l"
+                                                                >
+                                                                    <Minus className="h-4 w-4" />
+                                                                </button>
+                                                                <span className="px-3 py-1 bg-white dark:bg-gray-600 text-center min-w-8">
+                                                                    {item.quantity}
+                                                                </span>
+                                                                <button
+                                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                                    className="p-1 bg-gray-200 dark:bg-gray-700 rounded-r"
+                                                                >
+                                                                    <Plus className="h-4 w-4" />
+                                                                </button>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => removeFromCart(item.id)}
+                                                                className="p-1 text-red-500 hover:text-red-700"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="font-semibold text-[#00bfff]">
+                                                        TZS {(parseFloat(item.price) * item.quantity).toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {cart.length > 0 && (
+                                    <div className="relative p-4 border-t mt-auto bottom-20">
+                                        <div className="flex justify-between mb-2">
+                                            <span className="font-medium dark:text-white">Subtotal:</span>
+                                            <span className="font-semibold text-[#00bfff]">TZS {cartTotal.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={clearCart}
+                                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-white flex-1"
+                                            >
+                                                Clear Cart
+                                            </button>
+                                            <button
+                                                onClick={checkout}
+                                                className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc] flex-1"
+                                            >
+                                                Checkout
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
-
-                            {cart.length > 0 && (
-                                <div className="relative p-4 border-t mt-auto bottom-20">
-                                    <div className="flex justify-between mb-2">
-                                        <span className="font-medium dark:text-white">Subtotal:</span>
-                                        <span className="font-semibold text-[#00bfff]">TZS {cartTotal.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={clearCart}
-                                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-white flex-1"
-                                        >
-                                            Clear Cart
-                                        </button>
-                                        <button
-                                            onClick={checkout}
-                                            className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc] flex-1"
-                                        >
-                                            Checkout
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {isLoading && (
-                    <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
-                        <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
-                    </div>
-                )}
-
-                {error && (
-                    <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
-                        <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
-                            <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
-                            <p className="text-red-700 font-medium">{error}</p>
+                    {isLoading && (
+                        <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+                            <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
                         </div>
-                    </div>
-                )}
-            </PageWrapper>
-            <Navbar />
-        </div>
+                    )}
+
+                    {error && (
+                        <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+                            <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
+                                <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
+                                <p className="text-red-700 font-medium">{error}</p>
+                            </div>
+                        </div>
+                    )}
+                </PageWrapper>
+                <Navbar />
+            </div>
         </>
     );
 };

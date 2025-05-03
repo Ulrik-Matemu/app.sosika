@@ -8,10 +8,10 @@ import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import PageWrapper from '../services/page-transition';
 import { Header } from '../components/my-components/header';
-
 import { Toaster } from '../components/ui/toaster';
 import { useToast } from '../hooks/use-toast';
 import { ToastAction } from '../components/ui/toast';
+
 
 interface UserProfile {
     id: number;
@@ -23,15 +23,18 @@ interface UserProfile {
     custom_address: string;
 }
 
+
 interface Reviews {
     review: string;
 }
+
 
 const logout = () => {
     localStorage.removeItem('email');
     localStorage.removeItem('password');
     window.location.href = '#/login';
 }
+
 
 const ProfileManagement = () => {
     const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -41,7 +44,6 @@ const ProfileManagement = () => {
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [formData, setFormData] = useState<Partial<UserProfile>>({});
     const [reviewData, setReviewData] = useState<Partial<Reviews>>({});
-
     const toast = useToast();
     const userId = localStorage.getItem('userId');
 
@@ -66,6 +68,7 @@ const ProfileManagement = () => {
 
         fetchProfile();
     }, [userId]);
+
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
