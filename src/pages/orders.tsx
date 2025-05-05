@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar,  MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen, PhoneCallIcon } from 'lucide-react';
+import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar,  MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen, PhoneCallIcon, MicIcon } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import NotificationHandler from '../components/my-components/notification-handler';
 import PageWrapper from '../services/page-transition';
@@ -8,6 +8,7 @@ import { Header } from '../components/my-components/header';
 import { Toaster } from '../components/ui/toaster';
 import { useToast } from '../hooks/use-toast';
 import { ToastAction } from '../components/ui/toast';
+import { Button } from '../components/ui/button';
 
 
 // Define interfaces for order data
@@ -86,6 +87,44 @@ const OrdersPage = () => {
     const [ratings, setRatings] = useState({ vendor: 0, delivery: 0 });
 
     const toast = useToast();
+
+    const startListening = () => {
+        
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US'; // or 'sw' for Swahili if supported
+        recognition.interimResults = false;
+        recognition.onresult = (event: { results: { transcript: string; }[][]; }) => {
+            const transcript = event.results[0][0].transcript.toLowerCase();
+            handleVoiceCommand(transcript);
+        };
+        recognition.start();
+    };
+
+    const handleVoiceCommand = (text: string) => {
+        const command = text.toLowerCase();
+    
+        
+    
+        if (command.includes("show menu") || command.includes("go to menu") || command.includes("home") || command.includes("explore") || command.includes("menu")) {
+            window.location.href = "#/explore";
+            navigator.vibrate(200);
+            return;
+        }
+    
+        if (command.includes("profile")) {
+            window.location.href = "#/profile";
+            navigator.vibrate(200);
+            return;
+        }
+
+        if (command.includes("orders")) {
+            window.location.href = "#/orders";
+            navigator.vibrate(200);
+            return;
+        }
+    
+    
+    };
 
 
     const fetchOrders = async () => {
@@ -203,6 +242,13 @@ const OrdersPage = () => {
     return (
         <>
         <Toaster />
+        <Button
+                onClick={startListening}
+                className="font-extrabold text-2xl fixed bottom-[90px] right-4 flex items-center gap-2 bg-[#00bfff] text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
+            >
+                <span>S</span>
+              <MicIcon className='animate-pulse' />
+            </Button>
         <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
             <NotificationHandler />
           <Header />

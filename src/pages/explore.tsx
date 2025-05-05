@@ -226,6 +226,7 @@ const MenuExplorer = () => {
     });
 
     const startListening = () => {
+        
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-US'; // or 'sw' for Swahili if supported
         recognition.interimResults = false;
@@ -242,21 +243,26 @@ const MenuExplorer = () => {
         // Handle navigation
         if (command.includes("go to cart") || command.includes("open cart")) {
             setIsCartOpen(true);
+            navigator.vibrate(200);
             return;
         }
     
-        if (command.includes("show menu") || command.includes("go to menu")) {
+        
+        if (command.includes("show menu") || command.includes("go to menu") || command.includes("home") || command.includes("explore") || command.includes("menu")) {
             window.location.href = "#/explore";
+            navigator.vibrate(200);
             return;
         }
     
         if (command.includes("profile")) {
             window.location.href = "#/profile";
+            navigator.vibrate(200);
             return;
         }
 
         if (command.includes("orders")) {
             window.location.href = "#/orders";
+            navigator.vibrate(200);
             return;
         }
     
@@ -264,6 +270,7 @@ const MenuExplorer = () => {
         // Set location
         if (command.includes("set location")) {
             addCurrentLocation(); // You must define or import this
+            navigator.vibrate(200);
             return;
         }
     
@@ -274,6 +281,7 @@ const MenuExplorer = () => {
         if (result.length > 0) {
             const matchedItem = result[0].item;
             addToCart(matchedItem);
+            navigator.vibrate(200);
         } else {
             toast.toast({
                 description: "No matching menu item found.",
@@ -672,8 +680,8 @@ const MenuExplorer = () => {
                 onClick={startListening}
                 className="font-extrabold text-2xl fixed bottom-[90px] right-4 flex items-center gap-2 bg-[#00bfff] text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
             >
-                <span className='animate-pulse'>S</span>
-              <MicIcon />
+                <span>S</span>
+              <MicIcon className='animate-pulse' />
             </Button>
             <div >
             </div>
