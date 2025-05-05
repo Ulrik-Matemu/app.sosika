@@ -281,7 +281,7 @@ const MenuExplorer = () => {
                 description: "Try saying 'chocolate' to add a chocolate item to your cart.",
                 variant: "default",
             });
-            speak("Hello there, You can say a menu item like Banana Bread to add to cart.");
+            speak("Hello there! You can say a menu item like Banana Bread to add it your to cart.");
             navigator.vibrate(200);
             return;
         }
@@ -330,6 +330,7 @@ const MenuExplorer = () => {
                 .some(phrase => command.includes(phrase))
         ) {
             addCurrentLocation(); // You must define or import this
+            speak("Your current location has been updated. You can now place an order");
             navigator.vibrate(200);
             return;
         }
@@ -342,6 +343,7 @@ const MenuExplorer = () => {
         if (result.length > 0) {
             const matchedItem = result[0].item;
             addToCart(matchedItem);
+            speak(`${matchedItem.name} has been added to your cart.`);
             navigator.vibrate(200);
         } else {
             toast.toast({
