@@ -281,7 +281,7 @@ const MenuExplorer = () => {
                 description: "Try saying 'chocolate' to add a chocolate item to your cart.",
                 variant: "default",
             });
-            speak("Hello there! You can say a menu item like Banana Bread to add it your to cart.");
+            speak("Hello there! You can say a menu item like Banana Bread to add to cart.");
             navigator.vibrate(200);
             return;
         }
