@@ -256,7 +256,7 @@ const MenuExplorer = () => {
         }
 
         if (command.includes("orders")) {
-            window.location.href = "#/order";
+            window.location.href = "#/orders";
             return;
         }
     
