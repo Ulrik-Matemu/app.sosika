@@ -105,23 +105,32 @@ const OrdersPage = () => {
     
         
     
-        if (command.includes("show menu") || command.includes("go to menu") || command.includes("home") || command.includes("explore") || command.includes("menu")) {
+        if (
+            ["show menu", "go to menu", "open menu", "menu page", "menu please", "home", "homepage", "explore", "go home", "take me to menu", "go to home", "open home screen", "menu"]
+              .some(phrase => command.includes(phrase))
+          ) {
             window.location.href = "#/explore";
             navigator.vibrate(200);
             return;
-        }
-    
-        if (command.includes("profile")) {
+          }
+          
+          if (
+            ["profile", "my profile", "go to profile", "open profile", "show profile", "profile page", "user profile", "account", "my account"]
+              .some(phrase => command.includes(phrase))
+          ) {
             window.location.href = "#/profile";
             navigator.vibrate(200);
             return;
-        }
-
-        if (command.includes("orders")) {
+          }
+          
+          if (
+            ["orders", "my orders", "show orders", "view orders", "order history", "order page", "open orders", "go to orders", "past orders"]
+              .some(phrase => command.includes(phrase))
+          ) {
             window.location.href = "#/orders";
             navigator.vibrate(200);
             return;
-        }
+          }
     
     
     };
