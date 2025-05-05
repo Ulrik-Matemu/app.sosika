@@ -272,7 +272,7 @@ const MenuExplorer = () => {
 
 
         if (
-            ["hello", "hello there", "hi", "hey", "greetings", "howdy", "what's up", "yoad"]
+            ["hello", "hello there", "hi", "hey", "greetings", "howdy", "what's up", "yo"]
                 .some(phrase => command.includes(phrase))
         ) {
             

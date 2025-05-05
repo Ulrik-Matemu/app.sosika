@@ -91,6 +91,17 @@ const ProfileManagement = () => {
             navigator.vibrate(200);
             return;
           }
+
+          if (
+            ["set location", "update location", "change location", "share location", "mark my location", "use current location", "set my location", "enable location", "add location", "use my location", "use my current location", "update my location", "update my current location"]
+            .some(phrase => command.includes(phrase))
+        ) {
+            toast.toast({
+                title: "Uh oh! Something went wrong.",
+                description: "You have to be on the home page to set your location.",
+                action: <ToastAction altText='Navigate' onClick={() => window.location.href = "#/explore"}>Navigate</ToastAction>
+            });
+        }
     
     
     };
