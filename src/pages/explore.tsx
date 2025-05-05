@@ -237,16 +237,43 @@ const MenuExplorer = () => {
     };
 
     const handleVoiceCommand = (text: string) => {
-        const fuse = new Fuse(menuItems, { keys: ['name'], threshold: 0.4 });
-        const result = fuse.search(text);
+        const command = text.toLowerCase();
+    
+        // Handle navigation
+        if (command.includes("go to cart") || command.includes("open cart")) {
+            setIsCartOpen(true);
+            return;
+        }
+    
+        if (command.includes("show menu") || command.includes("go to menu")) {
+            window.location.href = "#/explore";
+            return;
+        }
+    
+        if (command.includes("profile")) {
+            window.location.href = "#/profile";
+            return;
+        }
 
+        if (command.includes("orders")) {
+            window.location.href = "#/order";
+            return;
+        }
+    
+    
+        // Set location
+        if (command.includes("set location")) {
+            addCurrentLocation(); // You must define or import this
+            return;
+        }
+    
+        // Fuzzy search for menu items
+        const fuse = new Fuse(menuItems, { keys: ['name'], threshold: 0.4 });
+        const result = fuse.search(command);
+    
         if (result.length > 0) {
             const matchedItem = result[0].item;
             addToCart(matchedItem);
-            toast.toast({
-                description: `Added ${matchedItem.name} to cart!`,
-                variant: "default",
-            });
         } else {
             toast.toast({
                 description: "No matching menu item found.",
@@ -254,6 +281,7 @@ const MenuExplorer = () => {
             });
         }
     };
+    
 
 
 
@@ -639,13 +667,16 @@ const MenuExplorer = () => {
     return (
         <>
             <Toaster />
+
             <Button
                 onClick={startListening}
-                className="fixed bottom-[90px] right-4 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
+                className="font-extrabold text-2xl fixed bottom-[90px] right-4 flex items-center gap-2 bg-[#00bfff] text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
             >
-                <MicIcon className="animate-pulse" />
-                Speak to Add Item
+                <span className='animate-pulse'>S</span>
+              
             </Button>
+            <div >
+            </div>
 
 
             <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
@@ -1028,7 +1059,7 @@ const MenuExplorer = () => {
 
                             </div>
                         </div>
-                        <Pagination className=''>
+                        <Pagination className='hidden'>
                             <PaginationContent>
                                 <PaginationItem>
                                     <PaginationPrevious
