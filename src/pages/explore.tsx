@@ -38,6 +38,7 @@ import {
     PaginationPrevious,
 } from "../components/ui/pagination";
 import { Button } from '../components/ui/button';
+import { useWakeWordListener } from '../hooks/useWakeListener';
 
 
 const predefinedLocations = [
@@ -353,6 +354,8 @@ const MenuExplorer = () => {
         }
     };
 
+    
+
 
 
 
@@ -425,6 +428,8 @@ const MenuExplorer = () => {
             }
         );
     };
+
+    
 
 
     // Fetch all menu items when component mounts
@@ -632,24 +637,47 @@ const MenuExplorer = () => {
             });
             return;
         }
+       
 
         try {
+            
             const user_id = localStorage.getItem('userId');
             const vendor_id = cart[0].vendor_id;
             let delivery_fee = 2000; // Example fee
             if (vendor_id === 1) {
                 delivery_fee = 0;
             }
-            const requested_asap = true; // User wants ASAP delivery
+
+            let deliveryTime = "ASAP";
+            let note = "Made Fresh Just for You!";
+            
+            let requested_asap = true; // User wants ASAP delivery
+            if (cart[0].id === 7) {
+                deliveryTime = "Tomorrow"
+                note = "This delightful treat takes a day to prepare with extra care and love. We'll deliver it fresh and fabulous by tomorrow!🍰"
+                Swal.fire({
+                    title: "Special Order!",
+                    text: "This special treat takes a day to prepare with love. We’ll have it delivered fresh and delightful by tomorrow!",
+                    icon: "info",
+                  });
+            }
+
+            
+
+         
+
+          
 
             // Replace confirm with SweetAlert
             const result = await Swal.fire({
                 title: 'Confirm Your Order',
                 html: `
-                    <div>
+                    <div style="text-align: left">
                         <p>Total Items: <b>${cart.length}</b></p>
+                        <p>Delivery Time: <b>${deliveryTime}</p>
                         <p>Delivery Fee: <b>${delivery_fee}</b></p>
                         <p>Payment: <b>Cash on Delivery</b></p>
+                        <p><b>${note}</b></p>
                     </div>
                 `,
                 icon: 'question',
