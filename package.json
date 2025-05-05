@@ -25,6 +25,7 @@
     "embla-carousel-react": "^8.6.0",
     "firebase": "^11.4.0",
     "framer-motion": "^12.6.3",
+    "fuse.js": "^7.1.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.476.0",
     "react": "^19.0.0-rc.1",

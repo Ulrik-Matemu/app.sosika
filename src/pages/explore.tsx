@@ -8,6 +8,7 @@ declare global {
     }
 }
 import axios from 'axios';
+import Fuse from 'fuse.js';
 import { Search, Utensils, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin, LayoutGrid, List, Columns, MicIcon } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
@@ -217,7 +218,7 @@ const MenuExplorer = () => {
 
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
 
-   
+
     const [loading, setLoading] = useState<boolean>(false);
     const [pagination, setPagination] = useState({
         currentPage: 1,
@@ -236,11 +237,22 @@ const MenuExplorer = () => {
     };
 
     const handleVoiceCommand = (text: string) => {
-        const matchedItems = menuItems.filter(item =>
-            text.includes(item.name.toLowerCase())
-        );
-        console.log('Matched items:', matchedItems);
-        alert(matchedItems.length > 0 ? `You ordered: ${matchedItems.map(item => item.name).join(', ')}` : 'No items matched your order.');
+        const fuse = new Fuse(menuItems, { keys: ['name'], threshold: 0.4 });
+        const result = fuse.search(text);
+
+        if (result.length > 0) {
+            const matchedItem = result[0].item;
+            addToCart(matchedItem);
+            toast.toast({
+                description: `Added ${matchedItem.name} to cart!`,
+                variant: "default",
+            });
+        } else {
+            toast.toast({
+                description: "No matching menu item found.",
+                variant: "destructive",
+            });
+        }
     };
 
 
@@ -628,12 +640,12 @@ const MenuExplorer = () => {
         <>
             <Toaster />
             <Button
-  onClick={startListening}
-  className="absolute bottom-[100px] right-4 items-center gap-2 bg-gradient-to-r from-pink-500 to-red-500 text-white px-4 py-2 rounded-2xl shadow-lg hover:scale-105 active:scale-95 transition-transform duration-150"
->
-  <MicIcon className="animate-pulse" />
-  Order with Voice
-</Button>
+                onClick={startListening}
+                className="fixed bottom-[90px] right-4 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
+            >
+                <MicIcon className="animate-pulse" />
+                Speak to Add Item
+            </Button>
 
 
             <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
@@ -645,7 +657,7 @@ const MenuExplorer = () => {
                             <TooltipTrigger asChild>
                                 <button
                                     onClick={() => setIsLocationOpen(true)}
-                                    className="relative p-2 rounded-md dark:border-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                                    className="relative p-2 rounded-md dark:border-gray-600 dark:text-white hover:bg-gray-100 hover:text-black dark:hover:bg-gray-700 transition"
                                 >
                                     <MapPin />
                                 </button>
