@@ -225,8 +225,38 @@ const MenuExplorer = () => {
         totalPages: 1,
     });
 
+    let voices: SpeechSynthesisVoice[] = [];
+
+    const loadVoices = () => {
+        voices = window.speechSynthesis.getVoices();
+        if (!voices.length) {
+            // try again when voices change
+            window.speechSynthesis.onvoiceschanged = () => {
+                voices = window.speechSynthesis.getVoices();
+            };
+        }
+    };
+
+    loadVoices();
+
+
+    const speak = (text: string) => {
+        if (!('speechSynthesis' in window)) return;
+      
+        const synth = window.speechSynthesis;
+      
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.voice = voices.find(v => v.lang === 'en-US') || voices[0];
+        utter.rate = 1;
+        synth.cancel(); // Cancel any ongoing speech
+        synth.speak(utter);
+      };
+      
+
+
+
     const startListening = () => {
-        
+
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-US'; // or 'sw' for Swahili if supported
         recognition.interimResults = false;
@@ -239,17 +269,19 @@ const MenuExplorer = () => {
 
     const handleVoiceCommand = (text: string) => {
         const command = text.toLowerCase();
-    
+
 
         if (
             ["hello", "hello there", "hi", "hey", "greetings", "howdy", "what's up", "yoad"]
-            .some(phrase => command.includes(phrase))
+                .some(phrase => command.includes(phrase))
         ) {
+            speak("Hello there! You can say a menu item like Banana Bread.");
             toast.toast({
                 title: "Hello there! 👋",
                 description: "Try saying 'chocolate' to add a chocolate item to your cart.",
                 variant: "default",
             });
+            speak("Hello there");
             navigator.vibrate(200);
             return;
         }
@@ -257,56 +289,56 @@ const MenuExplorer = () => {
         // Handle navigation
         if (
             ["go to cart", "open cart", "show cart", "view cart", "my cart", "cart page", "take me to cart", "navigate to cart", "access cart"]
-              .some(phrase => command.includes(phrase))
-          ) {
+                .some(phrase => command.includes(phrase))
+        ) {
             setIsCartOpen(true);
             navigator.vibrate(200);
             return;
-          }
-          
-          if (
+        }
+
+        if (
             ["show menu", "go to menu", "open menu", "menu page", "menu please", "home", "homepage", "explore", "go home", "take me to menu", "go to home", "open home screen", "menu"]
-              .some(phrase => command.includes(phrase))
-          ) {
+                .some(phrase => command.includes(phrase))
+        ) {
             window.location.href = "#/explore";
             navigator.vibrate(200);
             return;
-          }
-          
-          if (
+        }
+
+        if (
             ["profile", "my profile", "go to profile", "open profile", "show profile", "profile page", "user profile", "account", "my account"]
-              .some(phrase => command.includes(phrase))
-          ) {
+                .some(phrase => command.includes(phrase))
+        ) {
             window.location.href = "#/profile";
             navigator.vibrate(200);
             return;
-          }
-          
-          if (
+        }
+
+        if (
             ["orders", "my orders", "show orders", "view orders", "order history", "order page", "open orders", "go to orders", "past orders"]
-              .some(phrase => command.includes(phrase))
-          ) {
+                .some(phrase => command.includes(phrase))
+        ) {
             window.location.href = "#/orders";
             navigator.vibrate(200);
             return;
-          }
-          
-    
-    
-          if (
+        }
+
+
+
+        if (
             ["set location", "update location", "change location", "share location", "mark my location", "use current location", "set my location", "enable location", "add location", "use my location", "use my current location", "update my location", "update my current location"]
-              .some(phrase => command.includes(phrase))
-          ) {
+                .some(phrase => command.includes(phrase))
+        ) {
             addCurrentLocation(); // You must define or import this
             navigator.vibrate(200);
             return;
-          }
-          
-    
+        }
+
+
         // Fuzzy search for menu items
         const fuse = new Fuse(menuItems, { keys: ['name'], threshold: 0.4 });
         const result = fuse.search(command);
-    
+
         if (result.length > 0) {
             const matchedItem = result[0].item;
             addToCart(matchedItem);
@@ -318,7 +350,7 @@ const MenuExplorer = () => {
             });
         }
     };
-    
+
 
 
 
@@ -710,7 +742,7 @@ const MenuExplorer = () => {
                 className="font-extrabold text-2xl fixed bottom-[90px] right-4 flex items-center gap-2 bg-[#00bfff] text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
             >
                 <span>S</span>
-              <MicIcon className='animate-pulse' />
+                <MicIcon className='animate-pulse' />
             </Button>
             <div >
             </div>
