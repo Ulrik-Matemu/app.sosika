@@ -47,6 +47,33 @@ const ProfileManagement = () => {
     const toast = useToast();
     const userId = localStorage.getItem('userId');
 
+    let voices: SpeechSynthesisVoice[] = [];
+
+    const loadVoices = () => {
+        voices = window.speechSynthesis.getVoices();
+        if (!voices.length) {
+            // try again when voices change
+            window.speechSynthesis.onvoiceschanged = () => {
+                voices = window.speechSynthesis.getVoices();
+            };
+        }
+    };
+
+    loadVoices();
+
+
+    const speak = (text: string) => {
+        if (!('speechSynthesis' in window)) return;
+      
+        const synth = window.speechSynthesis;
+      
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.voice = voices.find(v => v.lang === 'en-US') || voices[0];
+        utter.rate = 1;
+        synth.cancel(); // Cancel any ongoing speech
+        synth.speak(utter);
+      };
+
     const startListening = () => {
         navigator.vibrate(200);
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -98,9 +125,10 @@ const ProfileManagement = () => {
         ) {
             toast.toast({
                 title: "Uh oh! Something went wrong.",
-                description: "You have to be on the home page to set your location.",
+                description: "You have to be on the home page to set your location. Navigate and try again.",
                 action: <ToastAction altText='Navigate' onClick={() => window.location.href = "#/explore"}>Navigate</ToastAction>
             });
+            speak("You have to be on the home page to set your location");
         }
     
     
