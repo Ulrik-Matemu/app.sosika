@@ -275,13 +275,13 @@ const MenuExplorer = () => {
             ["hello", "hello there", "hi", "hey", "greetings", "howdy", "what's up", "yoad"]
                 .some(phrase => command.includes(phrase))
         ) {
-            speak("Hello there, You can say a menu item like Banana Bread to add to cart.");
+            
             toast.toast({
                 title: "Hello there! 👋",
                 description: "Try saying 'chocolate' to add a chocolate item to your cart.",
                 variant: "default",
             });
-            speak("Hello there");
+            speak("Hello there, You can say a menu item like Banana Bread to add to cart.");
             navigator.vibrate(200);
             return;
         }
