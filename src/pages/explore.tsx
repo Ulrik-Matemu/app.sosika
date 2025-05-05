@@ -673,7 +673,7 @@ const MenuExplorer = () => {
                 className="font-extrabold text-2xl fixed bottom-[90px] right-4 flex items-center gap-2 bg-[#00bfff] text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
             >
                 <span className='animate-pulse'>S</span>
-              
+              <MicIcon />
             </Button>
             <div >
             </div>
