@@ -38,7 +38,6 @@ import {
     PaginationPrevious,
 } from "../components/ui/pagination";
 import { Button } from '../components/ui/button';
-import { useWakeWordListener } from '../hooks/useWakeListener';
 
 
 const predefinedLocations = [
