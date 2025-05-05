@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
+
+// Extend the Window interface to include SpeechRecognition and webkitSpeechRecognition
+declare global {
+    interface Window {
+        SpeechRecognition: any;
+        webkitSpeechRecognition: any;
+    }
+}
 import axios from 'axios';
-import { Search, Utensils, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
+import { Search, Utensils, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin, LayoutGrid, List, Columns, MicIcon } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
@@ -28,6 +36,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "../components/ui/pagination";
+import { Button } from '../components/ui/button';
 
 
 const predefinedLocations = [
@@ -208,12 +217,32 @@ const MenuExplorer = () => {
 
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
 
-
+   
     const [loading, setLoading] = useState<boolean>(false);
     const [pagination, setPagination] = useState({
         currentPage: 1,
         totalPages: 1,
     });
+
+    const startListening = () => {
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US'; // or 'sw' for Swahili if supported
+        recognition.interimResults = false;
+        recognition.onresult = (event: { results: { transcript: string; }[][]; }) => {
+            const transcript = event.results[0][0].transcript.toLowerCase();
+            handleVoiceCommand(transcript);
+        };
+        recognition.start();
+    };
+
+    const handleVoiceCommand = (text: string) => {
+        const matchedItems = menuItems.filter(item =>
+            text.includes(item.name.toLowerCase())
+        );
+        console.log('Matched items:', matchedItems);
+        alert(matchedItems);
+    };
+
 
 
     useEffect(() => {
@@ -293,7 +322,7 @@ const MenuExplorer = () => {
             try {
                 const response = await axios.get("https://sosika-backend.onrender.com/api/menuItems", {
                     params: {
-                        page, 
+                        page,
                         limit: 4, // change to your preferred value
                     },
                 });
@@ -598,6 +627,15 @@ const MenuExplorer = () => {
     return (
         <>
             <Toaster />
+            <Button
+  onClick={startListening}
+  className="absolute bottom-[100px] right-4 items-center gap-2 bg-gradient-to-r from-pink-500 to-red-500 text-white px-4 py-2 rounded-2xl shadow-lg hover:scale-105 active:scale-95 transition-transform duration-150"
+>
+  <MicIcon className="animate-pulse" />
+  Order with Voice
+</Button>
+
+
             <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
                 <NotificationHandler />
                 <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-4 py-4">
@@ -986,7 +1024,7 @@ const MenuExplorer = () => {
                                         onClick={(e) => {
                                             e.preventDefault();
                                             handlePageChange(pagination.currentPage - 1);
-                                          }}
+                                        }}
                                     />
                                 </PaginationItem>
 
@@ -1000,7 +1038,7 @@ const MenuExplorer = () => {
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     handlePageChange(pageNum);
-                                                  }}
+                                                }}
                                             >
                                                 {pageNum}
                                             </PaginationLink>
@@ -1013,9 +1051,10 @@ const MenuExplorer = () => {
                                 <PaginationItem>
                                     <PaginationNext
                                         href="#"
-                                        onClick={(e) => { 
+                                        onClick={(e) => {
                                             e.preventDefault();
-                                            handlePageChange(pagination.currentPage + 1)}}
+                                            handlePageChange(pagination.currentPage + 1)
+                                        }}
                                     />
                                 </PaginationItem>
                             </PaginationContent>
