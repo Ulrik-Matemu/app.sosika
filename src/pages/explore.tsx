@@ -242,16 +242,16 @@ const MenuExplorer = () => {
 
     const speak = (text: string) => {
         if (!('speechSynthesis' in window)) return;
-      
+
         const synth = window.speechSynthesis;
-      
+
         const utter = new SpeechSynthesisUtterance(text);
         utter.voice = voices.find(v => v.lang === 'en-US') || voices[0];
         utter.rate = 1;
         synth.cancel(); // Cancel any ongoing speech
         synth.speak(utter);
-      };
-      
+    };
+
 
 
 
@@ -275,7 +275,7 @@ const MenuExplorer = () => {
             ["hello", "hello there", "hi", "hey", "greetings", "howdy", "what's up", "yo"]
                 .some(phrase => command.includes(phrase))
         ) {
-            
+
             toast.toast({
                 title: "Hello there! 👋",
                 description: "Try saying 'chocolate' to add a chocolate item to your cart.",
@@ -353,7 +353,7 @@ const MenuExplorer = () => {
         }
     };
 
-    
+
 
 
 
@@ -428,7 +428,7 @@ const MenuExplorer = () => {
         );
     };
 
-    
+
 
 
     // Fetch all menu items when component mounts
@@ -636,10 +636,10 @@ const MenuExplorer = () => {
             });
             return;
         }
-       
+
 
         try {
-            
+
             const user_id = localStorage.getItem('userId');
             const vendor_id = cart[0].vendor_id;
             let delivery_fee = 2000; // Example fee
@@ -649,7 +649,7 @@ const MenuExplorer = () => {
 
             let deliveryTime = "ASAP";
             let note = "Made Fresh Just for You!";
-            
+
             let requested_asap = true; // User wants ASAP delivery
             if (cart[0].id === 7) {
                 deliveryTime = "Tomorrow"
@@ -658,28 +658,151 @@ const MenuExplorer = () => {
                     title: "Special Order!",
                     text: "This special treat takes a day to prepare with love. We’ll have it delivered fresh and delightful by tomorrow!",
                     icon: "info",
-                  });
+                });
             }
 
-            
 
-         
 
-          
+
+
+
 
             // Replace confirm with SweetAlert
             const result = await Swal.fire({
                 title: 'Confirm Your Order',
                 html: `
-                    <div style="text-align: left">
-                        <p>Total Items: <b>${cart.length}</b></p>
-                        <p>Delivery Time: <b>${deliveryTime}</p>
-                        <p>Delivery Fee: <b>${delivery_fee}</b></p>
-                        <p>Payment: <b>Cash on Delivery</b></p>
-                        <p><b>${note}</b></p>
-                    </div>
-                `,
-                icon: 'question',
+               <!-- SweetAlert Custom HTML Content -->
+<div class="checkout-summary" style=" text-align: left; border-radius: 8px; overflow: hidden; animation: fadeIn 0.5s ease-out;">
+    <!-- Styling -->
+    <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        .checkout-summary {
+        }
+        
+        .item-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed #e5e7eb;
+            animation: slideIn 0.3s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .item-row:last-child { border-bottom: none; }
+        .item-row:nth-child(1) { animation-delay: 0.1s; }
+        .item-row:nth-child(2) { animation-delay: 0.2s; }
+        .item-row:nth-child(3) { animation-delay: 0.3s; }
+        .item-row:nth-child(4) { animation-delay: 0.4s; }
+        
+        .icon-bubble {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+        
+        .label {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 3px;
+        }
+        
+        .value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .delivery-time svg { animation: pulse 2s infinite; }
+    </style>
+    
+    <!-- Cart Items -->
+    <div class="item-row">
+        <div class="icon-bubble" style="background-color: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="21" r="1"></circle>
+                <circle cx="19" cy="21" r="1"></circle>
+                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+            </svg>
+        </div>
+        <div>
+            <div class="label">Total Items</div>
+            <div class="value">${cart.length}</div>
+        </div>
+    </div>
+    
+    <!-- Delivery Time -->
+    <div class="item-row delivery-time">
+        <div class="icon-bubble" style="background-color: rgba(16, 185, 129, 0.12); color: #10b981;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </div>
+        <div>
+            <div class="label">Delivery Time</div>
+            <div class="value">${deliveryTime}</div>
+        </div>
+    </div>
+    
+    <!-- Delivery Fee -->
+    <div class="item-row">
+        <div class="icon-bubble" style="background-color: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+        </div>
+        <div>
+            <div class="label">Delivery Fee</div>
+            <div class="value">${delivery_fee.toLocaleString()} TZS</div>
+        </div>
+    </div>
+    
+    <!-- Payment Method -->
+    <div class="item-row">
+        <div class="icon-bubble" style="background-color: rgba(239, 68, 68, 0.12); color: #ef4444;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <line x1="12" y1="10" x2="12" y2="16"></line>
+                <line x1="9" y1="13" x2="15" y2="13"></line>
+            </svg>
+        </div>
+        <div>
+            <div class="label">Payment Method</div>
+            <div class="value">Cash on Delivery</div>
+        </div>
+    </div>
+    
+    ${note ? `
+    <!-- Note (Conditional) -->
+    <div class="item-row">
+        <div class="icon-bubble" style="background-color: rgba(107, 114, 128, 0.12); color: #6b7280;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                <line x1="9" y1="9" x2="10" y2="9"></line>
+                <line x1="9" y1="13" x2="15" y2="13"></line>
+                <line x1="9" y1="17" x2="15" y2="17"></line>
+            </svg>
+        </div>
+        <div>
+            <div class="label">Note</div>
+            <div class="value" style="font-style: italic; font-weight: normal; font-size: 14px; color: #64748b;">${note}</div>
+        </div>
+    </div>
+    ` : ''}
+</div>
+              `,
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
