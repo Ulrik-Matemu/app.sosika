@@ -241,38 +241,53 @@ const MenuExplorer = () => {
         const command = text.toLowerCase();
     
         // Handle navigation
-        if (command.includes("go to cart") || command.includes("open cart")) {
+        if (
+            ["go to cart", "open cart", "show cart", "view cart", "my cart", "cart page", "take me to cart", "navigate to cart", "access cart"]
+              .some(phrase => command.includes(phrase))
+          ) {
             setIsCartOpen(true);
             navigator.vibrate(200);
             return;
-        }
-    
-        
-        if (command.includes("show menu") || command.includes("go to menu") || command.includes("home") || command.includes("explore") || command.includes("menu")) {
+          }
+          
+          if (
+            ["show menu", "go to menu", "open menu", "menu page", "menu please", "home", "homepage", "explore", "go home", "take me to menu", "go to home", "open home screen", "menu"]
+              .some(phrase => command.includes(phrase))
+          ) {
             window.location.href = "#/explore";
             navigator.vibrate(200);
             return;
-        }
-    
-        if (command.includes("profile")) {
+          }
+          
+          if (
+            ["profile", "my profile", "go to profile", "open profile", "show profile", "profile page", "user profile", "account", "my account"]
+              .some(phrase => command.includes(phrase))
+          ) {
             window.location.href = "#/profile";
             navigator.vibrate(200);
             return;
-        }
-
-        if (command.includes("orders")) {
+          }
+          
+          if (
+            ["orders", "my orders", "show orders", "view orders", "order history", "order page", "open orders", "go to orders", "past orders"]
+              .some(phrase => command.includes(phrase))
+          ) {
             window.location.href = "#/orders";
             navigator.vibrate(200);
             return;
-        }
+          }
+          
     
     
-        // Set location
-        if (command.includes("set location")) {
+          if (
+            ["set location", "update location", "change location", "share location", "mark my location", "use current location", "set my location", "enable location", "add location", "use my location", "use my current location", "update my location", "update my current location"]
+              .some(phrase => command.includes(phrase))
+          ) {
             addCurrentLocation(); // You must define or import this
             navigator.vibrate(200);
             return;
-        }
+          }
+          
     
         // Fuzzy search for menu items
         const fuse = new Fuse(menuItems, { keys: ['name'], threshold: 0.4 });

@@ -48,7 +48,7 @@ const ProfileManagement = () => {
     const userId = localStorage.getItem('userId');
 
     const startListening = () => {
-        
+        navigator.vibrate(200);
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-US'; // or 'sw' for Swahili if supported
         recognition.interimResults = false;
