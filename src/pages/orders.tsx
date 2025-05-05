@@ -104,6 +104,7 @@ const OrdersPage = () => {
         const command = text.toLowerCase();
     
         
+        
     
         if (
             ["show menu", "go to menu", "open menu", "menu page", "menu please", "home", "homepage", "explore", "go home", "take me to menu", "go to home", "open home screen", "menu"]

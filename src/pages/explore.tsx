@@ -240,6 +240,20 @@ const MenuExplorer = () => {
     const handleVoiceCommand = (text: string) => {
         const command = text.toLowerCase();
     
+
+        if (
+            ["hello", "hello there", "hi", "hey", "greetings", "howdy", "what's up", "yoad"]
+            .some(phrase => command.includes(phrase))
+        ) {
+            toast.toast({
+                title: "Hello there! 👋",
+                description: "Try saying 'chocolate' to add a chocolate item to your cart.",
+                variant: "default",
+            });
+            navigator.vibrate(200);
+            return;
+        }
+
         // Handle navigation
         if (
             ["go to cart", "open cart", "show cart", "view cart", "my cart", "cart page", "take me to cart", "navigate to cart", "access cart"]
