@@ -240,7 +240,7 @@ const MenuExplorer = () => {
             text.includes(item.name.toLowerCase())
         );
         console.log('Matched items:', matchedItems);
-        alert(matchedItems);
+        alert(matchedItems.length > 0 ? `You ordered: ${matchedItems.map(item => item.name).join(', ')}` : 'No items matched your order.');
     };
 
 
