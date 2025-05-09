@@ -90,7 +90,7 @@ export const LocationSelector: React.FC = () => {
     };
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-80">
+            <div className="bg-[#ededed] dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-80">
                 <div className="flex justify-between items-center">
                     <h2 className="text-lg font-bold text-[#00bfff]">Select Location</h2>
                     <button onClick={() => setIsLocationOpen(false)}>

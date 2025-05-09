@@ -854,7 +854,7 @@ const MenuExplorer = () => {
     // Render loading state
     if (isLoading) {
         return (
-            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+            <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
                 <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
             </div>
         );
@@ -863,7 +863,7 @@ const MenuExplorer = () => {
     // Render error state
     if (error) {
         return (
-            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+            <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
                 <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
                     <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
                     <p className="text-red-700 font-medium">Oops! {error}</p>
@@ -903,7 +903,7 @@ const MenuExplorer = () => {
 
             <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
                 <NotificationHandler />
-                <header className="sticky top-0 z-50 flex justify-between bg-white dark:bg-[#2b2b2b] px-4 py-4">
+                <header className="sticky top-0 z-50 flex justify-between bg-[#ededed] dark:bg-[#2b2b2b] px-4 py-4">
                     <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
                     <div className="flex items-center gap-4">
                         <Tooltip open={showTooltip}>
@@ -941,7 +941,7 @@ const MenuExplorer = () => {
                     {/* Location Selection Modal */}
                     {isLocationOpen && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                            <div className="bg-white dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-80">
+                            <div className="bg-[#ededed] dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-80">
                                 <div className="flex justify-between items-center">
                                     <h2 className="text-lg font-bold text-[#00bfff]">Select Location</h2>
                                     <button onClick={() => setIsLocationOpen(false)}>
@@ -1073,21 +1073,21 @@ const MenuExplorer = () => {
                                     <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                                         <button
                                             onClick={() => setLayout('grid')}
-                                            className={`p-1.5 rounded-md ${layout === 'grid' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
+                                            className={`p-1.5 rounded-md ${layout === 'grid' ? 'bg-[#ededed] dark:bg-gray-700 shadow-sm' : ''}`}
                                             title="Grid view"
                                         >
                                             <Columns className="h-4 w-4" />
                                         </button>
                                         <button
                                             onClick={() => setLayout('list')}
-                                            className={`p-1.5 rounded-md ${layout === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
+                                            className={`p-1.5 rounded-md ${layout === 'list' ? 'bg-[#ededed] dark:bg-gray-700 shadow-sm' : ''}`}
                                             title="List view"
                                         >
                                             <List className="h-4 w-4" />
                                         </button>
                                         <button
                                             onClick={() => setLayout('compact')}
-                                            className={`p-1.5 rounded-md ${layout === 'compact' ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}`}
+                                            className={`p-1.5 rounded-md ${layout === 'compact' ? 'bg-[#ededed] dark:bg-gray-700 shadow-sm' : ''}`}
                                             title="Compact view"
                                         >
                                             <LayoutGrid className="h-4 w-4" />
@@ -1128,7 +1128,7 @@ const MenuExplorer = () => {
                                                 {filteredItems.map((item) => (
                                                     <div
                                                         key={item.id}
-                                                        className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
+                                                        className={`bg-[#ededed] dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
                                                     >
                                                         <div className="relative aspect-square rounded-t-xl overflow-hidden">
                                                             {item.image_url ? (
@@ -1176,7 +1176,7 @@ const MenuExplorer = () => {
                                                 {filteredItems.map((item) => (
                                                     <div
                                                         key={item.id}
-                                                        className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex ${!item.is_available ? "opacity-70" : ""}`}
+                                                        className={`bg-[#ededed] dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex ${!item.is_available ? "opacity-70" : ""}`}
                                                     >
                                                         <div className="relative h-32 w-32 rounded-l-xl overflow-hidden flex-shrink-0">
                                                             {item.image_url ? (
@@ -1230,7 +1230,7 @@ const MenuExplorer = () => {
                                                 {filteredItems.map((item) => (
                                                     <div
                                                         key={item.id}
-                                                        className={`bg-white dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
+                                                        className={`bg-[#ededed] dark:bg-[#1a1919] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 ${!item.is_available ? "opacity-70" : ""}`}
                                                     >
                                                         <div className="relative aspect-video rounded-t-xl overflow-hidden">
                                                             {item.image_url ? (
@@ -1334,7 +1334,7 @@ const MenuExplorer = () => {
                     {/* Order Tracking Modal */}
                     {isOrderTrackingOpen && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-                            <div className="w-full max-w-md bg-white dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
+                            <div className="w-full max-w-md bg-[#ededed] dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
                                 <div className="p-4 border-b flex justify-between items-center">
                                     <h2 className="text-xl font-bold flex items-center gap-2">
                                         <MapPinIcon className="h-5 w-5" />
@@ -1358,7 +1358,7 @@ const MenuExplorer = () => {
                     {/* Cart Drawer */}
                     {isCartOpen && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-                            <div className="w-full max-w-md bg-white dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
+                            <div className="w-full max-w-md bg-[#ededed] dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
                                 <div className="p-4 border-b flex justify-between items-center">
                                     <h2 className="text-xl font-bold flex items-center gap-2">
                                         <ShoppingCart className="h-5 w-5" />
@@ -1404,7 +1404,7 @@ const MenuExplorer = () => {
                                                                 >
                                                                     <Minus className="h-4 w-4" />
                                                                 </button>
-                                                                <span className="px-3 py-1 bg-white dark:bg-gray-600 text-center min-w-8">
+                                                                <span className="px-3 py-1 bg-[#ededed] dark:bg-gray-600 text-center min-w-8">
                                                                     {item.quantity}
                                                                 </span>
                                                                 <button
@@ -1458,13 +1458,13 @@ const MenuExplorer = () => {
                     )}
 
                     {isLoading && (
-                        <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+                        <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
                             <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
                         </div>
                     )}
 
                     {error && (
-                        <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+                        <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
                             <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
                                 <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
                                 <p className="text-red-700 font-medium">{error}</p>

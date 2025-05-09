@@ -207,7 +207,7 @@ const ProfileManagement = () => {
 
     if (isLoading) {
         return (
-            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+            <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
                 <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
             </div>
         );
@@ -215,7 +215,7 @@ const ProfileManagement = () => {
 
     if (error) {
         return (
-            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+            <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
                 <div className="text-center max-w-md p-6 bg-red-50 rounded-lg">
                     <X className="h-12 w-12 text-red-600 mx-auto mb-4" />
                     <p className="text-red-700 font-medium">{error}</p>
@@ -240,7 +240,7 @@ const ProfileManagement = () => {
             <PageWrapper>
 
             <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
-                <div className="bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]">
+                <div className="bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]">
                     <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                         <User className="h-6 w-6" />
                         Profile
@@ -340,7 +340,7 @@ const ProfileManagement = () => {
                         </div>
                     )}
                 </div>
-                <div className='my-8 flex justify-center bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
+                <div className='my-8 flex justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
                     <div className="grid w-full gap-2">
                         <Label htmlFor="message-2" className='font-bold'><span className='text-green-400 font-extrabold'>Enjoying your experience?</span> Share your thoughts and help us improve!</Label>
                         <Textarea
@@ -360,7 +360,7 @@ const ProfileManagement = () => {
                         </Button>
                     </div>
                 </div>
-                <div className='my-8 flex justify-center bg-white dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
+                <div className='my-8 flex justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
                     <button className='text-3xl text-[red] font-bold' onClick={logout}>
                         Logout
                     </button>

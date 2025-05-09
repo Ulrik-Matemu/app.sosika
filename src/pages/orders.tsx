@@ -254,7 +254,7 @@ const OrdersPage = () => {
 
     if (isLoading) {
         return (
-            <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center">
+            <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
                 <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
             </div>
         );
@@ -312,14 +312,14 @@ const OrdersPage = () => {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => fetchOrders()}
-                                        className="p-2 bg-white dark:bg-[#3b3b3b] rounded-full shadow hover:bg-gray-100 dark:hover:bg-[#4b4b4b]"
+                                        className="p-2 bg-[#ededed] dark:bg-[#3b3b3b] rounded-full shadow hover:bg-gray-100 dark:hover:bg-[#4b4b4b]"
                                         title="Refresh orders"
                                     >
                                         <RefreshCw className="h-5 w-5 text-[#00bfff]" />
                                     </button>
                                     <button
                                         onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                        className={`p-2 rounded-full shadow hover:bg-gray-100 dark:hover:bg-[#4b4b4b] ${isFilterOpen ? 'bg-[#00bfff] text-white' : 'bg-white dark:bg-[#3b3b3b] text-[#00bfff]'}`}
+                                        className={`p-2 rounded-full shadow hover:bg-gray-100 dark:hover:bg-[#4b4b4b] ${isFilterOpen ? 'bg-[#00bfff] text-white' : 'bg-[#ededed] dark:bg-[#3b3b3b] text-[#00bfff]'}`}
                                         title="Filter orders"
                                     >
                                         <Filter className="h-5 w-5" />
@@ -330,7 +330,7 @@ const OrdersPage = () => {
 
                         {/* Filters panel */}
                         {isFilterOpen && (
-                            <div className="bg-white dark:bg-[#3b3b3b] rounded-xl shadow p-4 mb-6 animate-slide-down">
+                            <div className="bg-[#ededed] dark:bg-[#3b3b3b] rounded-xl shadow p-4 mb-6 animate-slide-down">
                                 <h3 className="font-semibold text-lg mb-4 dark:text-white">Filters</h3>
                                 <div className="space-y-4">
                                     <div>
@@ -381,7 +381,7 @@ const OrdersPage = () => {
                         )}
 
                         {orders.length === 0 ? (
-                            <div className="text-center py-10 bg-white dark:bg-[#3b3b3b] rounded-xl shadow">
+                            <div className="text-center py-10 bg-[#ededed] dark:bg-[#3b3b3b] rounded-xl shadow">
                                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-[#4b4b4b] rounded-full mb-4">
                                     <PackageOpen className="h-8 w-8 text-gray-500 dark:text-gray-300" />
                                 </div>
@@ -394,7 +394,7 @@ const OrdersPage = () => {
                         ) : (
                             <div className="space-y-4">
                                 {orders.map((order) => (
-                                    <div key={order.id} className="bg-white dark:bg-[#3b3b3b] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                    <div key={order.id} className="bg-[#ededed] dark:bg-[#3b3b3b] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                                         <div
                                             className="p-4 flex justify-between items-center cursor-pointer"
                                             onClick={() => toggleOrderExpand(order.id)}
@@ -527,7 +527,7 @@ const OrdersPage = () => {
                     {/* Rating Modal */}
                     {ratingOrder && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-                            <div className="bg-white dark:bg-[#3b3b3b] rounded-xl p-6 w-full max-w-md mx-4">
+                            <div className="bg-[#ededed] dark:bg-[#3b3b3b] rounded-xl p-6 w-full max-w-md mx-4">
                                 <h3 className="text-xl font-bold mb-4 dark:text-white">Rate Your Order</h3>
                                 <p className="text-gray-600 dark:text-gray-300 mb-6">How was your experience with Order #{ratingOrder}?</p>
 

@@ -19,7 +19,7 @@ export const Services: React.FC = () => {
                 <Link to={service.link}>
                 <div
                   key={index}
-                  className="p-6 bg-white dark:bg-[#2b2b2b] rounded-2xl shadow hover:shadow-lg transition"
+                  className="p-6 bg-[#ededed] dark:bg-[#2b2b2b] rounded-2xl shadow hover:shadow-lg transition"
                 >
                   <h3 className="text-xl font-semibold mb-2 text-[#00bfff]">{service.title}</h3>
                   <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
