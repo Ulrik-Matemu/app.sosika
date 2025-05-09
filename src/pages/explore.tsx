@@ -867,6 +867,9 @@ const MenuExplorer = () => {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectGroup>
+                                                        <SelectItem value="All" onClick={() => setVendorFilter('')}>
+                                                            All Vendors
+                                                        </SelectItem>
                                                         {vendors.map((vendor) => (
                                                             <SelectItem key={vendor.id} value={String(vendor.id)}>
                                                                 {vendor.name}

@@ -109,8 +109,11 @@ export function CustomItemRequestDialog() {
                 <div className="flex justify-between items-center mt-4">
                     <Button
                         onClick={() => {
-                            // Placeholder for "Call vendor" feature.
-                            alert("Calling vendor...")
+                            if (navigator && navigator.userAgent.match(/Android|iPhone|iPad|iPod/i)) {
+                                window.location.href = "tel:+255760903468"; // Replace with the vendor's phone number
+                            } else {
+                                alert("Phone call feature is only available on mobile devices.");
+                            }
                         }}
                         variant="outline"
                         className="flex items-center space-x-2"
