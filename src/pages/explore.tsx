@@ -38,6 +38,7 @@ import {
     PaginationPrevious,
 } from "../components/ui/pagination";
 import { Button } from '../components/ui/button';
+import { CustomItemRequestDialog } from '../components/my-components/otherItems';
 
 
 const predefinedLocations = [
@@ -1280,6 +1281,10 @@ const MenuExplorer = () => {
 
                             </div>
                         </div>
+                        <div className='mb-20'>
+                        <CustomItemRequestDialog />
+                        </div>
+                        
                         <Pagination className='hidden'>
                             <PaginationContent>
                                 <PaginationItem>

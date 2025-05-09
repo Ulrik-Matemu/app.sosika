@@ -32,7 +32,7 @@ const specialOffers = [
         image: "/icons/4.png",
         title: "Buy 1 Get 1 Free!",
         description: "Available this weekend only.",
-        link: "https://ulrik-matemu.github.io/sosika-vendor/"
+        link: "https://sosikavendor.netlify.app"
     },
 ]
 
