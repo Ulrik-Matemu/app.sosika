@@ -27,7 +27,7 @@ export function CustomItemRequestDialog() {
         setLoading(true)
         // You can send this data to your backend or handle it accordingly.
         try {
-            const response = await fetch('https://sosika-backend.onrender.com/api/orders/other-orders', {
+            const response = await fetch('https://sosika-backend.onrender.com/api/orders/other-order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
