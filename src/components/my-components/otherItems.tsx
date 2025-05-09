@@ -18,7 +18,7 @@ export function CustomItemRequestDialog() {
     const [itemName, setItemName] = useState("")
     const [loading, setLoading] = useState(false)
     const [quantity, setQuantity] = useState("")
-    const [extra_instruction, setExtraInstruction] = useState("")
+    const [extraInstructions, setExtraInstruction] = useState("")
     const [message, setMessage] = useState("");
     const userId = localStorage.getItem("userId");
 
@@ -27,17 +27,18 @@ export function CustomItemRequestDialog() {
         setLoading(true)
         // You can send this data to your backend or handle it accordingly.
         try {
-            const response = await fetch('https://sosika-backend.onrender.com/api/orders/other-order', {
+            const response = await fetch('https://sosika-backend.onrender.com/api/orders/other-orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    userId,
-                    itemName,
+                    userId: userId,
+                    itemName: itemName,
+                    extraInstructions: extraInstructions,
                     quantity,
-                    extra_instruction,
-                }),
+                  }),
+                  
             })
 
             if (response.ok) {
@@ -80,7 +81,7 @@ export function CustomItemRequestDialog() {
                         <Input
                             id="item-name"
                             placeholder="Na mishkaki miwili ya ng'ombe"
-                            value={extra_instruction}
+                            value={extraInstructions}
                             className="h-16 dark:bg-[#7a7a7a]"
                             onChange={(e) => setExtraInstruction(e.target.value)}
                         />
