@@ -51,6 +51,12 @@ export function CustomItemRequestDialog() {
             alert("An error occurred while submitting your request.")
         }
         setLoading(false)
+        setItemName("")
+        setQuantity("")
+        setExtraInstruction("")
+        setTimeout(() => {
+            setMessage("")
+        }, 5000)
     }
 
     return (
