@@ -37,7 +37,7 @@ export const RegisterPage: React.FC = () => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [step, setStep] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
-   
+    const API_URL = import.meta.env.VITE_API_URL;
     const [colleges] = useState<College[]>([
         { id: 1, name: 'IAA' },
     ]);
@@ -113,7 +113,7 @@ export const RegisterPage: React.FC = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('https://sosika-backend.onrender.com/api/auth/register', {
+            const response = await fetch(`${API_URL}/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

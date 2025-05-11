@@ -8,6 +8,7 @@ export default function ForgotPassword() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +16,7 @@ export default function ForgotPassword() {
     setError("");
 
     try {
-      await axios.post("https://sosika-backend.onrender.com/api/auth/forgot-password", { email });
+      await axios.post(`${API_URL}/auth/forgot-password`, { email });
       setMessage("Reset link sent! Check your email.");
     } catch (err) {
       setError("Failed to send reset link. Please try again.");

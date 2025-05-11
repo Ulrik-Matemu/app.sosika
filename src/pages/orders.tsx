@@ -85,6 +85,7 @@ const OrdersPage = () => {
     const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
     const [ratingOrder, setRatingOrder] = useState<number | null>(null);
     const [ratings, setRatings] = useState({ vendor: 0, delivery: 0 });
+    const API_URL = import.meta.env.VITE_API_URL;
 
     const toast = useToast();
 
@@ -183,7 +184,7 @@ const OrdersPage = () => {
                 throw new Error('User ID not found. Please log in again.');
             }
 
-            let url = `https://sosika-backend.onrender.com/api/orders?user_id=${userId}`;
+            let url = `${API_URL}/orders?user_id=${userId}`;
 
             // Add filters if they exist
             if (filters.status) {
@@ -228,7 +229,7 @@ const OrdersPage = () => {
 
     const submitRating = async (orderId: number) => {
         try {
-            await axios.patch(`https://sosika-backend.onrender.com/api/orders/${orderId}/ratings`, {
+            await axios.patch(`${API_URL}/orders/${orderId}/ratings`, {
                 vendor_rating: ratings.vendor,
                 delivery_rating: ratings.delivery
             });

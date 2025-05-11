@@ -22,12 +22,14 @@ export function CustomItemRequestDialog() {
     const [message, setMessage] = useState("");
     const userId = localStorage.getItem("userId");
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     const handleSubmit = async () => {
         console.log("Custom item request:", { itemName, quantity })
         setLoading(true)
         // You can send this data to your backend or handle it accordingly.
         try {
-            const response = await fetch('https://sosika-backend.onrender.com/api/orders/other-orders', {
+            const response = await fetch(`${API_URL}/orders/other-orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
