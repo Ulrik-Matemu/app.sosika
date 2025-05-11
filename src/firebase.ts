@@ -3,13 +3,13 @@ import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAf-TlhfJJfQwEgmTxN9jPm7cDmqjQmz9w",
-  authDomain: "sosika-6442a.firebaseapp.com",
-  projectId: "sosika-6442a",
-  storageBucket: "sosika-6442a.firebasestorage.app",
-  messagingSenderId: "981492231480",
-  appId: "1:981492231480:web:f48eb11971394be1e5e5cd",
-  measurementId: "G-H7YM628FBN"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
   };
 
 const app = initializeApp(firebaseConfig);

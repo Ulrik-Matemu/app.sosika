@@ -3,6 +3,8 @@ import { auth } from '../firebase';
 import axios from "axios";
 import { GoogleUser, AuthResponse } from "./types"; // Import the types
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 
 export const handleGoogleSubmit = async (): Promise<void> => {
@@ -23,7 +25,7 @@ export const handleGoogleSubmit = async (): Promise<void> => {
       };
   
       // Send data to backend
-      const response = await axios.post<AuthResponse>("https://sosika-backend.onrender.com/api/auth/google", googleUserData);
+      const response = await axios.post<AuthResponse>(`${API_URL}/auth/google`, googleUserData);
   
       console.log("Login successful:", response.data);
     } catch (error: any) {

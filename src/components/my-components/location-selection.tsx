@@ -24,7 +24,7 @@ export const LocationSelector: React.FC = () => {
 
     const handleSelectLocation = async (location: { name: string; lat: number; lng: number }) => {
 
-
+    const API_URL = import.meta.env.VITE_API_URL;
 
         setLoading(true);
         const userId = localStorage.getItem("userId");
@@ -37,7 +37,7 @@ export const LocationSelector: React.FC = () => {
 
 
         try {
-            const response = await axios.post("https://sosika-backend.onrender.com/api/auth/update-location", {
+            const response = await axios.post(`${API_URL}/auth/update-location`, {
                 userId,
                 custom_address: { lat: location.lat, lng: location.lng },
             }, {

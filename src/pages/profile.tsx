@@ -46,6 +46,7 @@ const ProfileManagement = () => {
     const [reviewData, setReviewData] = useState<Partial<Reviews>>({});
     const toast = useToast();
     const userId = localStorage.getItem('userId');
+    const API_URL = import.meta.env.VITE_API_URL;
 
     let voices: SpeechSynthesisVoice[] = [];
 
@@ -137,7 +138,7 @@ const ProfileManagement = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await axios.get(`https://sosika-backend.onrender.com/api/auth/profile/${userId}`);
+                const response = await axios.get(`${API_URL}/auth/profile/${userId}`);
                 setProfile(response.data);
                 setFormData(response.data);
                 setIsLoading(false);
@@ -170,7 +171,7 @@ const ProfileManagement = () => {
     const handleSave = async () => {
         try {
             setLoading(true);
-            const response = await axios.put(`https://sosika-backend.onrender.com/api/auth/profile/${userId}`, formData);
+            const response = await axios.put(`${API_URL}/auth/profile/${userId}`, formData);
             setProfile(response.data.user);
         
             setIsEditing(false);
@@ -189,7 +190,7 @@ const ProfileManagement = () => {
         try {
             setLoading(true);
             setReviewData({ review: '' });
-            const response = await axios.post(`https://sosika-backend.onrender.com/api/auth/reviews`, {
+            const response = await axios.post(`${API_URL}/auth/reviews`, {
                 review_text: reviewData.review,
                 user_id: userId,
             });

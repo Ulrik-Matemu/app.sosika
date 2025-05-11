@@ -2,6 +2,8 @@ import { messaging } from "../firebase";
 import axios from "axios";
 import { getToken } from 'firebase/messaging';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const setupPushNotifications = async () => {
     try {
       // Check if service workers are supported
@@ -27,7 +29,7 @@ export const setupPushNotifications = async () => {
         }
 
         // Get FCM token with the registered service worker
-        const vapidKey = 'BH_5SgPCImkMay6oU-wVsE8InlQGDAG-tgGRQEF1OpEqKzxdy7c3NgQiTVceNGRc3V6Nn6JdbICWbDzU7H1QcEU';
+        const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
         console.log('Getting FCM token with VAPID key:', vapidKey);
 
         const token = await getToken(messaging, {
@@ -53,7 +55,7 @@ export const setupPushNotifications = async () => {
     }
 
     try {
-        const response = await axios.post("https://sosika-backend.onrender.com/api/auth/fcm-token", {
+        const response = await axios.post(`${API_URL}/auth/fcm-token`, {
             userId,
             fcmToken,
         }, {

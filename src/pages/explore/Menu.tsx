@@ -36,11 +36,12 @@ export const useMenu = () => {
     totalPages: 1,
   });
   const [priceRange, setPriceRange] = useState<PriceRange>({ min: 0, max: 1000 });
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchMenuItems = async (page: number = 1) => {
     setIsLoading(true);
     try {
-      const response = await axios.get("https://sosika-backend.onrender.com/api/menuItems", {
+      const response = await axios.get(`${API_URL}/menuItems`, {
         params: {
           page,
           limit: 4,

@@ -82,6 +82,8 @@ const specialOffers = [
     },
 ]
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function CarouselPlugin() {
     const plugin = React.useRef(
         Autoplay({ delay: 4000, stopOnInteraction: false })
@@ -160,7 +162,7 @@ const submitFcmToken = async (fcmToken: string) => {
     }
 
     try {
-        const response = await axios.post("https://sosika-backend.onrender.com/api/auth/fcm-token", {
+        const response = await axios.post(`${API_URL}/auth/fcm-token`, {
             userId,
             fcmToken,
         }, {
@@ -251,7 +253,7 @@ const MenuExplorer = () => {
 
 
         try {
-            const response = await axios.post("https://sosika-backend.onrender.com/api/auth/update-location", {
+            const response = await axios.post(`${API_URL}/auth/update-location`, {
                 userId,
                 custom_address: { lat: location.lat, lng: location.lng },
             }, {
@@ -318,7 +320,7 @@ const MenuExplorer = () => {
     useEffect(() => {
         const fetchVendors = async () => {
             try {
-                const response = await axios.get('https://sosika-backend.onrender.com/api/vendor');
+                const response = await axios.get(`${API_URL}/vendor`);
                 setVendors(response.data);
             } catch (err) {
                 console.error('Failed to fetch vendors:', err);
@@ -666,7 +668,7 @@ const MenuExplorer = () => {
             };
 
             // Send order request
-            const response = await axios.post("https://sosika-backend.onrender.com/api/orders", orderData);
+            const response = await axios.post(`${API_URL}/orders`, orderData);
 
             if (response.status === 201) {
                 Swal.fire({

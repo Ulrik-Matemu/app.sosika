@@ -65,7 +65,7 @@ const OrderTracking: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // Fetch order details
   useEffect(() => {
     let isMounted = true;
@@ -80,7 +80,7 @@ const OrderTracking: React.FC = () => {
       try {
         setIsLoading(true);
         const { data } = await axios.get(
-          `https://sosika-backend.onrender.com/api/orders/${orderId}/status`,
+          `${API_URL}/orders/${orderId}/status`,
           { timeout: 10000 }
         );
 
@@ -114,7 +114,7 @@ const OrderTracking: React.FC = () => {
         if (!userId) return;
 
         const { data } = await axios.get(
-          `https://sosika-backend.onrender.com/api/auth/users/location`,
+          `${API_URL}/auth/users/location`,
           {
             timeout: 10000,
             params: { userId }

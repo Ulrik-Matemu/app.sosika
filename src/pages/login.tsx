@@ -23,6 +23,8 @@ const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -68,7 +70,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
   
     try {
-      const response = await fetch('https://sosika-backend.onrender.com/api/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +111,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://sosika-backend.onrender.com/api/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

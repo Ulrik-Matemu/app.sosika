@@ -14,6 +14,7 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -33,7 +34,7 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      await axios.post('https://sosika-backend.onrender.com/api/auth/reset-password', {
+      await axios.post(`${API_URL}/auth/reset-password`, {
         token,
         newPassword,
       });
