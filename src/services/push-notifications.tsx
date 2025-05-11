@@ -27,7 +27,7 @@ export const setupPushNotifications = async () => {
         }
 
         // Get FCM token with the registered service worker
-        const vapidKey = 'BEC4ncuS652Wnb0J2QC2M2ylbtdpwHXj7NVEHrprgj1PcvHjZpo2jID6-YGKCXSy25P5mTrVWlJmzQhWIzoLJ_k';
+        const vapidKey = 'BH_5SgPCImkMay6oU-wVsE8InlQGDAG-tgGRQEF1OpEqKzxdy7c3NgQiTVceNGRc3V6Nn6JdbICWbDzU7H1QcEU';
         console.log('Getting FCM token with VAPID key:', vapidKey);
 
         const token = await getToken(messaging, {
