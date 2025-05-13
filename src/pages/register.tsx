@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 
-interface College {
-    id: number;
-    name: string;
-}
+
 
 
 interface FormData {
@@ -38,16 +35,14 @@ export const RegisterPage: React.FC = () => {
     const [step, setStep] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
     const API_URL = import.meta.env.VITE_API_URL;
-    const [colleges] = useState<College[]>([
-        { id: 1, name: 'IAA' },
-    ]);
+    
 
 
     const validateStep = (currentStep: number): boolean => {
         const newErrors: FormErrors = {};
 
         if (currentStep === 1) {
-            if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
+          
             if (!formData.email.trim()) {
                 newErrors.email = 'Email is required';
             } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -58,7 +53,7 @@ export const RegisterPage: React.FC = () => {
             } else if (!/^\d{10,15}$/.test(formData.phoneNumber.replace(/[^0-9]/g, ''))) {
                 newErrors.phoneNumber = 'Phone number is invalid';
             }
-            if (!formData.collegeId) newErrors.collegeId = 'Please select your college';
+           
         }
 
 
@@ -214,23 +209,7 @@ export const RegisterPage: React.FC = () => {
                             <h2 className="text-2xl font-bold mb-6">Personal Information</h2>
 
                             <div className="space-y-4">
-                                <div>
-                                    <label htmlFor="fullName" className="block text-sm font-medium mb-1">
-                                        Full Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="fullName"
-                                        name="fullName"
-                                        value={formData.fullName}
-                                        onChange={handleChange}
-                                        className={`w-full px-4 py-3 bg-[#3a3a3a] border ${errors.fullName ? 'border-red-500' : 'border-[#555555]'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e7e7e7] transition`}
-                                        placeholder="Enter your full name"
-                                    />
-                                    {errors.fullName && (
-                                        <p className="mt-1 text-red-500 text-sm">{errors.fullName}</p>
-                                    )}
-                                </div>
+                               
 
                                 <div>
                                     <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -267,28 +246,7 @@ export const RegisterPage: React.FC = () => {
                                         <p className="mt-1 text-red-500 text-sm">{errors.phoneNumber}</p>
                                     )}
                                 </div>
-                                <div>
-                                    <label htmlFor="collegeId" className="block text-sm font-medium mb-1">
-                                        Select Your College
-                                    </label>
-                                    <select
-                                        id="collegeId"
-                                        name="collegeId"
-                                        value={formData.collegeId}
-                                        onChange={handleChange}
-                                        className={`w-full px-4 py-3 bg-[#3a3a3a] border ${errors.collegeId ? 'border-red-500' : 'border-[#555555]'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e7e7e7] transition appearance-none`}
-                                    >
-                                        <option value="">Select your college</option>
-                                        {colleges.map(college => (
-                                            <option key={college.id} value={college.id}>
-                                                {college.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.collegeId && (
-                                        <p className="mt-1 text-red-500 text-sm">{errors.collegeId}</p>
-                                    )}
-                                </div>
+                               
                             </div>
                         </div>
                     )}
