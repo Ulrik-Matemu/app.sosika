@@ -7,7 +7,7 @@ declare global {
     }
 }
 import axios from 'axios';
-import { Search, Utensils, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Loader2, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
+import { Search, Utensils, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
@@ -157,29 +157,31 @@ const categories = [
 const submitFcmToken = async (fcmToken: string) => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
-        console.error("User ID not found");
-        return;
+      console.error("User ID not found");
+      return;
     }
-
+  
     try {
-        const response = await axios.post(`${API_URL}/auth/fcm-token`, {
-            userId,
-            fcmToken,
-        }, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-
-        console.log("FCM token updated successfully:", response.data);
+      const response = await axios.post(`${API_URL}/auth/fcm-token`, {
+        userId,
+        fcmToken,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      localStorage.setItem("submittedFcmToken", fcmToken); // Mark as submitted
+      console.log("FCM token updated successfully:", response.data);
     } catch (error) {
-        if (axios.isAxiosError(error)) {
-            console.error("Error updating FCM token:", error.response?.data || error.message);
-        } else {
-            console.error("Unexpected error:", error);
-        }
+      if (axios.isAxiosError(error)) {
+        console.error("Error updating FCM token:", error.response?.data || error.message);
+      } else {
+        console.error("Unexpected error:", error);
+      }
     }
-}
+  };
+  
 
 
 const MenuExplorer = () => {
@@ -199,7 +201,6 @@ const MenuExplorer = () => {
 
     const {
         menuItems,
-        isLoading,
         loadingMenu,
         priceRange,
         pagination,
@@ -235,10 +236,13 @@ const MenuExplorer = () => {
 
     useEffect(() => {
         const fcmToken = localStorage.getItem("fcmToken");
-        if (fcmToken) {
-            submitFcmToken(fcmToken);
+        const submittedToken = localStorage.getItem("submittedFcmToken");
+      
+        if (fcmToken && fcmToken !== submittedToken) {
+          submitFcmToken(fcmToken);
         }
-    }, []);
+      }, []);
+      
 
     const handleSelectLocation = async (location: { name: string; lat: number; lng: number }) => {
 
@@ -318,17 +322,32 @@ const MenuExplorer = () => {
 
     //Fetch vendors for names in filter
     useEffect(() => {
-        const fetchVendors = async () => {
+        const fetchVendors = async (forceRefresh = false) => {
+          const cacheKey = "vendors_cache";
+          const cached = localStorage.getItem(cacheKey);
+      
+          if (!forceRefresh && cached) {
             try {
-                const response = await axios.get(`${API_URL}/vendor`);
-                setVendors(response.data);
-            } catch (err) {
-                console.error('Failed to fetch vendors:', err);
+              const parsed = JSON.parse(cached);
+              setVendors(parsed);
+              return;
+            } catch (e) {
+              console.error("Failed to parse cached vendors:", e);
             }
+          }
+      
+          try {
+            const response = await axios.get(`${API_URL}/vendor`);
+            setVendors(response.data);
+            localStorage.setItem(cacheKey, JSON.stringify(response.data));
+          } catch (err) {
+            console.error("Failed to fetch vendors:", err);
+          }
         };
-
+      
         fetchVendors();
-    }, []);
+      }, []);
+      
 
     // Calculate cart total whenever cart changes
     useEffect(() => {
@@ -692,13 +711,7 @@ const MenuExplorer = () => {
     };
 
     // Render loading state
-    if (isLoading) {
-        return (
-            <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
-                <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
-            </div>
-        );
-    }
+   
 
     // Render error state
     if (error) {
@@ -1301,11 +1314,7 @@ const MenuExplorer = () => {
                         </div>
                     )}
 
-                    {isLoading && (
-                        <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
-                            <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
-                        </div>
-                    )}
+                   
 
                     {error && (
                         <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
