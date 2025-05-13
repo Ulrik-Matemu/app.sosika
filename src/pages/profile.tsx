@@ -65,15 +65,15 @@ const ProfileManagement = () => {
 
     const speak = (text: string) => {
         if (!('speechSynthesis' in window)) return;
-      
+
         const synth = window.speechSynthesis;
-      
+
         const utter = new SpeechSynthesisUtterance(text);
         utter.voice = voices.find(v => v.lang === 'en-US') || voices[0];
         utter.rate = 1;
         synth.cancel(); // Cancel any ongoing speech
         synth.speak(utter);
-      };
+    };
 
     const startListening = () => {
         navigator.vibrate(200);
@@ -89,40 +89,40 @@ const ProfileManagement = () => {
 
     const handleVoiceCommand = (text: string) => {
         const command = text.toLowerCase();
-    
-        
-    
-     
+
+
+
+
         if (
             ["show menu", "go to menu", "open menu", "menu page", "menu please", "home", "homepage", "explore", "go home", "take me to menu", "go to home", "open home screen", "menu"]
-              .some(phrase => command.includes(phrase))
-          ) {
+                .some(phrase => command.includes(phrase))
+        ) {
             window.location.href = "#/explore";
             navigator.vibrate(200);
             return;
-          }
-          
-          if (
+        }
+
+        if (
             ["profile", "my profile", "go to profile", "open profile", "show profile", "profile page", "user profile", "account", "my account"]
-              .some(phrase => command.includes(phrase))
-          ) {
+                .some(phrase => command.includes(phrase))
+        ) {
             window.location.href = "#/profile";
             navigator.vibrate(200);
             return;
-          }
-          
-          if (
+        }
+
+        if (
             ["orders", "my orders", "show orders", "view orders", "order history", "order page", "open orders", "go to orders", "past orders"]
-              .some(phrase => command.includes(phrase))
-          ) {
+                .some(phrase => command.includes(phrase))
+        ) {
             window.location.href = "#/orders";
             navigator.vibrate(200);
             return;
-          }
+        }
 
-          if (
+        if (
             ["set location", "update location", "change location", "share location", "mark my location", "use current location", "set my location", "enable location", "add location", "use my location", "use my current location", "update my location", "update my current location"]
-            .some(phrase => command.includes(phrase))
+                .some(phrase => command.includes(phrase))
         ) {
             toast.toast({
                 title: "Uh oh! Something went wrong.",
@@ -131,31 +131,64 @@ const ProfileManagement = () => {
             });
             speak("You have to be on the home page to set your location");
         }
-    
-    
+
+
     };
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchProfile = async (forceRefresh = false) => {
+            const cacheKey = `profile_cache_${userId}`;
+            const cached = localStorage.getItem(cacheKey);
+    
+            if (!forceRefresh && cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    const now = Date.now();
+                    const tenMinutes = 10 * 60 * 1000;
+    
+                    if (now - parsed.timestamp < tenMinutes) {
+                        setProfile(parsed.data);
+                        setFormData(parsed.data);
+                        setIsLoading(false);
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Failed to parse cached profile:", e);
+                }
+            }
+    
             try {
                 const response = await axios.get(`${API_URL}/auth/profile/${userId}`);
-                setProfile(response.data);
-                setFormData(response.data);
+                const data = response.data;
+                setProfile(data);
+                setFormData(data);
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    data,
+                    timestamp: Date.now(),
+                }));
                 setIsLoading(false);
             } catch (err) {
                 toast.toast({
                     variant: "destructive",
                     title: "Uh oh! Something went wrong.",
                     description: "There was a problem with your request.",
-                    action: <ToastAction altText="Try again" onClick={fetchProfile}>Try again</ToastAction>,
-                  });
-                setIsLoading(false);
+                    action: (
+                        <ToastAction altText="Try again" onClick={() => fetchProfile(true)}>
+                            Try again
+                        </ToastAction>
+                    ),
+                });
                 console.error(err);
+                setIsLoading(false);
             }
         };
-
-        fetchProfile();
+    
+        if (userId) {
+            fetchProfile();
+        }
     }, [userId]);
+    
+
 
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,7 +206,7 @@ const ProfileManagement = () => {
             setLoading(true);
             const response = await axios.put(`${API_URL}/auth/profile/${userId}`, formData);
             setProfile(response.data.user);
-        
+
             setIsEditing(false);
             setLoading(false);
             toast.toast({
@@ -227,149 +260,149 @@ const ProfileManagement = () => {
 
     return (
         <>
-        <Toaster />
-        <Button
+            <Toaster />
+            <Button
                 onClick={startListening}
                 className="font-extrabold text-2xl fixed bottom-[90px] right-4 flex items-center gap-2 bg-[#00bfff] text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
             >
                 <span>S</span>
-              <MicIcon className='animate-pulse' />
+                <MicIcon className='animate-pulse' />
             </Button>
-        <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
-            <NotificationHandler />
-            <Header />
-            <PageWrapper>
+            <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
+                <NotificationHandler />
+                <Header />
+                <PageWrapper>
 
-            <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
-                <div className="bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]">
-                    <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                        <User className="h-6 w-6" />
-                        Profile
-                    </h2>
+                    <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
+                        <div className="bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]">
+                            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                                <User className="h-6 w-6" />
+                                Profile
+                            </h2>
 
-                    {profile && (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-white">Full Name</label>
-                                <input
-                                    type="text"
-                                    name="full_name"
-                                    value={formData.full_name || ''}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-white">Email</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email || ''}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-white">Phone Number</label>
-                                <input
-                                    type="text"
-                                    name="phone_number"
-                                    value={formData.phone_number || ''}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-white">College ID</label>
-                                <select
-                                    name="college_id"
-                                    value={formData.college_id || ''}
-                                    onChange={handleSelectChange}
-                                    disabled={!isEditing}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
-                                >
-                                    <option value="">Select College</option>
-                                    <option value="1">IAA</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-white">College Registration Number</label>
-                                <input
-                                    type="text"
-                                    name="college_registration_number"
-                                    value={formData.college_registration_number || ''}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
-                                />
-                            </div>
-                            <div className="flex justify-end gap-2">
-                                {isEditing ? (
-                                    <>
-                                        <button
-                                            onClick={() => setIsEditing(false)}
-                                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            {profile && (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-white">Full Name</label>
+                                        <input
+                                            type="text"
+                                            name="full_name"
+                                            value={formData.full_name || ''}
+                                            onChange={handleInputChange}
+                                            disabled={!isEditing}
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-white">Email</label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={formData.email || ''}
+                                            onChange={handleInputChange}
+                                            disabled={!isEditing}
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-white">Phone Number</label>
+                                        <input
+                                            type="text"
+                                            name="phone_number"
+                                            value={formData.phone_number || ''}
+                                            onChange={handleInputChange}
+                                            disabled={!isEditing}
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-white">College ID</label>
+                                        <select
+                                            name="college_id"
+                                            value={formData.college_id || ''}
+                                            onChange={handleSelectChange}
+                                            disabled={!isEditing}
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
                                         >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={handleSave}
-                                            className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc]"
-                                        >
-                                            {loading ? (
+                                            <option value="">Select College</option>
+                                            <option value="1">IAA</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-white">College Registration Number</label>
+                                        <input
+                                            type="text"
+                                            name="college_registration_number"
+                                            value={formData.college_registration_number || ''}
+                                            onChange={handleInputChange}
+                                            disabled={!isEditing}
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-[#7a7a7a]"
+                                        />
+                                    </div>
+                                    <div className="flex justify-end gap-2">
+                                        {isEditing ? (
+                                            <>
+                                                <button
+                                                    onClick={() => setIsEditing(false)}
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={handleSave}
+                                                    className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc]"
+                                                >
+                                                    {loading ? (
+                                                        <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                    ) : (
+                                                        'Save'
+                                                    )}
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => setIsEditing(true)}
+                                                className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc]"
+                                            >
+                                                Edit Profile
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className='my-8 flex justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
+                            <div className="grid w-full gap-2">
+                                <Label htmlFor="message-2" className='font-bold'><span className='text-green-400 font-extrabold'>Enjoying your experience?</span> Share your thoughts and help us improve!</Label>
+                                <Textarea
+                                    value={reviewData.review}
+                                    placeholder="Type your message here."
+                                    onChange={(e) => setReviewData({ review: e.target.value })}
+                                />
+                                <Button onClick={handleReviewSubmit}>
+                                    {loading ? (
                                         <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
                                     ) : (
-                                        'Save'
+                                        'SUBMIT REVIEW'
                                     )}
-                                        </button>
-                                    </>
-                                ) : (
-                                    <button
-                                        onClick={() => setIsEditing(true)}
-                                        className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc]"
-                                    >
-                                        Edit Profile
-                                    </button>
-                                )}
+                                </Button>
                             </div>
                         </div>
-                    )}
-                </div>
-                <div className='my-8 flex justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
-                    <div className="grid w-full gap-2">
-                        <Label htmlFor="message-2" className='font-bold'><span className='text-green-400 font-extrabold'>Enjoying your experience?</span> Share your thoughts and help us improve!</Label>
-                        <Textarea
-                            value={reviewData.review}
-                            placeholder="Type your message here."
-                            onChange={(e) => setReviewData({ review: e.target.value })}
-                        />
-                        <Button onClick={handleReviewSubmit}>
-                        {loading ? (
-                  <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  'SUBMIT REVIEW'
-                )}
-                        </Button>
+                        <div className='my-8 flex justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
+                            <button className='text-3xl text-[red] font-bold' onClick={logout}>
+                                Logout
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div className='my-8 flex justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
-                    <button className='text-3xl text-[red] font-bold' onClick={logout}>
-                        Logout
-                    </button>
-                </div>
+                </PageWrapper>
+                <Navbar />
             </div>
-            </PageWrapper>
-            <Navbar />
-        </div>
         </>
     );
 };
