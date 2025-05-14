@@ -16,6 +16,7 @@ import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct imp
 import { listenForForegroundMessages } from './push-notifications'
 import { setupPushNotifications } from "./services/push-notifications";
 
+
 function App() {
 
   useEffect(() => {

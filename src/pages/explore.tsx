@@ -12,15 +12,6 @@ import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/tooltip";
-import Autoplay from "embla-carousel-autoplay"
-import { Card, CardContent } from "../components/ui/card";
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-} from "../components/ui/carousel";
-import React from 'react';
-import { Link } from 'react-router-dom';
 import PageWrapper from '../services/page-transition';
 import Swal from 'sweetalert2';
 import { useToast } from '../hooks/use-toast';
@@ -44,6 +35,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "../components/ui/select"
+import CarouselPlugin from '../pages/explore/top-carousel';
+import RecommendationCard from '../components/my-components/recommendationCard';
 
 
 const predefinedLocations = [
@@ -55,74 +48,11 @@ const predefinedLocations = [
     { name: "Shumbusho", lat: -3.418037404417581, lng: 36.71300246986059 }
 ];
 
-const specialOffers = [
-    {
-        image: "/icons/1.png",
-        title: "Buy 1 Get 1 Free!",
-        description: "Available this weekend only.",
-        link: "#"
-    },
-    {
-        image: "/icons/2.png",
-        title: "Buy 1 Get 1 Free!",
-        description: "Available this weekend only.",
-        link: "#"
-    },
-    {
-        image: "/icons/3.png",
-        title: "Buy 1 Get 1 Free!",
-        description: "Available this weekend only.",
-        link: "https://ulrik-matemu.github.io/sosika-delivery/"
-    },
-    {
-        image: "/icons/4.png",
-        title: "Buy 1 Get 1 Free!",
-        description: "Available this weekend only.",
-        link: "https://ulrik-matemu.github.io/sosika-vendor/"
-    },
-]
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function CarouselPlugin() {
-    const plugin = React.useRef(
-        Autoplay({ delay: 4000, stopOnInteraction: false })
-    )
 
-    return (
-        <Carousel
-            plugins={[plugin.current]}
-            className="w-full"
-            onMouseEnter={plugin.current.stop}
-            onMouseLeave={plugin.current.reset}
-            opts={{
-                align: "start",
-                loop: true
-            }}
-        >
-            <CarouselContent>
-                {specialOffers.map((item, index) => (
-                    <CarouselItem key={index}>
-                        <div className="p-2">
-                            <Card>
-                                <CardContent className="p-0">
-                                    <Link to={item.link}>
-                                        <img
-                                            src={item.image}
-                                            alt={item.title}
-                                            loading="lazy"
-                                            className="w-full  object-cover rounded-lg"
-                                        />
-                                    </Link>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </CarouselItem>
-                ))}
-            </CarouselContent>
-        </Carousel>
-    )
-}
 
 
 
@@ -1140,6 +1070,9 @@ const MenuExplorer = () => {
                         </div>
                         <div className='mb-20'>
                             <CustomItemRequestDialog />
+                            <div className='py-10'>
+                            <RecommendationCard />
+                            </div>
                         </div>
 
                         <Pagination className='hidden'>
