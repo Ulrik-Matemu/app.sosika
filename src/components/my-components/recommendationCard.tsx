@@ -1,6 +1,5 @@
 // src/components/RecommendationCard.tsx
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
@@ -22,70 +21,60 @@ interface Recommendation {
   reasoning: string;
 }
 
+
+
+
 interface RecommendationResponse {
   success: boolean;
   recommendation: Recommendation;
 }
+
+
 
 const RecommendationCard: React.FC = () => {
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
+
 
   useEffect(() => {
     fetchRecommendation();
   }, []);
 
-const fetchRecommendation = async () => {
+  const fetchRecommendation = async () => {
     try {
-        setLoading(true);
-        const userId = localStorage.getItem("userId"); // Assuming userId is stored in localStorage
-        if (!userId) {
-            setError("User ID is missing. Please log in again.");
-            setLoading(false);
-            return;
-        }
-
-        const response = await axios.get<RecommendationResponse>(
-            `https://sosika-backend.onrender.com/api/one-tap/${userId}`
-        );
-
-        if (response.data.success) {
-            setRecommendation(response.data.recommendation);
-        } else {
-            setError("Couldn't get a recommendation at this time");
-        }
-    } catch (err) {
-        console.error("Error fetching recommendation:", err);
-        setError("Something went wrong. Please try again.");
-    } finally {
+      setLoading(true);
+      const userId = localStorage.getItem("userId"); // Assuming userId is stored in localStorage
+      if (!userId) {
+        setError("User ID is missing. Please log in again.");
         setLoading(false);
+        return;
+      }
+
+      const response = await axios.get<RecommendationResponse>(
+        `https://sosika-backend.onrender.com/api/one-tap/${userId}`
+      );
+
+      if (response.data.success) {
+        setRecommendation(response.data.recommendation);
+      } else {
+        setError("Couldn't get a recommendation at this time");
+      }
+    } catch (err) {
+      console.error("Error fetching recommendation:", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-};
+  };
 
   const handleAddToCart = () => {
-    if (!recommendation) return;
-
-    const { recommendedItemId, recommendedItemName, vendorId, price } = recommendation;
-
     sendFeedback(true);
-
-    const cartItem = {
-      menuItemId: recommendedItemId,
-      name: recommendedItemName,
-      vendorId,
-      price,
-      quantity: 1
-    };
-
-    // TODO: Add to cart using your cart context or state manager
-    console.log(cartItem);
     toast({
-      title: "Added to cart!",
-      description: `${recommendedItemName} has been added to your cart.`,
-      duration: 3000,
+      title: "Success!",
+      description: 'The item has been added to your preferences. Thanks for your feedback!',
+      duration: 2000,
     });
   };
 
@@ -98,12 +87,12 @@ const fetchRecommendation = async () => {
       duration: 3000,
     });
 
-    navigate('/restaurants');
   };
 
   const sendFeedback = async (accepted: boolean) => {
+    const userId = localStorage.getItem("userId");  
     try {
-      await axios.post('https://sosika-backend.onrender.com/api/recommendations/feedback', {
+      await axios.post(`https://sosika-backend.onrender.com/api/feedback/${userId}`, {
         recommendationId: recommendation?.recommendedItemId,
         accepted,
         itemOrdered: accepted ? recommendation?.recommendedItemId : null
@@ -169,8 +158,8 @@ const fetchRecommendation = async () => {
     <Card className="w-full max-w-md mx-auto shadow-md hover:shadow-lg transition-shadow">
       <CardHeader className="pb-2">
         <CardDescription className="text-sm font-medium"> <span className="text-[12px] text-blue-500 bg-blue-100 px-2 py-[2px] rounded-full">
-    AI Pick
-  </span>   {getGreeting()}</CardDescription>
+          AI Pick
+        </span>   {getGreeting()}</CardDescription>
         <CardTitle className="text-xl">{recommendedItemName}</CardTitle>
       </CardHeader>
       <CardContent>
@@ -186,7 +175,7 @@ const fetchRecommendation = async () => {
             </div>
           </div>
           <Button onClick={handleAddToCart} className="rounded-full px-4">
-            Order Now <ChevronRight className="h-4 w-4 ml-1" />
+            Accept <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
 
