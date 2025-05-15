@@ -373,7 +373,7 @@ const MenuExplorer = () => {
     };
 
     // Cart functions
-    const addToCart = (item: MenuItem) => {
+     const addToCart = (item: MenuItem) => {
         // Check if item is already in cart
         const existingItemIndex = cart.findIndex(cartItem => cartItem.id === item.id);
 
@@ -1068,10 +1068,10 @@ const MenuExplorer = () => {
 
                             </div>
                         </div>
-                        <div className='mb-20'>
+                        <div className='mb-18 bt-2'>
+                        <RecommendationCard />
+                            <div className='py-8'>
                             <CustomItemRequestDialog />
-                            <div className='py-10'>
-                            <RecommendationCard />
                             </div>
                         </div>
 
