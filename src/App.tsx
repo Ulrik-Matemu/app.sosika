@@ -15,9 +15,27 @@ import "./App.css";
 import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct import
 import { listenForForegroundMessages } from './push-notifications'
 import { setupPushNotifications } from "./services/push-notifications";
+import { analytics, logEvent } from "./firebase";
 
 
 function App() {
+  useEffect(() => {
+    const sessionStart = Date.now();
+
+    const handleBeforeUnload = () => {
+      const sessionEnd = Date.now();
+      const durartionMs = sessionEnd - sessionStart;
+
+      logEvent(analytics, "session_duration", {
+        duration_seconds: Math.floor(durartionMs / 1000),
+      });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    }
+  })
 
   useEffect(() => {
     setupPushNotifications();
