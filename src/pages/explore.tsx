@@ -37,6 +37,7 @@ import {
 } from "../components/ui/select"
 import CarouselPlugin from '../pages/explore/top-carousel';
 import RecommendationCard from '../components/my-components/recommendationCard';
+import { logEvent, analytics } from '../firebase';
 
 
 const predefinedLocations = [
@@ -688,7 +689,13 @@ const MenuExplorer = () => {
                         <Tooltip open={showTooltip}>
                             <TooltipTrigger asChild>
                                 <button
-                                    onClick={() => setIsLocationOpen(true)}
+                                    onClick={() => {
+                                        logEvent(analytics, "button_click", {
+                                            button_name: "Select Location",
+                                            location: "Explore page",
+                                        });
+                                        setIsLocationOpen(true);
+                                    }}
                                     className="relative p-2 rounded-md dark:border-gray-600 dark:text-white hover:bg-gray-100 hover:text-black dark:hover:bg-gray-700 transition"
                                 >
                                     <MapPin />
@@ -794,7 +801,13 @@ const MenuExplorer = () => {
                                                 {categories.map(({ label, value, icon: Icon }) => (
                                                     <button
                                                         key={value}
-                                                        onClick={() => setSelectedCategory(value)}
+                                                        onClick={() => {
+                                                            logEvent(analytics, "button_click", {
+                                                                button_name: `Category: ${label} selected`,
+                                                                location: "Explore page",
+                                                            });
+                                                            setSelectedCategory(value);
+                                                        }}
                                                         className={`flex flex-col dark:bg-[#7a7a7a] items-center justify-center p-2 border rounded-lg w-15 h-15 transition-all ${selectedCategory === value ? "bg-blue-500 text-white" : "bg-gray-100"
                                                             }`}
                                                     >
@@ -947,7 +960,13 @@ const MenuExplorer = () => {
                                                                 <span className="text-lg font-semibold text-[#00bfff]">TZS {parseFloat(item.price).toFixed(2)}</span>
                                                             </div>
                                                             <button
-                                                                onClick={() => addToCart(item)}
+                                                                onClick={() => {
+                                                                    logEvent(analytics, "button_click", {
+                                                                        button_name: `Added ${item.name} to cart`,
+                                                                        location: "Explore page",
+                                                                    })
+                                                                    addToCart(item)
+                                                                }}
                                                                 disabled={!item.is_available}
                                                                 className="w-full bg-[#00bfff] text-white py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                                                             >
@@ -1000,7 +1019,13 @@ const MenuExplorer = () => {
                                                                     Vendor #{item.vendor_id}
                                                                 </span>
                                                                 <button
-                                                                    onClick={() => addToCart(item)}
+                                                                       onClick={() => {
+                                                                        logEvent(analytics, "button_click", {
+                                                                            button_name: `Added ${item.name} to cart`,
+                                                                            location: "Explore page",
+                                                                        })
+                                                                        addToCart(item)
+                                                                    }}
                                                                     disabled={!item.is_available}
                                                                     className="bg-[#00bfff] text-white px-4 py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                                                                 >
@@ -1043,7 +1068,13 @@ const MenuExplorer = () => {
                                                             </div>
                                                             <h3 className="font-bold text-gray-900 dark:text-gray-200 text-sm mb-1 line-clamp-1">{item.name}</h3>
                                                             <button
-                                                                onClick={() => addToCart(item)}
+                                                                  onClick={() => {
+                                                                    logEvent(analytics, "button_click", {
+                                                                        button_name: `Added ${item.name} to cart`,
+                                                                        location: "Explore page",
+                                                                    })
+                                                                    addToCart(item)
+                                                                }}
                                                                 disabled={!item.is_available}
                                                                 className="w-full bg-[#00bfff] text-white py-1 text-sm rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                                                             >
