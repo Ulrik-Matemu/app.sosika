@@ -19,6 +19,7 @@ interface Recommendation {
   price: number;
   confidence: number;
   reasoning: string;
+  image_url: string;
 }
 
 
