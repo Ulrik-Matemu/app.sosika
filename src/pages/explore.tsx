@@ -80,27 +80,27 @@ const categories = [
     {
         label: "Breakfast",
         value: "breakfast",
-        icon: "https://img.icons8.com/?size=100&id=119931&format=png&color=000000", // Example breakfast icon
+        icon: "/icons/categories/breakfast.png", // Example breakfast icon
     },
     {
         label: "Lunch",
         value: "lunch",
-        icon: "https://img.icons8.com/?size=100&id=119918&format=png&color=000000", // Example lunch icon
+        icon: "/icons/categories/lunch.png", // Example lunch icon
     },
     {
         label: "Dinner",
         value: "dinner",
-        icon: "https://img.icons8.com/?size=100&id=120099&format=png&color=000000", // Example dinner icon
+        icon: "/icons/categories/dinner.png", // Example dinner icon
     },
     {
         label: "Snacks",
         value: "snacks",
-        icon: "https://img.icons8.com/?size=100&id=120052&format=png&color=000000", // Example snacks icon
+        icon: "/icons/categories/snacks.png", // Example snacks icon
     },
     {
         label: "Drinks",
         value: "drinks",
-        icon: "https://img.icons8.com/?size=100&id=119946&format=png&color=000000", // Example drinks icon
+        icon: "/icons/categories/drinks.png",
     },
 ];
 
