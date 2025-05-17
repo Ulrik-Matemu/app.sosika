@@ -7,7 +7,7 @@ declare global {
     }
 }
 import axios from 'axios';
-import { Search, Utensils, GlassWater, Sandwich, Cookie, X, RefreshCw, Frown, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
+import { Search, X, RefreshCw, Frown, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
