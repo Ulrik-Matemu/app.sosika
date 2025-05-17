@@ -77,42 +77,62 @@ interface CartItem extends MenuItem {
 
 
 const categories = [
-    { label: "Breakfast", value: "breakfast", icon: Utensils },
-    { label: "Lunch", value: "lunch", icon: Sandwich },
-    { label: "Dinner", value: "dinner", icon: Utensils },
-    { label: "Snacks", value: "snacks", icon: Cookie },
-    { label: "Drinks", value: "drinks", icon: GlassWater },
+    {
+        label: "Breakfast",
+        value: "breakfast",
+        icon: "https://img.icons8.com/?size=100&id=119931&format=png&color=000000", // Example breakfast icon
+    },
+    {
+        label: "Lunch",
+        value: "lunch",
+        icon: "https://img.icons8.com/?size=100&id=119918&format=png&color=000000", // Example lunch icon
+    },
+    {
+        label: "Dinner",
+        value: "dinner",
+        icon: "https://img.icons8.com/?size=100&id=120099&format=png&color=000000", // Example dinner icon
+    },
+    {
+        label: "Snacks",
+        value: "snacks",
+        icon: "https://img.icons8.com/?size=100&id=120052&format=png&color=000000", // Example snacks icon
+    },
+    {
+        label: "Drinks",
+        value: "drinks",
+        icon: "https://img.icons8.com/?size=100&id=119946&format=png&color=000000", // Example drinks icon
+    },
 ];
 
 
 const submitFcmToken = async (fcmToken: string) => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
-      console.error("User ID not found");
-      return;
+        console.error("User ID not found");
+        return;
     }
-  
+
     try {
-      const response = await axios.post(`${API_URL}/auth/fcm-token`, {
-        userId,
-        fcmToken,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-  
-      localStorage.setItem("submittedFcmToken", fcmToken); // Mark as submitted
-      console.log("FCM token updated successfully:", response.data);
+        const response = await axios.post(`${API_URL}/auth/fcm-token`, {
+            userId,
+            fcmToken,
+        }, {
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        localStorage.setItem("submittedFcmToken", fcmToken); // Mark as submitted
+        console.log("FCM token updated successfully:", response.data);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error("Error updating FCM token:", error.response?.data || error.message);
-      } else {
-        console.error("Unexpected error:", error);
-      }
+        if (axios.isAxiosError(error)) {
+            console.error("Error updating FCM token:", error.response?.data || error.message);
+        } else {
+            console.error("Unexpected error:", error);
+        }
     }
-  };
-  
+};
+
 
 
 const MenuExplorer = () => {
@@ -150,7 +170,7 @@ const MenuExplorer = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [availableOnly, setAvailableOnly] = useState<boolean>(false);
     const [vendorFilter, setVendorFilter] = useState<string>('');
-    
+
     type Vendor = {
         id: string;
         name: string;
@@ -168,12 +188,12 @@ const MenuExplorer = () => {
     useEffect(() => {
         const fcmToken = localStorage.getItem("fcmToken");
         const submittedToken = localStorage.getItem("submittedFcmToken");
-      
+
         if (fcmToken && fcmToken !== submittedToken) {
-          submitFcmToken(fcmToken);
+            submitFcmToken(fcmToken);
         }
-      }, []);
-      
+    }, []);
+
 
     const handleSelectLocation = async (location: { name: string; lat: number; lng: number }) => {
 
@@ -254,31 +274,31 @@ const MenuExplorer = () => {
     //Fetch vendors for names in filter
     useEffect(() => {
         const fetchVendors = async (forceRefresh = false) => {
-          const cacheKey = "vendors_cache";
-          const cached = localStorage.getItem(cacheKey);
-      
-          if (!forceRefresh && cached) {
-            try {
-              const parsed = JSON.parse(cached);
-              setVendors(parsed);
-              return;
-            } catch (e) {
-              console.error("Failed to parse cached vendors:", e);
+            const cacheKey = "vendors_cache";
+            const cached = localStorage.getItem(cacheKey);
+
+            if (!forceRefresh && cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    setVendors(parsed);
+                    return;
+                } catch (e) {
+                    console.error("Failed to parse cached vendors:", e);
+                }
             }
-          }
-      
-          try {
-            const response = await axios.get(`${API_URL}/vendor`);
-            setVendors(response.data);
-            localStorage.setItem(cacheKey, JSON.stringify(response.data));
-          } catch (err) {
-            console.error("Failed to fetch vendors:", err);
-          }
+
+            try {
+                const response = await axios.get(`${API_URL}/vendor`);
+                setVendors(response.data);
+                localStorage.setItem(cacheKey, JSON.stringify(response.data));
+            } catch (err) {
+                console.error("Failed to fetch vendors:", err);
+            }
         };
-      
+
         fetchVendors();
-      }, []);
-      
+    }, []);
+
 
     // Calculate cart total whenever cart changes
     useEffect(() => {
@@ -374,7 +394,7 @@ const MenuExplorer = () => {
     };
 
     // Cart functions
-     const addToCart = (item: MenuItem) => {
+    const addToCart = (item: MenuItem) => {
         // Check if item is already in cart
         const existingItemIndex = cart.findIndex(cartItem => cartItem.id === item.id);
 
@@ -642,7 +662,7 @@ const MenuExplorer = () => {
     };
 
     // Render loading state
-   
+
 
     // Render error state
     if (error) {
@@ -797,25 +817,42 @@ const MenuExplorer = () => {
 
                                     <div className="space-y-4">
                                         <div>
-                                            <div className="flex gap-4 overflow-x-auto py-2">
-                                                {categories.map(({ label, value, icon: Icon }) => (
+                                            <div className="flex gap-4 overflow-x-auto py-4 px-2 relative group">
+                                                {/* Optional: Subtle fade/shadow to indicate scrollability */}
+                                                <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-white dark:from-gray-800 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:hidden"></div>
+                                                <div className="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-l from-white dark:from-gray-800 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:hidden"></div>
+
+                                                {categories.map(({ label, value, icon }) => (
                                                     <button
                                                         key={value}
                                                         onClick={() => {
-                                                            logEvent(analytics, "button_click", {
-                                                                button_name: `Category: ${label} selected`,
-                                                                location: "Explore page",
-                                                            });
                                                             setSelectedCategory(value);
                                                         }}
-                                                        className={`flex flex-col dark:bg-[#7a7a7a] items-center justify-center p-2 border rounded-lg w-15 h-15 transition-all ${selectedCategory === value ? "bg-blue-500 text-white" : "bg-gray-100"
-                                                            }`}
+                                                        className={`
+      flex flex-col items-center justify-center
+      p-3 border border-gray-200 dark:border-gray-700
+      rounded-xl
+      w-20 h-20
+      transition-all duration-200 ease-in-out
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-opacity-50
+      dark:text-gray-200
+      ${selectedCategory === value
+                                                                ? "bg-blue-500 text-white shadow-md dark:bg-blue-600"
+                                                                : "bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 hover:dark:bg-gray-600/50"
+                                                            }
+    `}
                                                     >
-                                                        <Icon className="w-6 h-6 mb-2 dark:text-white" />
-                                                        <span className="text-sm font-medium dark:text-white">{label}</span>
+                                                        <img
+                                                            src={icon}
+                                                            alt={label} // Important for accessibility
+                                                            className={`w-7 h-7 mb-1.5 transition-transform duration-150 ease-in-out ${selectedCategory === value ? "scale-110" : "group-hover:scale-105"
+                                                                }`}
+                                                        />
+                                                        <span className="text-xs font-medium text-center break-words">{label}</span>
                                                     </button>
                                                 ))}
                                             </div>
+
                                         </div>
                                         <div className="flex overflow-auto h-full w-full gap-2">
                                             {/* Vendor Filter */}
@@ -1019,7 +1056,7 @@ const MenuExplorer = () => {
                                                                     Vendor #{item.vendor_id}
                                                                 </span>
                                                                 <button
-                                                                       onClick={() => {
+                                                                    onClick={() => {
                                                                         logEvent(analytics, "button_click", {
                                                                             button_name: `Added ${item.name} to cart`,
                                                                             location: "Explore page",
@@ -1068,7 +1105,7 @@ const MenuExplorer = () => {
                                                             </div>
                                                             <h3 className="font-bold text-gray-900 dark:text-gray-200 text-sm mb-1 line-clamp-1">{item.name}</h3>
                                                             <button
-                                                                  onClick={() => {
+                                                                onClick={() => {
                                                                     logEvent(analytics, "button_click", {
                                                                         button_name: `Added ${item.name} to cart`,
                                                                         location: "Explore page",
@@ -1100,9 +1137,9 @@ const MenuExplorer = () => {
                             </div>
                         </div>
                         <div className='mb-18 bt-2'>
-                        <RecommendationCard />
+                            <RecommendationCard />
                             <div className='py-8'>
-                            <CustomItemRequestDialog />
+                                <CustomItemRequestDialog />
                             </div>
                         </div>
 
@@ -1278,7 +1315,7 @@ const MenuExplorer = () => {
                         </div>
                     )}
 
-                   
+
 
                     {error && (
                         <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
