@@ -130,7 +130,7 @@ const RecommendationCard: React.FC = () => {
 
   if (loading) {
     return (
-      <Card className="w-full max-w-md mx-auto shadow-md hover:shadow-lg transition-shadow">
+      <Card className="w-full  max-w-md mx-auto shadow-md hover:shadow-lg transition-shadow">
         <CardHeader className="pb-2">
           <Skeleton className="h-4 w-3/4 mb-2" />
           <Skeleton className="h-6 w-full" />
