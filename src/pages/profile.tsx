@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User, Loader2, X, MicIcon, Users } from 'lucide-react';
+import { User, Loader2, X, MicIcon, Users, MessageSquareText } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import NotificationHandler from '../components/my-components/notification-handler';
 import { Button } from '../components/ui/button';
@@ -380,11 +380,18 @@ const ProfileManagement = () => {
                                 <Users className="h-6 w-6" />
                                 Friends
                             </h2>
-                            <p className='text-blue-300 font-extrabold'>Share this link with friends — <span className='font-bold text-white'>get rewards when they order!</span></p>
-                        <ReferralLinkDialog />
+                            <div className='grid'>
+                            <Label className='text-blue-300 font-extrabold py-2'>Share this link with friends — <span className='font-bold text-black dark:text-white'>get rewards when they order!</span></Label>
+                            <ReferralLinkDialog />
+                            </div>
+                           
                         </div>
                         
-                        <div className='my-8 flex justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
+                        <div className='my-8 grid justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
+                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                                <MessageSquareText className="h-6 w-6" />
+                                Reviews & Feedback
+                            </h2>
                             <div className="grid w-full gap-2">
                                 <Label htmlFor="message-2" className='font-bold'><span className='text-green-400 font-extrabold'>Enjoying your experience?</span> Share your thoughts and help us improve!</Label>
                                 <Textarea
@@ -404,10 +411,10 @@ const ProfileManagement = () => {
                                 </Button>
                             </div>
                         </div>
-                        <div className='my-8 flex justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
-                            <button className='text-3xl text-[red] font-bold' onClick={logout}>
+                        <div className='my-8 flex justify-center  p-6 rounded-xl shadow-sm '>
+                            <Button className='text-2xl' variant="destructive"  onClick={logout}>
                                 Logout
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </PageWrapper>

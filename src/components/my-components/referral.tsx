@@ -46,7 +46,7 @@ export function ReferralLinkDialog() {
       <DialogTrigger asChild>
         <Button variant="outline">Share Referral Link</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="bg-[#ededed] dark:bg-[#3b3b3b] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Your Referral Link</DialogTitle>
           <DialogDescription>
@@ -67,7 +67,7 @@ export function ReferralLinkDialog() {
         </div>
         <DialogFooter className="sm:justify-start">
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
+            <Button type="button" variant='destructive'>
               Close
             </Button>
           </DialogClose>
