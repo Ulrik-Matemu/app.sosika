@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
+function useQuery() {
+    return new URLSearchParams(useLocation().search);
+}
 
 
 
@@ -20,6 +24,8 @@ interface FormErrors {
 }
 
 export const RegisterPage: React.FC = () => {
+    const query = useQuery();
+    const [referredId, setReferredId] = useState<number>(0);
     const [formData, setFormData] = useState<FormData>({
         fullName: '',
         email: '',
@@ -103,12 +109,19 @@ export const RegisterPage: React.FC = () => {
         window.scrollTo(0, 0);
     };
 
+    useEffect(() => {
+        const refParams = query.get('ref');
+        if (refParams && !isNaN(Number(refParams))) {
+            setReferredId(Number(refParams));
+        }
+    }, [query]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
         try {
-            const response = await fetch(`${API_URL}/auth/register`, {
+            const response = await fetch(`${API_URL}/auth/register?ref=${referredId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -819,9 +819,7 @@ const MenuExplorer = () => {
                                         <div>
                                             <div className="flex gap-4 overflow-x-auto py-4 px-2 relative group">
                                                 {/* Optional: Subtle fade/shadow to indicate scrollability */}
-                                                <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-white dark:from-gray-800 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:hidden"></div>
-                                                <div className="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-l from-white dark:from-gray-800 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:hidden"></div>
-
+                                               
                                                 {categories.map(({ label, value, icon }) => (
                                                     <button
                                                         key={value}

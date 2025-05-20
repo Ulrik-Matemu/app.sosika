@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User, Loader2, X, MicIcon } from 'lucide-react';
+import { User, Loader2, X, MicIcon, Users } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import NotificationHandler from '../components/my-components/notification-handler';
 import { Button } from '../components/ui/button';
@@ -11,6 +11,7 @@ import { Header } from '../components/my-components/header';
 import { Toaster } from '../components/ui/toaster';
 import { useToast } from '../hooks/use-toast';
 import { ToastAction } from '../components/ui/toast';
+import { ReferralLinkDialog } from '../components/my-components/referral';
 
 
 interface UserProfile {
@@ -374,6 +375,15 @@ const ProfileManagement = () => {
                                 </div>
                             )}
                         </div>
+                        <div className='my-8 bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
+                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                                <Users className="h-6 w-6" />
+                                Friends
+                            </h2>
+                            <p className='text-blue-300 font-extrabold'>Share this link with friends — <span className='font-bold text-white'>get rewards when they order!</span></p>
+                        <ReferralLinkDialog />
+                        </div>
+                        
                         <div className='my-8 flex justify-center bg-[#ededed] dark:bg-[#3b3b3b] p-6 rounded-xl shadow-sm border border-gray-200 dark:border-[#595959]'>
                             <div className="grid w-full gap-2">
                                 <Label htmlFor="message-2" className='font-bold'><span className='text-green-400 font-extrabold'>Enjoying your experience?</span> Share your thoughts and help us improve!</Label>
