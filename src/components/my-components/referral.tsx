@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Copy, Mail, MessageSquareText, Share2, Smartphone } from "lucide-react"
+import { Copy, MessageSquareText, Share2, Smartphone } from "lucide-react"
 import { Button } from "../ui/button"
 import {
   Dialog,
