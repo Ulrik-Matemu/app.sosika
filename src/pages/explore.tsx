@@ -259,6 +259,10 @@ const MenuExplorer = () => {
     };
 
 
+    useEffect(() => {
+    addCurrentLocation();
+    }, []);
+
 
 
     // Fetch all menu items when component mounts
