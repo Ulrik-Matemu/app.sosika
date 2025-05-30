@@ -12,6 +12,7 @@ import { Toaster } from '../components/ui/toaster';
 import { useToast } from '../hooks/use-toast';
 import { ToastAction } from '../components/ui/toast';
 import { ReferralLinkDialog } from '../components/my-components/referral';
+// import { EnhancedReferralDialog } from '../components/my-components/referralOffer';;
 
 
 interface UserProfile {
@@ -382,7 +383,7 @@ const ProfileManagement = () => {
                             </h2>
                             <div className='grid'>
                             <Label className='text-blue-300 font-extrabold py-2'>Share this link with friends — <span className='font-bold text-black dark:text-white'>get rewards when they order!</span></Label>
-                            <ReferralLinkDialog />
+                            <ReferralLinkDialog  />
                             </div>
                            
                         </div>
