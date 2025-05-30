@@ -38,6 +38,7 @@ import {
 import CarouselPlugin from '../pages/explore/top-carousel';
 import RecommendationCard from '../components/my-components/recommendationCard';
 import { logEvent, analytics } from '../firebase';
+import { EnhancedReferralDialog } from '../components/my-components/referralOffer';
 
 
 const predefinedLocations = [
@@ -856,6 +857,7 @@ const MenuExplorer = () => {
                                             </div>
 
                                         </div>
+                                        <div>
                                         <div className="flex overflow-auto h-full w-full gap-2">
                                             {/* Vendor Filter */}
                                             <Select value={vendorFilter} onValueChange={setVendorFilter}>
@@ -891,12 +893,11 @@ const MenuExplorer = () => {
                                                     </SelectGroup>
                                                 </SelectContent>
                                             </Select>
-
+                                           
                                         </div>
-
-
-
-
+                                       
+                                        </div>
+                                        <EnhancedReferralDialog />
                                     </div>
                                 </div>
                             </div>
