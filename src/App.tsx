@@ -1,7 +1,7 @@
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { RegisterPage } from "./pages/register";
-// import WelcomePage from "./pages/welcome";
+ import WelcomePage from "./pages/welcome";
 import LoginPage from "./pages/login";
 import MenuExplorer from "./pages/explore";
 import OrderTrackingWithErrorBoundary from "./components/my-components/orderTracking";
@@ -9,7 +9,7 @@ import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
 import ForgotPassword from "./pages/forgot-password";
 import ResetPassword from "./pages/reset-password";
-import { Maintenance } from "./pages/maintenance";;
+// import { Maintenance } from "./pages/maintenance";;
 import { Printing } from "./pages/printing";
 import { Services } from "./pages/services";
 import "./App.css";
@@ -49,7 +49,7 @@ function App() {
         <Routes>
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<Maintenance />} />
+          <Route path="/" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/explore" element={<MenuExplorer />} />
