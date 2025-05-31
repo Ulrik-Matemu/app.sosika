@@ -178,49 +178,52 @@ const OrdersPage = () => {
 
     const fetchOrders = async (forceRefresh = false) => {
         try {
-          const userId = localStorage.getItem("userId");
-          if (!userId) throw new Error("User ID not found. Please log in again.");
-      
-          // Check localStorage cache unless forceRefresh is true
-          const cacheKey = `orders_cache_${userId}`;
-      const cacheTimeKey = `orders_cache_time_${userId}`;
-      
-      if (!forceRefresh) {
-        const cached = localStorage.getItem(cacheKey);
-        const cachedTime = localStorage.getItem(cacheTimeKey);
-      
-        if (cached && cachedTime && Date.now() - parseInt(cachedTime) < 5 * 60 * 1000) {
-          setOrders(JSON.parse(cached));
-          setIsLoading(false);
-          return;
-        }
-      }
-      
-      
-          // Build request URL
-          let url = `${API_URL}/orders?user_id=${userId}`;
-          if (filters.status) url += `&status=${filters.status}`;
-          if (filters.dateRange.from) url += `&from_date=${filters.dateRange.from}`;
-          if (filters.dateRange.to) url += `&to_date=${filters.dateRange.to}`;
-      
-          // Fetch from API
-          const response = await axios.get(url);
-          setOrders(response.data);
-          localStorage.setItem(cacheKey, JSON.stringify(response.data));
-      localStorage.setItem(cacheTimeKey, Date.now().toString()); // Cache it
-          setIsLoading(false);
+            const userId = localStorage.getItem("userId");
+            if (!userId) throw new Error("User ID not found. Please log in again.");
+
+            // Always fetch from API if user just refreshed the page (performance navigation type 1)
+            const isPageReload =
+                window.performance &&
+                ((performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type === "reload");
+
+            // Check localStorage cache unless forceRefresh or page reload
+            const cacheKey = `orders_cache_${userId}`;
+            const cacheTimeKey = `orders_cache_time_${userId}`;
+
+            if (!forceRefresh && !isPageReload) {
+                const cached = localStorage.getItem(cacheKey);
+                const cachedTime = localStorage.getItem(cacheTimeKey);
+
+                if (cached && cachedTime && Date.now() - parseInt(cachedTime) < 5 * 60 * 1000) {
+                    setOrders(JSON.parse(cached));
+                    setIsLoading(false);
+                    return;
+                }
+            }
+
+            // Build request URL
+            let url = `${API_URL}/orders?user_id=${userId}`;
+            if (filters.status) url += `&status=${filters.status}`;
+            if (filters.dateRange.from) url += `&from_date=${filters.dateRange.from}`;
+            if (filters.dateRange.to) url += `&to_date=${filters.dateRange.to}`;
+
+            // Fetch from API
+            const response = await axios.get(url);
+            setOrders(response.data);
+            localStorage.setItem(cacheKey, JSON.stringify(response.data));
+            localStorage.setItem(cacheTimeKey, Date.now().toString()); // Cache it
+            setIsLoading(false);
         } catch (err) {
-          console.error("Error fetching orders:", err);
-          toast.toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: "There was a problem with your request.",
-            action: <ToastAction altText="Try again" onClick={() => fetchOrders(true)}>Try again</ToastAction>,
-          });
-          setIsLoading(false);
+            console.error("Error fetching orders:", err);
+            toast.toast({
+                variant: "destructive",
+                title: "Uh oh! Something went wrong.",
+                description: "There was a problem with your request.",
+                action: <ToastAction altText="Try again" onClick={() => fetchOrders(true)}>Try again</ToastAction>,
+            });
+            setIsLoading(false);
         }
-      };
-      
+    };
 
     useEffect(() => {
         fetchOrders();
