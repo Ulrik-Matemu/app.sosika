@@ -459,7 +459,7 @@ const MenuExplorer = () => {
             const vendor_id = cart[0].vendor_id;
             let delivery_fee = 2000; // Example fee
             if (vendor_id === 1) {
-                delivery_fee = 0;
+                delivery_fee = 500;
             }
 
             let deliveryTime = "ASAP";
