@@ -38,7 +38,6 @@ import {
 import CarouselPlugin from '../pages/explore/top-carousel';
 import RecommendationCard from '../components/my-components/recommendationCard';
 import { logEvent, analytics } from '../firebase';
-import { EnhancedReferralDialog } from '../components/my-components/referralOffer';
 
 
 const predefinedLocations = [
@@ -897,7 +896,7 @@ const MenuExplorer = () => {
                                         </div>
                                        
                                         </div>
-                                        <EnhancedReferralDialog />
+                                       
                                     </div>
                                 </div>
                             </div>
