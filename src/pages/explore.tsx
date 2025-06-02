@@ -258,9 +258,63 @@ const MenuExplorer = () => {
         );
     };
 
+    function getUserLocation() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject("Geolocation not supported");
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    resolve({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                    });
+                },
+                (error) => reject(error.message)
+            );
+        });
+    }
+
+    function isWithinRadius(userLat: number, userLng: number, centerLat: number, centerLng: number, radiusKm: number) {
+        const toRad = (value: number) => (value * Math.PI) / 180;
+
+        const R = 6371; // Earth radius in km
+        const dLat = toRad(centerLat - userLat);
+        const dLon = toRad(centerLng - userLng);
+
+        const lat1 = toRad(userLat);
+        const lat2 = toRad(centerLat);
+
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c;
+
+        return distance <= radiusKm;
+    }
+
+    async function canPlaceOrder(centerLat: number, centerLng: number, radiusKm = 3) {
+        try {
+            const { latitude, longitude } = await getUserLocation() as { latitude: number; longitude: number };
+            const withinZone = isWithinRadius(latitude, longitude, centerLat, centerLng, radiusKm);
+
+            return {
+                allowed: withinZone,
+                userLocation: { latitude, longitude },
+                message: withinZone ? "Order allowed" : "You are outside the delivery zone",
+            };
+        } catch (error) {
+            return { allowed: false, message: "Location access failed: " + error };
+        }
+    }
+
+
 
     useEffect(() => {
-    addCurrentLocation();
+        addCurrentLocation();
     }, []);
 
 
@@ -476,8 +530,20 @@ const MenuExplorer = () => {
                 });
             }
 
+            const CENTER_LAT = -3.413744720198847;
+            const CENTER_LNG = 36.71095895201179;
 
+            const canOrder = await canPlaceOrder(CENTER_LAT, CENTER_LNG);
+            if (!canOrder.allowed) {
+                console.warn("❌ Order blocked:", canOrder.message);
+                toast.toast({
+                    title: "Order Blocked",
+                    description: canOrder.message
+                });
+                return; // Cancel checkout if blocked
+            }
 
+            
 
 
 
@@ -626,6 +692,9 @@ const MenuExplorer = () => {
             });
 
             if (!result.isConfirmed) return;
+
+            // Check user location to be within certain location at certain radius
+
 
             // Prepare order payload
             const orderData = {
@@ -823,7 +892,7 @@ const MenuExplorer = () => {
                                         <div>
                                             <div className="flex gap-4 overflow-x-auto py-4 px-2 relative group">
                                                 {/* Optional: Subtle fade/shadow to indicate scrollability */}
-                                               
+
                                                 {categories.map(({ label, value, icon }) => (
                                                     <button
                                                         key={value}
@@ -857,46 +926,46 @@ const MenuExplorer = () => {
 
                                         </div>
                                         <div>
-                                        <div className="flex overflow-auto h-full w-full gap-2">
-                                            {/* Vendor Filter */}
-                                            <Select value={vendorFilter} onValueChange={setVendorFilter}>
-                                                <SelectTrigger className="w-48 rounded-2xl bg-gray-300 dark:bg-gray-800">
-                                                    <SelectValue placeholder="All Vendors" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectGroup>
-                                                        <SelectItem value="All" onClick={() => setVendorFilter('')}>
-                                                            All Vendors
-                                                        </SelectItem>
-                                                        {vendors.map((vendor) => (
-                                                            <SelectItem key={vendor.id} value={String(vendor.id)}>
-                                                                {vendor.name}
+                                            <div className="flex overflow-auto h-full w-full gap-2">
+                                                {/* Vendor Filter */}
+                                                <Select value={vendorFilter} onValueChange={setVendorFilter}>
+                                                    <SelectTrigger className="w-48 rounded-2xl bg-gray-300 dark:bg-gray-800">
+                                                        <SelectValue placeholder="All Vendors" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectGroup>
+                                                            <SelectItem value="All" onClick={() => setVendorFilter('')}>
+                                                                All Vendors
                                                             </SelectItem>
-                                                        ))}
-                                                    </SelectGroup>
-                                                </SelectContent>
-                                            </Select>
+                                                            {vendors.map((vendor) => (
+                                                                <SelectItem key={vendor.id} value={String(vendor.id)}>
+                                                                    {vendor.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
 
 
-                                            {/* Sort Option Filter */}
-                                            <Select value={sortOption} onValueChange={(val) => setSortOption(val as any)}>
-                                                <SelectTrigger className="w-48 rounded-2xl bg-gray-300 dark:bg-gray-800 text-gray-400">
-                                                    <SelectValue placeholder="Sort by" />
-                                                </SelectTrigger>
-                                                <SelectContent >
-                                                    <SelectGroup >
-                                                        <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                                                        <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                                                        <SelectItem value="price-asc">Price (Low to High)</SelectItem>
-                                                        <SelectItem value="price-desc">Price (High to Low)</SelectItem>
-                                                    </SelectGroup>
-                                                </SelectContent>
-                                            </Select>
-                                           
+                                                {/* Sort Option Filter */}
+                                                <Select value={sortOption} onValueChange={(val) => setSortOption(val as any)}>
+                                                    <SelectTrigger className="w-48 rounded-2xl bg-gray-300 dark:bg-gray-800 text-gray-400">
+                                                        <SelectValue placeholder="Sort by" />
+                                                    </SelectTrigger>
+                                                    <SelectContent >
+                                                        <SelectGroup >
+                                                            <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                                                            <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                                                            <SelectItem value="price-asc">Price (Low to High)</SelectItem>
+                                                            <SelectItem value="price-desc">Price (High to Low)</SelectItem>
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+
+                                            </div>
+
                                         </div>
-                                       
-                                        </div>
-                                       
+
                                     </div>
                                 </div>
                             </div>
