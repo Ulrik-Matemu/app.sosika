@@ -258,58 +258,7 @@ const MenuExplorer = () => {
         );
     };
 
-    function getUserLocation() {
-        return new Promise((resolve, reject) => {
-            if (!navigator.geolocation) {
-                reject("Geolocation not supported");
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    resolve({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                    });
-                },
-                (error) => reject(error.message)
-            );
-        });
-    }
-
-    function isWithinRadius(userLat: number, userLng: number, centerLat: number, centerLng: number, radiusKm: number) {
-        const toRad = (value: number) => (value * Math.PI) / 180;
-
-        const R = 6371; // Earth radius in km
-        const dLat = toRad(centerLat - userLat);
-        const dLon = toRad(centerLng - userLng);
-
-        const lat1 = toRad(userLat);
-        const lat2 = toRad(centerLat);
-
-        const a =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c;
-
-        return distance <= radiusKm;
-    }
-
-    async function canPlaceOrder(centerLat: number, centerLng: number, radiusKm = 3) {
-        try {
-            const { latitude, longitude } = await getUserLocation() as { latitude: number; longitude: number };
-            const withinZone = isWithinRadius(latitude, longitude, centerLat, centerLng, radiusKm);
-
-            return {
-                allowed: withinZone,
-                userLocation: { latitude, longitude },
-                message: withinZone ? "Order allowed" : "You are outside the delivery zone",
-            };
-        } catch (error) {
-            return { allowed: false, message: "Location access failed: " + error };
-        }
-    }
+   
 
 
 
@@ -530,20 +479,9 @@ const MenuExplorer = () => {
                 });
             }
 
-            const CENTER_LAT = -3.413744720198847;
-            const CENTER_LNG = 36.71095895201179;
+           
 
-            const canOrder = await canPlaceOrder(CENTER_LAT, CENTER_LNG);
-            if (!canOrder.allowed) {
-                console.warn("❌ Order blocked:", canOrder.message);
-                toast.toast({
-                    title: "Order Blocked",
-                    description: canOrder.message
-                });
-                return; // Cancel checkout if blocked
-            }
 
-            
 
 
 
@@ -1377,7 +1315,14 @@ const MenuExplorer = () => {
                                                 onClick={checkout}
                                                 className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc] flex-1"
                                             >
-                                                Checkout
+                                                {loading ? (
+                                                    <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                ) : (
+                                                    'Checkout'
+                                                )}
                                             </button>
                                         </div>
                                     </div>
