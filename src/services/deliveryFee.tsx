@@ -38,6 +38,7 @@ export const getDeliveryFee = async (vendorId: string): Promise<number> => {
             }
             const data = await response.json();
             localStorage.setItem("vendorGeolocation", JSON.stringify(data.geolocation));
+           
             console.log("Vendor geolocation fetched and stored:", data.geolocation);
             return data.geolocation;
         } catch (error) {
@@ -63,6 +64,7 @@ export const getDeliveryFee = async (vendorId: string): Promise<number> => {
         if (!response.ok) throw new Error('Failed to fetch route');
 
         const data = await response.json();
+        localStorage.setItem("distance", JSON.stringify(data.routes[0].distance / 1000)); // Store distance in kilometers
         const route = data.routes[0];
         if (!route || typeof route.distance !== 'number') {
             throw new Error('No route found');
@@ -72,7 +74,10 @@ export const getDeliveryFee = async (vendorId: string): Promise<number> => {
     };
 
     const calculateDeliveryFee = (distance: number): number => {
-        return Math.ceil(distance) * 1000;
+        // Round up to the nearest 50 TZS note
+        const rawFee = (distance / 1000) * 1000;
+        const fee = Math.ceil(rawFee / 50) * 50;
+        return fee;
     };
 
     try {
