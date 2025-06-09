@@ -137,7 +137,6 @@ const submitFcmToken = async (fcmToken: string) => {
 
 
 const MenuExplorer = () => {
-    const toast = useToast();
     // State for menu items and filters
     const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
     const [error] = useState<string | null>(null);
@@ -223,9 +222,6 @@ const MenuExplorer = () => {
             setLoading(false);
             setIsLocationOpen(false);
             // alert('Location updated successfully! You can now place your order.');
-            toast.toast({
-                description: 'Location updated successfully!'
-            });
 
         } catch (error) {
             if (axios.isAxiosError(error)) {
