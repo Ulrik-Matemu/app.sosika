@@ -38,6 +38,7 @@ import {
 import CarouselPlugin from '../pages/explore/top-carousel';
 import RecommendationCard from '../components/my-components/recommendationCard';
 import { logEvent, analytics } from '../firebase';
+import { getDeliveryFee } from '../services/deliveryFee';
 
 
 const predefinedLocations = [
@@ -446,6 +447,7 @@ const MenuExplorer = () => {
     };
 
     const checkout = async () => {
+        setLoading(true);
         if (cart.length === 0) {
             Swal.fire({
                 title: 'Empty Cart',
@@ -460,10 +462,15 @@ const MenuExplorer = () => {
 
             const user_id = localStorage.getItem('userId');
             const vendor_id = cart[0].vendor_id;
-            let delivery_fee = 2000; // Example fee
-            if (vendor_id === 1) {
-                delivery_fee = 500;
+
+
+
+
+            let delivery_fee = await getDeliveryFee(String(vendor_id)); // Example fee
+            if (delivery_fee === null || delivery_fee === undefined) {
+                delivery_fee = 0; // Default to 0 if no fee is returned
             }
+            setLoading(false);
 
             let deliveryTime = "ASAP";
             let note = "Made Fresh Just for You!";

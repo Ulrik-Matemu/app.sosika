@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useEffect } from 'react';
 import NotificationHandler from '../components/my-components/notification-handler';
 
 interface LoginFormData {
@@ -58,49 +57,7 @@ const LoginPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmitPreviousUser = async () => {
   
-    const email = localStorage.getItem('email');
-    const password = localStorage.getItem('password');
-  
-    if (!email || !password) {
-      return;
-    }
-  
-    setLoading(true);
-  
-    try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-  
-      console.log('Login successful:', data);
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.userId);
-  
-      window.location.href = '#/explore'; 
-    } catch (error) {
-      console.error('Login Error:', error);
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert('An unknown error occurred');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
   
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,7 +87,7 @@ const LoginPage: React.FC = () => {
           console.log('Login successful:', data);
 
           // Store the token (if received)
-          localStorage.setItem('token', data.token);
+          localStorage.setItem('authToken', data.token);
           localStorage.setItem('email', formData.email);
           localStorage.setItem('password', formData.password);
           console.log(data.userId);
@@ -167,9 +124,7 @@ const LoginPage: React.FC = () => {
     setShowPassword(!showPassword);
   };
 
-  useEffect(() => {
-    handleSubmitPreviousUser();
-  }, []); // Empty dependency array ensures it runs only once
+ 
 
   return (
     <div className="min-h-screen bg-[#2b2b2b] text-[#e7e7e7] flex flex-col">
