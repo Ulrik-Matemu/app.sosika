@@ -1,7 +1,7 @@
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { RegisterPage } from "./pages/register";
- import WelcomePage from "./pages/welcome";
+import WelcomePage from "./pages/welcome";
 import LoginPage from "./pages/login";
 import MenuExplorer from "./pages/explore";
 import OrderTrackingWithErrorBoundary from "./components/my-components/orderTracking";
@@ -17,6 +17,8 @@ import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct imp
 import { listenForForegroundMessages } from './push-notifications'
 import { setupPushNotifications } from "./services/push-notifications";
 import { analytics, logEvent } from "./firebase";
+import { AuthProvider } from "./context/AuthContext";
+import PrivateRoute from "./components/my-components/privateRoute";
 
 
 function App() {
@@ -44,23 +46,28 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <TooltipProvider>
-        <Routes>
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<WelcomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/explore" element={<MenuExplorer />} />
-          <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/profile" element={<ProfileManagement />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/printing" element={<Printing />} />
-        </Routes>
-      </TooltipProvider>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <TooltipProvider>
+          <Routes>
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/" element={<WelcomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/explore" element={<MenuExplorer />} />
+            <Route element={<PrivateRoute />}>
+              <Route path="/explore" element={<MenuExplorer />} />
+              <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/profile" element={<ProfileManagement />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/printing" element={<Printing />} />
+            </Route>
+          </Routes>
+        </TooltipProvider>
+      </Router>
+    </AuthProvider>
   );
 }
 
