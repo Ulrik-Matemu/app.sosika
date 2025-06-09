@@ -75,7 +75,7 @@ export const getDeliveryFee = async (vendorId: string): Promise<number> => {
 
     const calculateDeliveryFee = (distance: number): number => {
         // Round up to the nearest 50 TZS note
-        const rawFee = distance * 1000;
+        const rawFee = distance * 500;
         const fee = Math.ceil(rawFee / 50) * 50;
         return fee;
     };
