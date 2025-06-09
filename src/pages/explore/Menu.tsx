@@ -1,7 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { useToast } from "../../hooks/use-toast"; // Adjust path if needed
-import { ToastAction } from "../../components/ui/toast";
 
 // Types
 interface MenuItem {
@@ -43,7 +41,6 @@ let globalMenuCache: CacheData | null = null;
  * This hook reduces API calls by caching data both in memory and localStorage.
  */
 export const useMenu = () => {
-  const toast = useToast();
   const API_URL = import.meta.env.VITE_API_URL;
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -174,17 +171,12 @@ export const useMenu = () => {
         priceRange: newPriceRange
       });
     } catch (err) {
-      toast.toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "Try checking your Internet connection.",
-        action: <ToastAction altText="Try again">Try again</ToastAction>,
-      });
+      
       console.error(err);
     } finally {
       setLoadingMenu(false);
     }
-  }, [API_URL, getCache, updateCache, toast]);
+  }, [API_URL, getCache, updateCache]);
 
   /**
    * Initialize the component on first render

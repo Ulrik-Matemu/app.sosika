@@ -14,7 +14,6 @@ import NotificationHandler from '../components/my-components/notification-handle
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/tooltip";
 import PageWrapper from '../services/page-transition';
 import Swal from 'sweetalert2';
-import { useToast } from '../hooks/use-toast';
 import { Toaster } from '../components/ui/toaster';
 import {
     Pagination,
