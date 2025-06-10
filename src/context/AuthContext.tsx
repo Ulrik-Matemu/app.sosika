@@ -1,65 +1,61 @@
-// src/context/AuthContext.tsx
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { jwtDecode } from 'jwt-decode';
-
-interface DecodedToken {
-  exp: number;
-  email?: string;
-  [key: string]: any;
-}
+// src/contexts/AuthContext.ts
+import { createContext, useState, useEffect, useMemo, type ReactNode } from 'react';
 
 interface AuthContextType {
-  user: DecodedToken | null;
-  authToken: string | null;
-  login: (token: string) => void;
+  token: string | null;
+  email: string | null;
+  userId: string | null;
+  login: (token: string, userId: string, email: string) => void;
   logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [authToken, setAuthToken] = useState<string | null>(null);
-  const [user, setUser] = useState<DecodedToken | null>(null);
+const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [token, setToken] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Auto-login on app start
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token && isTokenValid(token)) {
-      setAuthToken(token);
-      setUser(jwtDecode<DecodedToken>(token));
-    } else {
-      logout(); // clear invalid token
+    const storedToken = localStorage.getItem('authToken');
+    const storedUserId = localStorage.getItem('userId');
+    const storedEmail = localStorage.getItem('email');
+
+    if (storedToken && storedUserId && storedEmail) {
+      setToken(storedToken);
+      setUserId(storedUserId);
+      setEmail(storedEmail);
     }
   }, []);
 
-  const login = (token: string) => {
+  const login = (token: string, userId: string, email: string) => {
     localStorage.setItem('authToken', token);
-    setAuthToken(token);
-    setUser(jwtDecode<DecodedToken>(token));
+    localStorage.setItem('userId', userId);
+    localStorage.setItem('email', email);
+    setToken(token);
+    setUserId(userId);
+    setEmail(email);
   };
 
   const logout = () => {
     localStorage.removeItem('authToken');
-    setAuthToken(null);
-    setUser(null);
+    localStorage.removeItem('userId');
+    localStorage.removeItem('email');
+    setToken(null);
+    setUserId(null);
+    setEmail(null);
   };
 
-  const isTokenValid = (token: string): boolean => {
-    try {
-      const decoded = jwtDecode<DecodedToken>(token);
-      return decoded.exp * 1000 > Date.now();
-    } catch {
-      return false;
-    }
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, authToken, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ token, userId, email, login, logout }),
+    [token, userId, email]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export { AuthContext, AuthProvider };
