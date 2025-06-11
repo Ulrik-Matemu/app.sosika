@@ -462,8 +462,11 @@ const MenuExplorer = () => {
 
 
             let delivery_fee = await getDeliveryFee(String(vendor_id)); // Example fee
+            let info = 'Delivery fee is calculated according to distance. If too high, try ordering from nearby vendors';
             if (delivery_fee === null || delivery_fee === undefined) {
                 delivery_fee = 0; // Default to 0 if no fee is returned
+            } else if (delivery_fee > 10000) {
+                info = "Your delivery fee seems to high, try checking your location. Location may not be accurate if you're connected to hotspot or WiFi or try ordering from nearby vendors";
             }
             setLoading(false);
 
@@ -587,6 +590,22 @@ const MenuExplorer = () => {
             <div class="label">Delivery Fee</div>
             <div class="value">${delivery_fee.toLocaleString()} TZS</div>
         </div>
+      
+    </div>
+     <div class="item-row">
+        <div class="icon-bubble" style="background-color: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+        </div>
+        <div>
+            <div class="label">Delivery Info</div>
+            <div class="value">${info}</div>
+        </div>
+      
     </div>
     
     <!-- Payment Method -->

@@ -152,7 +152,7 @@ const RecommendationCard: React.FC = () => {
     return null;
   }
 
-  const { recommendedItemName, vendorName, price, confidence, reasoning } = recommendation;
+  const { recommendedItemName, vendorName, price, confidence } = recommendation;
   const confidenceBadgeClass = getConfidenceBadgeColor(confidence);
 
   return (
@@ -180,9 +180,7 @@ const RecommendationCard: React.FC = () => {
           </Button>
         </div>
 
-        <div className="mt-3 text-xs text-gray-500">
-          <p>{reasoning}</p>
-        </div>
+       
       </CardContent>
       <CardFooter className="justify-end pt-0">
         <Button
