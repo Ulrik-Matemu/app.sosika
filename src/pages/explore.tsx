@@ -39,6 +39,16 @@ import RecommendationCard from '../components/my-components/recommendationCard';
 import { logEvent, analytics } from '../firebase';
 // import { getDeliveryFee } from '../services/deliveryFee';
 import SkeletonCard from './explore/SkeletonCard';
+import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
+
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(typeof window !== "undefined" && "MSStream" in window);
+const isInStandaloneMode = () =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true;
+
+console.log("isIOS", isIOS);               // should be false on desktop
+console.log("standalone", isInStandaloneMode());  // should be false if not installed
+
 
 
 const predefinedLocations = [
@@ -139,6 +149,9 @@ const submitFcmToken = async (fcmToken: string) => {
 
 
 const MenuExplorer = () => {
+    const { deferredPrompt, promptInstall } = usePWAInstallPrompt();
+    const [showInstallBtn, setShowInstallBtn] = useState(false);
+    const [hasScrolled, setHasScrolled] = useState(false);
     // State for menu items and filters
     const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
     const [error] = useState<string | null>(null);
@@ -183,6 +196,43 @@ const MenuExplorer = () => {
     const [loading, setLoading] = useState<boolean>(false);
 
 
+    useEffect(() => {
+        const handleScroll = () => {
+            if (!hasScrolled) {
+                setHasScrolled(true);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [hasScrolled]);
+
+    useEffect(() => {
+        if (hasScrolled && deferredPrompt && !isInStandaloneMode()) {
+            setShowInstallBtn(true);
+        }
+    }, [hasScrolled, deferredPrompt]);
+
+    const handleInstall = async () => {
+        logEvent(analytics, 'pwa_install', {
+            userId: localStorage.getItem('userId'),
+            action: 'install_button_clicked',
+        });
+        const outcome = await promptInstall();
+        if (outcome === 'accepted' || outcome === 'dismissed') {
+            setShowInstallBtn(false);
+        }
+    };
+
+    useEffect(() => {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('✅ beforeinstallprompt fired', e);
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA installed');
+        });
+    }, []);
 
 
 
@@ -470,8 +520,8 @@ const MenuExplorer = () => {
 
 
 
-          //  let delivery_fee = await getDeliveryFee(String(vendor_id)); // Example fee
-          let delivery_fee = 0;
+            //  let delivery_fee = await getDeliveryFee(String(vendor_id)); // Example fee
+            let delivery_fee = 0;
             let info = 'Delivery fee is calculated according to distance. If too high, try ordering from nearby vendors';
             if (delivery_fee === null || delivery_fee === undefined) {
                 delivery_fee = 0; // Default to 0 if no fee is returned
@@ -719,7 +769,7 @@ const MenuExplorer = () => {
         );
     }
 
-    
+
 
 
 
@@ -1364,6 +1414,18 @@ const MenuExplorer = () => {
                         </div>
                     )}
                 </PageWrapper>
+                {showInstallBtn && (
+                    <>
+                        {console.log("🟢 Rendering install button")}
+                        <button
+                            onClick={handleInstall}
+                            className="fixed bottom-24 left-5 z-[1000] px-6 py-3 bg-sky-500 text-white font-medium rounded-full shadow-xl hover:bg-sky-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2"
+                        >
+                            Install App
+                        </button>
+
+                    </>
+                )}
                 <Navbar />
             </div>
         </>
