@@ -13,14 +13,11 @@ export const setupPushNotifications = async () => {
       for (const registration of registrations) {
         if (registration.scope.includes('firebase-messaging-sw.js')) {
           await registration.unregister();
-          console.log('Unregistered old Firebase service worker');
         }
       }
 
       // Register Firebase messaging service worker
-      console.log('Attempting to register Firebase messaging service worker...');
       const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-      console.log('Firebase messaging service worker registered:', registration.scope);
 
       // Request notification permission
       const permission = await Notification.requestPermission();
@@ -30,14 +27,12 @@ export const setupPushNotifications = async () => {
 
       // Get FCM token with the registered service worker
       const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-      console.log('Getting FCM token with VAPID key:', vapidKey);
 
       const token = await getToken(messaging, {
         vapidKey: vapidKey,
         serviceWorkerRegistration: registration
       });
 
-      console.log('FCM Token:', token);
       localStorage.setItem('fcmToken', token);
       // Save this token to your server for sending notifications
       submitFcmToken(token);

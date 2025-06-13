@@ -25,7 +25,6 @@ export function CustomItemRequestDialog() {
     const API_URL = import.meta.env.VITE_API_URL;
 
     const handleSubmit = async () => {
-        console.log("Custom item request:", { itemName, quantity })
         setLoading(true)
         // You can send this data to your backend or handle it accordingly.
         try {

@@ -19,7 +19,6 @@ const messaging = firebase.messaging();
 
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
-  console.log("[firebase-messaging-sw.js] Received background message:", payload);
   
   const notificationTitle = payload.notification?.title || payload.data?.title || "New Notification";
   const notificationBody = payload.notification?.body || payload.data?.body || "";
@@ -34,19 +33,16 @@ messaging.onBackgroundMessage((payload) => {
 
 // Install event - immediately activate the service worker
 self.addEventListener("install", (event) => {
-  console.log("[firebase-messaging-sw.js] Installing Firebase messaging service worker");
   self.skipWaiting();
 });
 
 // Activate event - claim clients so the SW is in control
 self.addEventListener("activate", (event) => {
-  console.log("[firebase-messaging-sw.js] Activating Firebase messaging service worker");
   event.waitUntil(self.clients.claim());
 });
 
 // Handle notification clicks
 self.addEventListener("notificationclick", (event) => {
-  console.log("[firebase-messaging-sw.js] Notification clicked");
   event.notification.close();
   
   const url = event.notification.data?.url || '/';
