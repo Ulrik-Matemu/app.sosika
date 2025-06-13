@@ -229,7 +229,8 @@ const ProfileManagement = () => {
                 review_text: reviewData.review,
                 user_id: userId,
             });
-            console.log(response.data);
+            let responseArr = [];
+            responseArr.push(response.data)
             toast.toast({
                 description: "Thank you for your review!",
             })

@@ -46,7 +46,8 @@ export const LocationSelector: React.FC = () => {
                 },
             });
 
-            console.log("Location updated successfully:", response.data);
+            let responseArr = [];
+            responseArr.push(response.data);
 
             setLoading(false);
             setIsLocationOpen(false);

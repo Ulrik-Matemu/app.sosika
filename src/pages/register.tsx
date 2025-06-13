@@ -140,7 +140,6 @@ export const RegisterPage: React.FC = () => {
             if (response.ok) {
                 setTimeout(() => {
                     setLoading(false);
-                    console.log(data);
                     alert('Registration successful!');
                     localStorage.setItem('userId', data.user.id);
                     localStorage.setItem('email', formData.email);

@@ -29,7 +29,6 @@ export const requestNotificationPermission = async () => {
     
     // Request permission
     const permission = await Notification.requestPermission();
-    console.log("Notification permission status:", permission);
     
     if (permission !== "granted") {
       console.error("Notification permission denied");
@@ -58,7 +57,6 @@ export const requestNotificationPermission = async () => {
       serviceWorkerRegistration: await navigator.serviceWorker.register('/firebase-messaging-sw.js')
     });
     
-    console.log("FCM token received:", token);
     localStorage.setItem("fcmToken", token);
     
     // Send token to backend
@@ -75,7 +73,6 @@ export const requestNotificationPermission = async () => {
 export const listenForForegroundMessages = () => {
   console.log("Listening for foreground messages...");
   onMessage(messaging, (payload) => {
-    console.log("Message received. ", payload);
     // Customize notification here
     const notificationTitle = payload.notification?.title || "New Notification";
     const notificationOptions = {

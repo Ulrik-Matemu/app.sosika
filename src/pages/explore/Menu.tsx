@@ -195,7 +195,6 @@ export const useMenu = () => {
         setPagination(cache.pagination);
         setPriceRange(cache.priceRange);
         setLoadingMenu(false);
-        console.log("Using cached menu data");
       } else {
         // We have cache but not for the current page
         fetchMenuItems(currentPage);
