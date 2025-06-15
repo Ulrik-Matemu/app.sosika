@@ -5,6 +5,8 @@ import { applyStoredTheme } from "./utils/theme.ts"
 import App from './App.tsx'
 import { CartProvider } from "./context/cartContext";
 import { analytics, logEvent } from './firebase.ts'
+import 'mapbox-gl/dist/mapbox-gl.css';
+
 
 applyStoredTheme();
 
