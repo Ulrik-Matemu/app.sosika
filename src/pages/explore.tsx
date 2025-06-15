@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
-// Extend the Window interface to include SpeechRecognition and webkitSpeechRecognition
-declare global {
-    interface Window {
-        SpeechRecognition: any;
-        webkitSpeechRecognition: any;
-    }
-}
 import axios from 'axios';
-import { Search, X, RefreshCw, Frown, Image as ImageIcon, ShoppingCart, Plus, Minus, Trash2, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
+import { Search, X, RefreshCw, Frown, Image as ImageIcon, ShoppingCart, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
@@ -15,15 +8,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/toolti
 import PageWrapper from '../services/page-transition';
 import Swal from 'sweetalert2';
 import { Toaster } from '../components/ui/toaster';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "../components/ui/pagination";
 import { CustomItemRequestDialog } from '../components/my-components/otherItems';
 import { useMenu } from '../pages/explore/Menu';
 import {
@@ -37,9 +21,15 @@ import {
 import CarouselPlugin from '../pages/explore/top-carousel';
 import RecommendationCard from '../components/my-components/recommendationCard';
 import { logEvent, analytics } from '../firebase';
+import { useCart } from '../hooks/useCart';
 // import { getDeliveryFee } from '../services/deliveryFee';
 import SkeletonCard from './explore/SkeletonCard';
 import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
+import { getOrderSummaryHtml } from './explore/orderSummaryHtml';
+import PaginationControls from '../components/my-components/PaginationControls';
+import { useLocationSelector } from '../hooks/useLocationSelector';
+import CartDrawer from '../components/my-components/CartDrawer';
+import LocationPickerModal from '../components/my-components/LocationPicker';
 
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(typeof window !== "undefined" && "MSStream" in window);
 const isInStandaloneMode = () =>
@@ -51,14 +41,7 @@ console.log("standalone", isInStandaloneMode());  // should be false if not inst
 
 
 
-const predefinedLocations = [
-    { name: "Mamiro Hostel", lat: -3.4157279004216874, lng: 36.71139864504578 },
-    { name: "Mamuya Hostel", lat: -3.4159921797731134, lng: 36.712876253216784 },
-    { name: "Old Hostel", lat: -3.4152137532524893, lng: 36.70962012663434 },
-    { name: "New Hostel", lat: -3.414513577401153, lng: 36.71026451427121 },
-    { name: "Jackson Hostel", lat: -3.4158120478706007, lng: 36.713987296139855 },
-    { name: "Shumbusho", lat: -3.418037404417581, lng: 36.71300246986059 }
-];
+
 
 
 
@@ -81,9 +64,7 @@ interface MenuItem {
 }
 
 // Define cart item interface
-interface CartItem extends MenuItem {
-    quantity: number;
-}
+
 
 
 
@@ -155,8 +136,6 @@ const MenuExplorer = () => {
     // State for menu items and filters
     const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
     const [error] = useState<string | null>(null);
-    const [isLocationOpen, setIsLocationOpen] = useState(false);
-    const [, setSelectedLocation] = useState("");
     const [showTooltip, setShowTooltip] = useState(false);
     const [layout, setLayout] = useState(() => {
         // On first load, try to get the saved layout
@@ -165,20 +144,11 @@ const MenuExplorer = () => {
     const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState<boolean>(false);
     const [, setTrackedOrderId] = useState<string | null>(null);
 
-    const {
-        menuItems,
-        loadingMenu,
-        priceRange,
-        pagination,
-        setPagination,
-        setPriceRange,
-    } = useMenu();
+    const { menuItems, loadingMenu, priceRange, pagination, setPagination, setPriceRange } = useMenu();
 
-
-    // Cart state
-    const [cart, setCart] = useState<CartItem[]>([]);
+    // Cart state (now from hook)
+    const { cart, setCart, cartTotal, addToCart, removeFromCart, updateQuantity, clearCart } = useCart();
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
-    const [cartTotal, setCartTotal] = useState<number>(0);
 
     // Filter states
     const [searchTerm, setSearchTerm] = useState<string>("");
@@ -195,6 +165,18 @@ const MenuExplorer = () => {
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
     const [loading, setLoading] = useState<boolean>(false);
 
+    // Location logic via hook
+    const {
+        loading: locationLoading,
+        isLocationOpen,
+        setIsLocationOpen,
+        addCurrentLocation,
+    } = useLocationSelector({
+        API_URL,
+        onLocationUpdate: () => {
+            // Optionally handle after location update
+        },
+    });
 
     useEffect(() => {
         const handleScroll = () => {
@@ -247,66 +229,9 @@ const MenuExplorer = () => {
     }, []);
 
 
-    const handleSelectLocation = async (location: { name: string; lat: number; lng: number }) => {
-
-        setLoading(true);
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-            console.error("User ID not found");
-            return;
-        }
-
-        setSelectedLocation(location.name);
 
 
-        try {
-            const response = await axios.post(`${API_URL}/auth/update-location`, {
-                userId,
-                custom_address: { lat: location.lat, lng: location.lng },
-            }, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
 
-            let responseArr = [];
-            responseArr.push(response.data);
-
-            setLoading(false);
-            setIsLocationOpen(false);
-            // alert('Location updated successfully! You can now place your order.');
-
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.error("Error updating location:", error.response?.data || error.message);
-            } else {
-                console.error("Unexpected error:", error);
-            }
-        }
-    };
-
-    const addCurrentLocation = () => {
-        if (!navigator.geolocation) {
-            alert("Geolocation is not supported by your browser.");
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                const currentLocation = {
-                    name: "Current Location",
-                    lat: latitude,
-                    lng: longitude,
-                };
-                handleSelectLocation(currentLocation);
-            },
-            (error) => {
-                console.error("Error fetching location:", error);
-                alert("Unable to fetch your location. Please try again.");
-            }
-        );
-    };
 
 
 
@@ -330,40 +255,17 @@ const MenuExplorer = () => {
 
     //Fetch vendors for names in filter
     useEffect(() => {
-        const fetchVendors = async (forceRefresh = false) => {
-            const cacheKey = "vendors_cache";
-            const cached = localStorage.getItem(cacheKey);
-
-            if (!forceRefresh && cached) {
-                try {
-                    const parsed = JSON.parse(cached);
-                    setVendors(parsed);
-                    return;
-                } catch (e) {
-                    console.error("Failed to parse cached vendors:", e);
-                }
-            }
-
+        const fetchVendors = async () => {
             try {
                 const response = await axios.get(`${API_URL}/vendor`);
                 setVendors(response.data);
-                localStorage.setItem(cacheKey, JSON.stringify(response.data));
             } catch (err) {
                 console.error("Failed to fetch vendors:", err);
             }
         };
-
         fetchVendors();
     }, []);
 
-
-    // Calculate cart total whenever cart changes
-    useEffect(() => {
-        const total = cart.reduce((sum, item) => {
-            return sum + (parseFloat(item.price) * item.quantity);
-        }, 0);
-        setCartTotal(total);
-    }, [cart]);
 
     useEffect(() => {
         // Whenever layout changes, save it
@@ -450,46 +352,6 @@ const MenuExplorer = () => {
         setSortOption('name-asc');
     };
 
-    // Cart functions
-    const addToCart = (item: MenuItem) => {
-        // Check if item is already in cart
-        const existingItemIndex = cart.findIndex(cartItem => cartItem.id === item.id);
-
-        if (existingItemIndex !== -1) {
-            // Item already in cart, increase quantity
-            const newCart = [...cart];
-            newCart[existingItemIndex].quantity += 1;
-            setCart(newCart);
-        } else {
-            // Item not in cart, add it with quantity 1
-            setCart([...cart, { ...item, quantity: 1 }]);
-        }
-
-        // Show cart drawer
-        setIsCartOpen(true);
-    };
-
-    const removeFromCart = (itemId: number) => {
-        setCart(cart.filter(item => item.id !== itemId));
-    };
-
-    const updateQuantity = (itemId: number, newQuantity: number) => {
-        if (newQuantity < 1) {
-            removeFromCart(itemId);
-            return;
-        }
-
-        const newCart = cart.map(item =>
-            item.id === itemId ? { ...item, quantity: newQuantity } : item
-        );
-        setCart(newCart);
-    };
-
-    const clearCart = () => {
-        setCart([]);
-    };
-
-
     const closeOrderTracking = () => {
         setIsOrderTrackingOpen(false);
         setTrackedOrderId(null);
@@ -499,7 +361,6 @@ const MenuExplorer = () => {
         setLoading(true);
         logEvent(analytics, 'reached_checkout', {
             userId: localStorage.getItem('userId'),
-
         });
 
         if (cart.length === 0) {
@@ -511,20 +372,13 @@ const MenuExplorer = () => {
             return;
         }
 
-
         try {
-
             const user_id = localStorage.getItem('userId');
-            const vendor_id = cart[0].vendor_id;
-
-
-
-
-            //  let delivery_fee = await getDeliveryFee(String(vendor_id)); // Example fee
+            const vendor_id = cart[0].vendorId;
             let delivery_fee = 0;
             let info = 'Delivery fee is calculated according to distance. If too high, try ordering from nearby vendors';
             if (delivery_fee === null || delivery_fee === undefined) {
-                delivery_fee = 0; // Default to 0 if no fee is returned
+                delivery_fee = 0;
             } else if (delivery_fee > 10000) {
                 info = "Your delivery fee seems to high, try checking your location. Location may not be accurate if you're connected to hotspot or WiFi or try ordering from nearby vendors";
             }
@@ -532,8 +386,7 @@ const MenuExplorer = () => {
 
             let deliveryTime = "ASAP";
             let note = "Made Fresh Just for You!";
-
-            let requested_asap = true; // User wants ASAP delivery
+            let requested_asap = true;
             if (cart[0].id === 7) {
                 deliveryTime = "Tomorrow"
                 note = "This delightful treat takes a day to prepare with extra care and love. We'll deliver it fresh and fabulous by tomorrow!🍰"
@@ -545,164 +398,10 @@ const MenuExplorer = () => {
             }
 
 
-
-
-
-
-
-
-            // Replace confirm with SweetAlert
+            // Use reusable HTML generator
             const result = await Swal.fire({
                 title: 'Confirm Your Order',
-                html: `
-               <!-- SweetAlert Custom HTML Content -->
-<div class="checkout-summary" style=" text-align: left; border-radius: 8px; overflow: hidden; animation: fadeIn 0.5s ease-out;">
-    <!-- Styling -->
-    <style>
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        
-        .checkout-summary {
-        }
-        
-        .item-row {
-            display: flex;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px dashed #e5e7eb;
-            animation: slideIn 0.3s ease-out forwards;
-            opacity: 0;
-        }
-        
-        .item-row:last-child { border-bottom: none; }
-        .item-row:nth-child(1) { animation-delay: 0.1s; }
-        .item-row:nth-child(2) { animation-delay: 0.2s; }
-        .item-row:nth-child(3) { animation-delay: 0.3s; }
-        .item-row:nth-child(4) { animation-delay: 0.4s; }
-        
-        .icon-bubble {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 14px;
-            flex-shrink: 0;
-        }
-        
-        .label {
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 3px;
-        }
-        
-        .value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-        
-        .delivery-time svg { animation: pulse 2s infinite; }
-    </style>
-    
-    <!-- Cart Items -->
-    <div class="item-row">
-        <div class="icon-bubble" style="background-color: rgba(59, 130, 246, 0.12); color: #3b82f6;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="8" cy="21" r="1"></circle>
-                <circle cx="19" cy="21" r="1"></circle>
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
-            </svg>
-        </div>
-        <div>
-            <div class="label">Total Items</div>
-            <div class="value">${cart.length}</div>
-        </div>
-    </div>
-    
-    <!-- Delivery Time -->
-    <div class="item-row delivery-time">
-        <div class="icon-bubble" style="background-color: rgba(16, 185, 129, 0.12); color: #10b981;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-        </div>
-        <div>
-            <div class="label">Delivery Time</div>
-            <div class="value">${deliveryTime}</div>
-        </div>
-    </div>
-    
-    <!-- Delivery Fee -->
-    <div class="item-row">
-        <div class="icon-bubble" style="background-color: rgba(245, 158, 11, 0.12); color: #f59e0b;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1" y="3" width="15" height="13"></rect>
-                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
-                <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                <circle cx="18.5" cy="18.5" r="2.5"></circle>
-            </svg>
-        </div>
-        <div>
-            <div class="label">Delivery Fee</div>
-            <div class="value">${delivery_fee.toLocaleString()} TZS</div>
-        </div>
-      
-    </div>
-     <div class="item-row">
-        <div class="icon-bubble" style="background-color: rgba(245, 158, 11, 0.12); color: #f59e0b;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1" y="3" width="15" height="13"></rect>
-                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
-                <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                <circle cx="18.5" cy="18.5" r="2.5"></circle>
-            </svg>
-        </div>
-        <div>
-            <div class="label">Delivery Info</div>
-            <div class="value">${info}</div>
-        </div>
-      
-    </div>
-    
-    <!-- Payment Method -->
-    <div class="item-row">
-        <div class="icon-bubble" style="background-color: rgba(239, 68, 68, 0.12); color: #ef4444;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                <line x1="12" y1="10" x2="12" y2="16"></line>
-                <line x1="9" y1="13" x2="15" y2="13"></line>
-            </svg>
-        </div>
-        <div>
-            <div class="label">Payment Method</div>
-            <div class="value">Cash on Delivery</div>
-        </div>
-    </div>
-    
-    ${note ? `
-    <!-- Note (Conditional) -->
-    <div class="item-row">
-        <div class="icon-bubble" style="background-color: rgba(107, 114, 128, 0.12); color: #6b7280;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-                <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
-                <line x1="9" y1="9" x2="10" y2="9"></line>
-                <line x1="9" y1="13" x2="15" y2="13"></line>
-                <line x1="9" y1="17" x2="15" y2="17"></line>
-            </svg>
-        </div>
-        <div>
-            <div class="label">Note</div>
-            <div class="value" style="font-style: italic; font-weight: normal; font-size: 14px; color: #64748b;">${note}</div>
-        </div>
-    </div>
-    ` : ''}
-</div>
-              `,
+                html: getOrderSummaryHtml({ cart, deliveryTime, delivery_fee, info: { message: info }, note }),
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
@@ -711,9 +410,6 @@ const MenuExplorer = () => {
             });
 
             if (!result.isConfirmed) return;
-
-            // Check user location to be within certain location at certain radius
-
 
             // Prepare order payload
             const orderData = {
@@ -738,9 +434,8 @@ const MenuExplorer = () => {
                     text: `Order ID: ${response.data.order_id} placed successfully! 🚀`,
                     icon: "success"
                 });
-                setCart([]); // Clear cart after successful order
-                setIsCartOpen(false); // Close cart modal
-
+                setCart([]);
+                setIsCartOpen(false);
                 window.location.href = `#/order-tracking/${response.data.order_id}`;
             }
         } catch (error) {
@@ -775,15 +470,21 @@ const MenuExplorer = () => {
 
 
 
+    function setSelectedCoords(_arg0: { lng: number; lat: number; }) {
+        throw new Error('Function not implemented.');
+    }
+
+    
+    const { handleSelectLocation } = useLocationSelector({
+        API_URL,
+        onLocationUpdate: () => {
+            // Optionally handle after location update
+        },
+    });
+
     return (
         <>
             <Toaster />
-
-
-            <div >
-            </div>
-
-
             <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
                 <NotificationHandler />
                 <header className="sticky top-0 z-50 flex justify-between bg-[#ededed] dark:bg-[#2b2b2b] px-4 py-4">
@@ -839,20 +540,13 @@ const MenuExplorer = () => {
                                 </div>
 
                                 <ul className="mt-4 space-y-2">
-                                    {predefinedLocations.map((location) => (
-                                        <li
-                                            key={location.name}
-                                            onClick={() => handleSelectLocation(location)}
-                                            className="p-2 rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                                        >
-                                            {location.name}
-                                        </li>
-                                    ))}
+
+
                                     <li
                                         onClick={addCurrentLocation}
                                         className="p-2 flex justify-center rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-blue-500 font-medium"
                                     >
-                                        {loading ? (
+                                        {locationLoading ? (
                                             <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -860,6 +554,21 @@ const MenuExplorer = () => {
                                         ) : (
                                             'Use my current location'
                                         )}
+                                    </li>
+                                    <li>
+                                        <LocationPickerModal
+                                            isOpen={isLocationOpen}
+                                            onClose={() => setIsLocationOpen(false)}
+                                            onLocationSelect={(lng, lat, address) => {
+                                                console.log('Selected location:', { lng, lat, address });
+                                                setSelectedCoords({ lng, lat });
+                                            }}
+                                            loading={locationLoading}
+                                            useCurrentLocation={addCurrentLocation}
+                                            handleSelectLocation={handleSelectLocation}
+                                        />
+
+
                                     </li>
                                 </ul>
                             </div>
@@ -901,37 +610,40 @@ const MenuExplorer = () => {
                                     <div className="space-y-4">
                                         <div>
                                             <div className="flex gap-4 overflow-x-auto py-4 px-2 relative group">
-                                                {/* Optional: Subtle fade/shadow to indicate scrollability */}
-
-                                                {categories.map(({ label, value, icon }) => (
-                                                    <button
-                                                        key={value}
-                                                        onClick={() => {
-                                                            setSelectedCategory(value);
-                                                        }}
-                                                        className={`
-      flex flex-col items-center justify-center
-      p-3 border border-gray-200 dark:border-gray-700
-      rounded-xl
-      w-20 h-20
-      transition-all duration-200 ease-in-out
-      focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-opacity-50
-      dark:text-gray-200
-      ${selectedCategory === value
-                                                                ? "bg-blue-500 text-white shadow-md dark:bg-blue-600"
-                                                                : "bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 hover:dark:bg-gray-600/50"
-                                                            }
-    `}
-                                                    >
-                                                        <img
-                                                            src={icon}
-                                                            alt={label} // Important for accessibility
-                                                            className={`w-7 h-7 mb-1.5 transition-transform duration-150 ease-in-out ${selectedCategory === value ? "scale-110" : "group-hover:scale-105"
-                                                                }`}
-                                                        />
-                                                        <span className="text-xs font-medium text-center break-words">{label}</span>
-                                                    </button>
-                                                ))}
+                                                {categories.map(({ label, value, icon }) => {
+                                                    const isSelected = selectedCategory === value;
+                                                    return (
+                                                        <button
+                                                            key={value}
+                                                            onClick={() => setSelectedCategory(value)}
+                                                            className={`
+                                                                flex flex-col items-center justify-center
+                                                                p-3 border rounded-xl w-20 h-20
+                                                                transition-all duration-200 ease-in-out
+                                                                focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
+                                                                dark:text-gray-200
+                                                                ${isSelected
+                                                                    ? "bg-blue-500 text-white shadow-md border-blue-400 dark:bg-blue-600"
+                                                                    : "bg-gray-50 hover:bg-gray-100 border-gray-200 dark:bg-gray-700 dark:border-gray-700 hover:dark:bg-gray-600/50"
+                                                                }
+                                                            `}
+                                                            aria-pressed={isSelected}
+                                                        >
+                                                            <img
+                                                                src={icon}
+                                                                alt={label}
+                                                                className={`
+                                                                    w-7 h-7 mb-2
+                                                                    transition-transform duration-150
+                                                                    ${isSelected ? "scale-110" : "group-hover:scale-105"}
+                                                                `}
+                                                            />
+                                                            <span className={`text-xs font-semibold text-center ${isSelected ? "text-white" : "text-gray-700 dark:text-gray-200"}`}>
+                                                                {label}
+                                                            </span>
+                                                        </button>
+                                                    );
+                                                })}
                                             </div>
 
                                         </div>
@@ -1083,7 +795,12 @@ const MenuExplorer = () => {
                                                                         button_name: `Added ${item.name} to cart`,
                                                                         location: "Explore page",
                                                                     })
-                                                                    addToCart(item)
+                                                                    addToCart({
+                                                                        ...item,
+                                                                        vendorId: item.vendor_id,
+                                                                        imageUrl: item.image_url,
+                                                                        isAvailable: item.is_available,
+                                                                    })
                                                                 }}
                                                                 disabled={!item.is_available}
                                                                 className="w-full bg-[#00bfff] text-white py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -1142,7 +859,12 @@ const MenuExplorer = () => {
                                                                             button_name: `Added ${item.name} to cart`,
                                                                             location: "Explore page",
                                                                         })
-                                                                        addToCart(item)
+                                                                        addToCart({
+                                                                            ...item,
+                                                                            vendorId: item.vendor_id,
+                                                                            imageUrl: item.image_url,
+                                                                            isAvailable: item.is_available,
+                                                                        })
                                                                     }}
                                                                     disabled={!item.is_available}
                                                                     className="bg-[#00bfff] text-white px-4 py-2 rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -1191,7 +913,12 @@ const MenuExplorer = () => {
                                                                         button_name: `Added ${item.name} to cart`,
                                                                         location: "Explore page",
                                                                     })
-                                                                    addToCart(item)
+                                                                    addToCart({
+                                                                        ...item,
+                                                                        vendorId: item.vendor_id,
+                                                                        imageUrl: item.image_url,
+                                                                        isAvailable: item.is_available,
+                                                                    })
                                                                 }}
                                                                 disabled={!item.is_available}
                                                                 className="w-full bg-[#00bfff] text-white py-1 text-sm rounded-lg hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -1224,49 +951,12 @@ const MenuExplorer = () => {
                             </div>
                         </div>
 
-                        <Pagination className='hidden'>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            handlePageChange(pagination.currentPage - 1);
-                                        }}
-                                    />
-                                </PaginationItem>
-
-                                {[...Array(pagination.totalPages)].map((_, i) => {
-                                    const pageNum = i + 1;
-                                    return (
-                                        <PaginationItem key={pageNum}>
-                                            <PaginationLink
-                                                href="#"
-                                                isActive={pagination.currentPage === pageNum}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    handlePageChange(pageNum);
-                                                }}
-                                            >
-                                                {pageNum}
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                    );
-                                })}
-
-                                {pagination.totalPages > 5 && <PaginationEllipsis />}
-
-                                <PaginationItem>
-                                    <PaginationNext
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            handlePageChange(pagination.currentPage + 1)
-                                        }}
-                                    />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
+                        <PaginationControls
+                            currentPage={pagination.currentPage}
+                            totalPages={pagination.totalPages}
+                            onPageChange={handlePageChange}
+                            className="hidden"
+                        />
 
                     </div>
 
@@ -1294,116 +984,17 @@ const MenuExplorer = () => {
                         </div>
                     )}
 
-                    {/* Cart Drawer */}
-                    {isCartOpen && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-                            <div className="w-full max-w-md bg-[#ededed] dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
-                                <div className="p-4 border-b flex justify-between items-center">
-                                    <h2 className="text-xl font-bold flex items-center gap-2">
-                                        <ShoppingCart className="h-5 w-5" />
-                                        Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)
-                                    </h2>
-                                    <button
-                                        onClick={() => setIsCartOpen(false)}
-                                        className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    >
-                                        <X className="h-6 w-6" />
-                                    </button>
-                                </div>
-
-                                <div className="flex-grow overflow-auto p-4">
-                                    {cart.length === 0 ? (
-                                        <div className="text-center py-8">
-                                            <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                                            <p className="text-gray-500">Your cart is empty</p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            {cart.map(item => (
-                                                <div key={item.id} className="bg-gray-50 dark:bg-[#3b3b3b] p-4 rounded-lg flex gap-4">
-                                                    <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                                                        {item.image_url ? (
-                                                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center">
-                                                                <ImageIcon className="h-6 w-6 text-gray-400" />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-grow">
-                                                        <h3 className="font-medium dark:text-white">{item.name}</h3>
-                                                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                            TZS {parseFloat(item.price).toFixed(2)} each
-                                                        </p>
-                                                        <div className="flex items-center justify-between mt-2">
-                                                            <div className="flex items-center">
-                                                                <button
-                                                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                                    className="p-1 bg-gray-200 dark:bg-gray-700 rounded-l"
-                                                                >
-                                                                    <Minus className="h-4 w-4" />
-                                                                </button>
-                                                                <span className="px-3 py-1 bg-[#ededed] dark:bg-gray-600 text-center min-w-8">
-                                                                    {item.quantity}
-                                                                </span>
-                                                                <button
-                                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                                    className="p-1 bg-gray-200 dark:bg-gray-700 rounded-r"
-                                                                >
-                                                                    <Plus className="h-4 w-4" />
-                                                                </button>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => removeFromCart(item.id)}
-                                                                className="p-1 text-red-500 hover:text-red-700"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="font-semibold text-[#00bfff]">
-                                                        TZS {(parseFloat(item.price) * item.quantity).toFixed(2)}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {cart.length > 0 && (
-                                    <div className="relative p-4 border-t mt-auto bottom-20">
-                                        <div className="flex justify-between mb-2">
-                                            <span className="font-medium dark:text-white">Subtotal:</span>
-                                            <span className="font-semibold text-[#00bfff]">TZS {cartTotal.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={clearCart}
-                                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-white flex-1"
-                                            >
-                                                Clear Cart
-                                            </button>
-                                            <button
-                                                onClick={checkout}
-                                                className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc] flex-1"
-                                            >
-                                                {loading ? (
-                                                    <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                ) : (
-                                                    'Checkout'
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-
+                    <CartDrawer
+                        isOpen={isCartOpen}
+                        onClose={() => setIsCartOpen(false)}
+                        cart={cart}
+                        cartTotal={cartTotal}
+                        updateQuantity={updateQuantity}
+                        removeFromCart={removeFromCart}
+                        clearCart={clearCart}
+                        checkout={checkout}
+                        loading={loading}
+                    />
 
                     {error && (
                         <div className="fixed inset-0 bg-[#ededed] bg-opacity-80 flex items-center justify-center">
