@@ -26,6 +26,7 @@ export default function LocationPickerModal({
     const mapRef = useRef<mapboxgl.Map | null>(null);
     const [address, setAddress] = useState('');
     const [coordinates, setCoordinates] = useState<{ lng: number; lat: number } | null>(null);
+    const [buttonSuccess, setButtonSuccess] = useState(false);
 
     const updateLocation = async (lng: number, lat: number) => {
         let fetchedAddress = '';
@@ -44,27 +45,50 @@ export default function LocationPickerModal({
     };
 
     useEffect(() => {
-        if (!isOpen || !mapContainerRef.current) return;
+        let map: mapboxgl.Map | null = null;
 
-        const map = new mapboxgl.Map({
-            container: mapContainerRef.current,
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [39.2083, -6.7924],
-            zoom: 13,
-        });
+        const initializeMap = async () => {
+            if (!isOpen || !mapContainerRef.current) return;
 
-        map.on('load', () => {
-            const center = map.getCenter();
-            updateLocation(center.lng, center.lat);
-        });
+            let center: [number, number] = [39.2083, -6.7924];
+            if (navigator.geolocation) {
+                try {
+                    const position = await new Promise<GeolocationPosition>((resolve, reject) =>
+                        navigator.geolocation.getCurrentPosition(resolve, reject)
+                    );
+                    center = [position.coords.longitude, position.coords.latitude];
+                } catch {
+                    // fallback to default center
+                }
+            }
 
-        map.on('moveend', () => {
-            const center = map.getCenter();
-            updateLocation(center.lng, center.lat);
-        });
+            map = new mapboxgl.Map({
+                container: mapContainerRef.current,
+                style: 'mapbox://styles/mapbox/streets-v11',
+                center,
+                zoom: 13,
+            });
 
-        mapRef.current = map;
-        return () => map.remove();
+            map.on('load', () => {
+                const center = map!.getCenter();
+                updateLocation(center.lng, center.lat);
+            });
+
+            map.on('moveend', () => {
+                const center = map!.getCenter();
+                updateLocation(center.lng, center.lat);
+            });
+
+            mapRef.current = map;
+        };
+
+        initializeMap();
+
+        return () => {
+            if (map) {
+                map.remove();
+            }
+        };
     }, [isOpen]);
 
     if (!isOpen) return null;
@@ -82,7 +106,7 @@ export default function LocationPickerModal({
                 <div className="mt-4 h-64 rounded overflow-hidden relative">
                     <div ref={mapContainerRef} className="w-full h-full rounded" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10">
-                        <img src="https://img.icons8.com/?size=100&id=t4xryPeeZyLX&format=png&color=000000" className="w-10 h-10 animate-bounce" alt="marker" />
+                        <img src="/icons/icons8-map-pin-100.png" className="w-20 h-20 " alt="marker" />
                     </div>
 
                 </div>
@@ -95,11 +119,22 @@ export default function LocationPickerModal({
                                 lng: coordinates.lng,
                                 name: address,
                             });
+                            setButtonSuccess(true);
+                            setTimeout(() => setButtonSuccess(false), 1500);
                         }
+
                     }}
-                    className="mt-4 w-full bg-[#00bfff] hover:bg-[#0099cc] text-white py-2 px-4 rounded text-center font-semibold"
+                    className={`mt-4 w-full ${
+                        buttonSuccess
+                            ? 'bg-green-500 hover:bg-green-600'
+                            : 'bg-[#00bfff] hover:bg-[#0099cc]'
+                    } text-white py-2 px-4 rounded text-center font-semibold transition-colors duration-300`}
                 >
-                    {address ? address : 'Loading address...'}
+                    {address
+                        ? buttonSuccess
+                            ? 'Location Selected!'
+                            : address
+                        : 'Loading address...'}
                 </button>
 
                 <ul className="mt-4 space-y-2">
