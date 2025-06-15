@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import {  useState, useEffect } from 'react';
+import React from 'react';
 import axios from 'axios';
 import { Search, X, RefreshCw, Frown, Image as ImageIcon, ShoppingCart, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
@@ -19,7 +20,7 @@ import {
     SelectValue,
 } from "../components/ui/select"
 import CarouselPlugin from '../pages/explore/top-carousel';
-import RecommendationCard from '../components/my-components/recommendationCard';
+const RecommendationCard = React.lazy(() => import('../components/my-components/recommendationCard'));
 import { logEvent, analytics } from '../firebase';
 import { useCart } from '../hooks/useCart';
 // import { getDeliveryFee } from '../services/deliveryFee';
@@ -29,7 +30,7 @@ import { getOrderSummaryHtml } from './explore/orderSummaryHtml';
 import PaginationControls from '../components/my-components/PaginationControls';
 import { useLocationSelector } from '../hooks/useLocationSelector';
 import CartDrawer from '../components/my-components/CartDrawer';
-import LocationPickerModal from '../components/my-components/LocationPicker';
+const LocationPickerModal = React.lazy(() => import('../components/my-components/LocationPicker'));
 
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(typeof window !== "undefined" && "MSStream" in window);
 const isInStandaloneMode = () =>
