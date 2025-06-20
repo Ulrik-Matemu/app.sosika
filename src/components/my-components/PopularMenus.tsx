@@ -104,7 +104,7 @@ const PopularMenus: React.FC = () => {
                                     </h3>
                                     <div className="flex items-center justify-between mt-2">
                                         <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-                                            ${item.price}
+                                            TSH{item.price}
                                         </span>
                                         <button
                                             className="bg-[#00bfff] text-white p-2 rounded-full shadow-md hover:bg-orange-600 transition-colors"
