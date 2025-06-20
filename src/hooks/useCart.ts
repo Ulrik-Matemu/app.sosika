@@ -25,6 +25,11 @@ export function useCart() {
   }, [cart]);
 
   const addToCart = useCallback((item: MenuItem) => {
+    console.log("Adding to cart:", item);
+    if (!item.id || !item.price) {
+      console.error("Item must have an id and price to be added to the cart");
+      return;
+    }
     setCart(prevCart => {
       const existingItemIndex = prevCart.findIndex(cartItem => cartItem.id === item.id);
       if (existingItemIndex !== -1) {

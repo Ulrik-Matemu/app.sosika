@@ -18,6 +18,8 @@ import { listenForForegroundMessages } from './push-notifications'
 import { setupPushNotifications } from "./services/push-notifications";
 import { analytics, logEvent } from "./firebase";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/cartContext";
+
 import { AuthRedirect } from "./pages/AuthRedirects";
 
 
@@ -48,23 +50,25 @@ function App() {
 
   return (
     <AuthProvider>
-      <Router>
-        <TooltipProvider>
-          <Routes>
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/" element={<AuthRedirect />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/explore" element={<MenuExplorer />} />
-            <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/profile" element={<ProfileManagement />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/printing" element={<Printing />} />
-          </Routes>
-        </TooltipProvider>
-      </Router>
+      <CartProvider>
+        <Router>
+          <TooltipProvider>
+            <Routes>
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/" element={<AuthRedirect />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/explore" element={<MenuExplorer />} />
+              <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/profile" element={<ProfileManagement />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/printing" element={<Printing />} />
+            </Routes>
+          </TooltipProvider>
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }
