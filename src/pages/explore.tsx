@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import PopularMenus from '../components/my-components/PopularMenus';
 const RecommendationCard = React.lazy(() => import('../components/my-components/recommendationCard'));
 import { logEvent, analytics } from '../firebase';
-import { useCart } from '../hooks/useCart';
+import { useCartContext } from '../context/cartContext';
 // import { getDeliveryFee } from '../services/deliveryFee';
 import SkeletonCard from './explore/SkeletonCard';
 import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
@@ -127,7 +127,7 @@ const MenuExplorer = () => {
     const { menuItems, loadingMenu, priceRange, pagination, setPagination, setPriceRange } = useMenu();
 
     // Cart state (now from hook)
-    const { cart, setCart, cartTotal, addToCart, removeFromCart, updateQuantity, clearCart } = useCart();
+    const { cart, setCart, cartTotal, addToCart, removeFromCart, updateQuantity, clearCart } = useCartContext();
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
     // Filter states
