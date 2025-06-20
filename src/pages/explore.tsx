@@ -1,4 +1,4 @@
-import {  useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import React from 'react';
 import axios from 'axios';
 import { Search, X, RefreshCw, Frown, Image as ImageIcon, ShoppingCart, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
@@ -11,15 +11,8 @@ import Swal from 'sweetalert2';
 import { Toaster } from '../components/ui/toaster';
 import { CustomItemRequestDialog } from '../components/my-components/otherItems';
 import { useMenu } from '../pages/explore/Menu';
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../components/ui/select"
-import CarouselPlugin from '../pages/explore/top-carousel';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import PopularMenus from '../components/my-components/PopularMenus';
 const RecommendationCard = React.lazy(() => import('../components/my-components/recommendationCard'));
 import { logEvent, analytics } from '../firebase';
 import { useCart } from '../hooks/useCart';
@@ -40,17 +33,7 @@ const isInStandaloneMode = () =>
 console.log("isIOS", isIOS);               // should be false on desktop
 console.log("standalone", isInStandaloneMode());  // should be false if not installed
 
-
-
-
-
-
-
 const API_URL = import.meta.env.VITE_API_URL;
-
-
-
-
 
 // Define interfaces for menu items and vendor data
 interface MenuItem {
@@ -63,10 +46,6 @@ interface MenuItem {
     vendor_id: number;
     image_url?: string;
 }
-
-// Define cart item interface
-
-
 
 
 const categories = [
@@ -160,7 +139,6 @@ const MenuExplorer = () => {
     type Vendor = {
         id: string;
         name: string;
-        // any other fields you expect from your backend
     };
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
@@ -229,32 +207,6 @@ const MenuExplorer = () => {
         }
     }, []);
 
-
-
-
-
-
-
-
-
-
-    useEffect(() => {
-        addCurrentLocation();
-    }, []);
-
-
-
-    // Fetch all menu items when component mounts
-
-
-    const handlePageChange = (page: number) => {
-        if (page > 0 && page <= pagination.totalPages) {
-            setPagination((prev) => ({ ...prev, currentPage: page }));
-        }
-    };
-
-
-    //Fetch vendors for names in filter
     useEffect(() => {
         const fetchVendors = async () => {
             try {
@@ -265,7 +217,16 @@ const MenuExplorer = () => {
             }
         };
         fetchVendors();
+        addCurrentLocation();
     }, []);
+
+
+    const handlePageChange = (page: number) => {
+        if (page > 0 && page <= pagination.totalPages) {
+            setPagination((prev) => ({ ...prev, currentPage: page }));
+        }
+    };
+
 
 
     useEffect(() => {
@@ -475,7 +436,7 @@ const MenuExplorer = () => {
         throw new Error('Function not implemented.');
     }
 
-    
+
     const { handleSelectLocation } = useLocationSelector({
         API_URL,
         onLocationUpdate: () => {
@@ -600,7 +561,7 @@ const MenuExplorer = () => {
                             </div>
                         </div>
 
-                        <CarouselPlugin />
+
 
                         <div className="lg:grid lg:grid-cols-12 lg:gap-6">
                             {/* Filters Sidebar */}
@@ -609,8 +570,9 @@ const MenuExplorer = () => {
 
 
                                     <div className="space-y-4">
+                                        <PopularMenus />
                                         <div>
-                                            <div className="flex gap-4 overflow-x-auto py-4 px-2 relative group">
+                                            <div className="flex gap-4 overflow-x-auto py-1 px-2 relative group">
                                                 {categories.map(({ label, value, icon }) => {
                                                     const isSelected = selectedCategory === value;
                                                     return (
@@ -618,38 +580,41 @@ const MenuExplorer = () => {
                                                             key={value}
                                                             onClick={() => setSelectedCategory(value)}
                                                             className={`
-                                                                flex flex-col items-center justify-center
-                                                                p-3 border rounded-xl w-20 h-20
-                                                                transition-all duration-200 ease-in-out
-                                                                focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
-                                                                dark:text-gray-200
-                                                                ${isSelected
-                                                                    ? "bg-blue-500 text-white shadow-md border-blue-400 dark:bg-blue-600"
-                                                                    : "bg-gray-50 hover:bg-gray-100 border-gray-200 dark:bg-gray-700 dark:border-gray-700 hover:dark:bg-gray-600/50"
+    flex flex-col items-center justify-center
+    p-3 rounded-xl transition-all duration-200 ease-in-out
+    focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
+    dark:text-gray-200
+    ${isSelected
+                                                                    ? "bg-transparent text-white shadow-md dark:bg-blue-600"
+                                                                    : "bg-transparent hover:bg-gray-100 border-gray-200 dark:bg-transparent hover:dark:bg-gray-600/50"
                                                                 }
-                                                            `}
+  `}
                                                             aria-pressed={isSelected}
                                                         >
                                                             <img
                                                                 src={icon}
                                                                 alt={label}
                                                                 className={`
-                                                                    w-7 h-7 mb-2
-                                                                    transition-transform duration-150
-                                                                    ${isSelected ? "scale-110" : "group-hover:scale-105"}
-                                                                `}
+      w-10 h-10 mb-2 object-contain
+      transition-transform duration-150
+      ${isSelected ? "scale-110" : "group-hover:scale-105"}
+    `}
                                                             />
-                                                            <span className={`text-xs font-semibold text-center ${isSelected ? "text-white" : "text-gray-700 dark:text-gray-200"}`}>
+                                                            <span
+                                                                className={`text-sm font-bold text-center ${isSelected ? "text-white" : "text-gray-700 dark:text-gray-200"
+                                                                    }`}
+                                                            >
                                                                 {label}
                                                             </span>
                                                         </button>
+
                                                     );
                                                 })}
                                             </div>
 
                                         </div>
                                         <div>
-                                            <div className="flex overflow-auto h-full w-full gap-2">
+                                            <div className="hidden flex overflow-auto h-full w-full gap-2">
                                                 {/* Vendor Filter */}
                                                 <Select value={vendorFilter} onValueChange={setVendorFilter}>
                                                     <SelectTrigger className="w-48 rounded-2xl bg-gray-300 dark:bg-gray-800">
@@ -696,6 +661,7 @@ const MenuExplorer = () => {
 
 
                             {/* Results */}
+
                             <div className="lg:col-span-9 mb-8">
                                 <div className="mb-4 flex items-center justify-between">
                                     <p className="text-sm text-gray-600 font-bold dark:text-white">
