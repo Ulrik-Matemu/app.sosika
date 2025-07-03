@@ -9,7 +9,7 @@ import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
 import ForgotPassword from "./pages/forgot-password";
 import ResetPassword from "./pages/reset-password";
-// import { Maintenance } from "./pages/maintenance";;
+import { Maintenance } from "./pages/maintenance";;
 import { Printing } from "./pages/printing";
 import { Services } from "./pages/services";
 import "./App.css";
@@ -20,7 +20,8 @@ import { analytics, logEvent } from "./firebase";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/cartContext";
 
-import { AuthRedirect } from "./pages/AuthRedirects";
+// import { AuthRedirect } from "./pages/AuthRedirects";
+import VendorPage from "./pages/vendor";
 
 
 function App() {
@@ -56,7 +57,7 @@ function App() {
             <Routes>
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/" element={<AuthRedirect />} />
+              <Route path="/" element={<Maintenance />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/explore" element={<MenuExplorer />} />
@@ -65,6 +66,7 @@ function App() {
               <Route path="/profile" element={<ProfileManagement />} />
               <Route path="/services" element={<Services />} />
               <Route path="/printing" element={<Printing />} />
+              <Route path="/vendor" element={<VendorPage vendorId={1} />} />
             </Routes>
           </TooltipProvider>
         </Router>

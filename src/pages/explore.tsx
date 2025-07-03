@@ -7,7 +7,6 @@ import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/tooltip";
 import PageWrapper from '../services/page-transition';
-import Swal from 'sweetalert2';
 import { Toaster } from '../components/ui/toaster';
 import { CustomItemRequestDialog } from '../components/my-components/otherItems';
 import { useMenu } from '../pages/explore/Menu';
@@ -19,7 +18,6 @@ import { useCartContext } from '../context/cartContext';
 // import { getDeliveryFee } from '../services/deliveryFee';
 import SkeletonCard from './explore/SkeletonCard';
 import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
-import { getOrderSummaryHtml } from './explore/orderSummaryHtml';
 import PaginationControls from '../components/my-components/PaginationControls';
 import { useLocationSelector } from '../hooks/useLocationSelector';
 import CartDrawer from '../components/my-components/CartDrawer';
@@ -77,35 +75,7 @@ const categories = [
 ];
 
 
-const submitFcmToken = async (fcmToken: string) => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-        console.error("User ID not found");
-        return;
-    }
 
-    try {
-        const response = await axios.post(`${API_URL}/auth/fcm-token`, {
-            userId,
-            fcmToken,
-        }, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-
-        localStorage.setItem("submittedFcmToken", fcmToken); // Mark as submitted
-
-        let responseArr = [];
-        responseArr.push(response.data);
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-            console.error("Error updating FCM token:", error.response?.data || error.message);
-        } else {
-            console.error("Unexpected error:", error);
-        }
-    }
-};
 
 
 
@@ -127,7 +97,7 @@ const MenuExplorer = () => {
     const { menuItems, loadingMenu, priceRange, pagination, setPagination, setPriceRange } = useMenu();
 
     // Cart state (now from hook)
-    const { cart, setCart, cartTotal, addToCart, removeFromCart, updateQuantity, clearCart } = useCartContext();
+    const { cart,  cartTotal, addToCart, removeFromCart, updateQuantity, clearCart, checkout, loading } = useCartContext();
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
     // Filter states
@@ -142,7 +112,6 @@ const MenuExplorer = () => {
     };
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [sortOption, setSortOption] = useState<"name-asc" | "name-desc" | "price-asc" | "price-desc">("name-asc");
-    const [loading, setLoading] = useState<boolean>(false);
 
     // Location logic via hook
     const {
@@ -198,14 +167,7 @@ const MenuExplorer = () => {
 
 
 
-    useEffect(() => {
-        const fcmToken = localStorage.getItem("fcmToken");
-        const submittedToken = localStorage.getItem("submittedFcmToken");
-
-        if (fcmToken && fcmToken !== submittedToken) {
-            submitFcmToken(fcmToken);
-        }
-    }, []);
+   
 
     useEffect(() => {
         const fetchVendors = async () => {
@@ -317,97 +279,6 @@ const MenuExplorer = () => {
     const closeOrderTracking = () => {
         setIsOrderTrackingOpen(false);
         setTrackedOrderId(null);
-    };
-
-    const checkout = async () => {
-        setLoading(true);
-        logEvent(analytics, 'reached_checkout', {
-            userId: localStorage.getItem('userId'),
-        });
-
-        if (cart.length === 0) {
-            Swal.fire({
-                title: 'Empty Cart',
-                text: 'Your cart is empty.',
-                icon: 'warning'
-            });
-            return;
-        }
-
-        try {
-            const user_id = localStorage.getItem('userId');
-            const vendor_id = cart[0].vendorId;
-            let delivery_fee = 0;
-            let info = 'Delivery fee is calculated according to distance. If too high, try ordering from nearby vendors';
-            if (delivery_fee === null || delivery_fee === undefined) {
-                delivery_fee = 0;
-            } else if (delivery_fee > 10000) {
-                info = "Your delivery fee seems to high, try checking your location. Location may not be accurate if you're connected to hotspot or WiFi or try ordering from nearby vendors";
-            }
-            setLoading(false);
-
-            let deliveryTime = "ASAP";
-            let note = "Made Fresh Just for You!";
-            let requested_asap = true;
-            if (cart[0].id === 7) {
-                deliveryTime = "Tomorrow"
-                note = "This delightful treat takes a day to prepare with extra care and love. We'll deliver it fresh and fabulous by tomorrow!🍰"
-                Swal.fire({
-                    title: "Special Order!",
-                    text: "This special treat takes a day to prepare with love. We’ll have it delivered fresh and delightful by tomorrow!",
-                    icon: "info",
-                });
-            }
-
-
-            // Use reusable HTML generator
-            const result = await Swal.fire({
-                title: 'Confirm Your Order',
-                html: getOrderSummaryHtml({ cart, deliveryTime, delivery_fee, info: { message: info }, note }),
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Place Order',
-                cancelButtonText: 'Cancel'
-            });
-
-            if (!result.isConfirmed) return;
-
-            // Prepare order payload
-            const orderData = {
-                user_id,
-                vendor_id,
-                delivery_fee,
-                requested_asap,
-                payment_method: "Cash on Delivery",
-                order_items: cart.map(item => ({
-                    menu_item_id: item.id,
-                    quantity: item.quantity,
-                    price: parseFloat(item.price)
-                }))
-            };
-
-            // Send order request
-            const response = await axios.post(`${API_URL}/orders`, orderData);
-
-            if (response.status === 201) {
-                Swal.fire({
-                    title: 'Order Placed',
-                    text: `Order ID: ${response.data.order_id} placed successfully! 🚀`,
-                    icon: "success"
-                });
-                setCart([]);
-                setIsCartOpen(false);
-                window.location.href = `#/order-tracking/${response.data.order_id}`;
-            }
-        } catch (error) {
-            console.error("Checkout error:", error);
-            Swal.fire({
-                title: 'Error',
-                text: 'Failed to place order. Please try again.',
-                icon: 'error'
-            });
-        }
     };
 
     // Render loading state
