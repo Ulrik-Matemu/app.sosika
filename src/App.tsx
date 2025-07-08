@@ -9,7 +9,7 @@ import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
 import ForgotPassword from "./pages/forgot-password";
 import ResetPassword from "./pages/reset-password";
-import { Maintenance } from "./pages/maintenance";;
+// import { Maintenance } from "./pages/maintenance";;
 import { Printing } from "./pages/printing";
 import { Services } from "./pages/services";
 import "./App.css";
@@ -19,8 +19,7 @@ import { setupPushNotifications } from "./services/push-notifications";
 import { analytics, logEvent } from "./firebase";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/cartContext";
-
-// import { AuthRedirect } from "./pages/AuthRedirects";
+import { AuthRedirect } from "./pages/AuthRedirects";
 import VendorPage from "./pages/vendor";
 
 
@@ -57,7 +56,7 @@ function App() {
             <Routes>
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/" element={<Maintenance />} />
+              <Route path="/" element={<AuthRedirect />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/explore" element={<MenuExplorer />} />
