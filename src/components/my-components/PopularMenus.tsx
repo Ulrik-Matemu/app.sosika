@@ -93,11 +93,14 @@ const PopularMenus: React.FC = () => {
                                 className="min-w-[220px] snap-center bg-[#DEDEDE] dark:bg-[#1C1C1C] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer overflow-hidden"
                             >
                                 <img
-                                    src={item.image_url}
-                                    alt={item.name}
+                                    src={item.image_url.replace('/upload/', '/upload/f_auto,q_auto,w_800/')}
+                                    alt={`${item.name} from Vendor No. ${item.vendor_id} - Order now on Sosika`}
                                     className="h-36 w-full object-cover rounded-t-2xl transform hover:scale-105 transition-transform duration-300"
-                                    loading="lazy" // Add lazy loading for images
+                                    loading="lazy"
+                                    width={800}
+                                    height={144}
                                 />
+
                                 <div className="p-4">
                                     <h3 className="text-lg font-bold text-black dark:text-white truncate mb-1">
                                         {item.name}
@@ -107,18 +110,35 @@ const PopularMenus: React.FC = () => {
                                             TSH{item.price}
                                         </span>
                                         <button
-                                            className="bg-[#00bfff] text-white p-2 rounded-full shadow-md hover:bg-orange-600 transition-colors"
-                                            onClick={() => addToCart({
-                                                ...item,
-                                                vendorId: item.vendor_id,
-                                                imageUrl: item.image_url,
-                                                isAvailable: true,
-                                            })}
+                                            className="bg-[#00bfff] text-white p-2 rounded-full shadow-md hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400"
+                                            onClick={() =>
+                                                addToCart({
+                                                    ...item,
+                                                    vendorId: item.vendor_id,
+                                                    imageUrl: item.image_url,
+                                                    isAvailable: true,
+                                                })
+                                            }
+                                            aria-label={`Add ${item.name} to cart`}
+                                            title={`Add ${item.name} to cart`}
+                                            type="button"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-5 w-5"
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                                aria-hidden="true"
+                                                focusable="false"
+                                            >
+                                                <path
+                                                    fillRule="evenodd"
+                                                    d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                                    clipRule="evenodd"
+                                                />
                                             </svg>
                                         </button>
+
                                     </div>
                                 </div>
                             </div>

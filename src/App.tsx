@@ -9,9 +9,7 @@ import OrdersPage from "./pages/orders";
 import ProfileManagement from "./pages/profile";
 import ForgotPassword from "./pages/forgot-password";
 import ResetPassword from "./pages/reset-password";
-// import { Maintenance } from "./pages/maintenance";;
-import { Printing } from "./pages/printing";
-import { Services } from "./pages/services";
+// import { Maintenance } from "./pages/maintenance";
 import "./App.css";
 import { TooltipProvider } from "./components/ui/tooltip"; // Ensure correct import
 import { listenForForegroundMessages } from './push-notifications'
@@ -63,8 +61,6 @@ function App() {
               <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/profile" element={<ProfileManagement />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/printing" element={<Printing />} />
               <Route path="/vendor" element={<VendorPage vendorId={1} />} />
             </Routes>
           </TooltipProvider>

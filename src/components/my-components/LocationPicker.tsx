@@ -1,9 +1,5 @@
-// components/LocationPickerModal.tsx
-import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { X } from 'lucide-react';
-
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 interface Props {
     isOpen: boolean;
@@ -23,32 +19,52 @@ export default function LocationPickerModal({
     handleSelectLocation,
 }: Props) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<mapboxgl.Map | null>(null);
+    const mapRef = useRef<any>(null); // type-safe if you load mapbox dynamically
     const [address, setAddress] = useState('');
     const [coordinates, setCoordinates] = useState<{ lng: number; lat: number } | null>(null);
     const [buttonSuccess, setButtonSuccess] = useState(false);
 
-    const updateLocation = async (lng: number, lat: number) => {
+    // 🧠 Throttle so we don’t spam updateLocation on move
+    const throttle = (fn: (...args: any) => void, delay: number) => {
+        let lastCall = 0;
+        return (...args: any) => {
+            const now = new Date().getTime();
+            if (now - lastCall < delay) return;
+            lastCall = now;
+            fn(...args);
+        };
+    };
+
+    const updateLocation = useCallback(async (lng: number, lat: number) => {
         let fetchedAddress = '';
         try {
             const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}`
             );
             const data = await response.json();
             fetchedAddress = data?.features?.[0]?.place_name || '';
         } catch (error) {
             console.warn('Reverse geocoding failed:', error);
         }
-        setCoordinates({ lng, lat });
+
+        setCoordinates((prev) => {
+            if (!prev || prev.lng !== lng || prev.lat !== lat) {
+                return { lng, lat };
+            }
+            return prev;
+        });
         setAddress(fetchedAddress);
         onLocationSelect(lng, lat, fetchedAddress);
-    };
+    }, [onLocationSelect]);
 
     useEffect(() => {
-        let map: mapboxgl.Map | null = null;
+        if (!isOpen || !mapContainerRef.current) return;
 
-        const initializeMap = async () => {
-            if (!isOpen || !mapContainerRef.current) return;
+        let map: any;
+
+        const initMap = async () => {
+            const mapboxgl = await import('mapbox-gl');
+            mapboxgl.default.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
             let center: [number, number] = [39.2083, -6.7924];
             if (navigator.geolocation) {
@@ -58,38 +74,36 @@ export default function LocationPickerModal({
                     );
                     center = [position.coords.longitude, position.coords.latitude];
                 } catch {
-                    // fallback to default center
+                    // fallback
                 }
             }
 
             map = new mapboxgl.Map({
-                container: mapContainerRef.current,
+                container: mapContainerRef.current!,
                 style: 'mapbox://styles/mapbox/streets-v11',
                 center,
                 zoom: 13,
             });
 
             map.on('load', () => {
-                const center = map!.getCenter();
+                const center = map.getCenter();
                 updateLocation(center.lng, center.lat);
             });
 
-            map.on('moveend', () => {
-                const center = map!.getCenter();
+            map.on('moveend', throttle(() => {
+                const center = map.getCenter();
                 updateLocation(center.lng, center.lat);
-            });
+            }, 500));
 
             mapRef.current = map;
         };
 
-        initializeMap();
+        initMap();
 
         return () => {
-            if (map) {
-                map.remove();
-            }
+            map?.remove();
         };
-    }, [isOpen]);
+    }, [isOpen, updateLocation]);
 
     if (!isOpen) return null;
 
@@ -105,10 +119,9 @@ export default function LocationPickerModal({
 
                 <div className="mt-4 h-64 rounded overflow-hidden relative">
                     <div ref={mapContainerRef} className="w-full h-full rounded" />
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10">
-                        <img src="/icons/icons8-map-pin-100.png" className="w-20 h-20 " alt="marker" />
+                    <div className="pointer-events-none absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10">
+                        <img src="/icons/icons8-map-pin-100.png" className="w-20 h-20" alt="marker" />
                     </div>
-
                 </div>
 
                 <button
@@ -122,7 +135,6 @@ export default function LocationPickerModal({
                             setButtonSuccess(true);
                             setTimeout(() => setButtonSuccess(false), 1500);
                         }
-
                     }}
                     className={`mt-4 w-full ${
                         buttonSuccess

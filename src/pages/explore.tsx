@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import React from 'react';
 import axios from 'axios';
-import { Search, X, RefreshCw, Frown, Image as ImageIcon, ShoppingCart, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
+import { Search, X, Frown, Image as ImageIcon, ShoppingCart, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
@@ -11,7 +11,7 @@ import { Toaster } from '../components/ui/toaster';
 import { CustomItemRequestDialog } from '../components/my-components/otherItems';
 import { useMenu } from '../pages/explore/Menu';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import PopularMenus from '../components/my-components/PopularMenus';
+const PopularMenus = React.lazy(() => import('../components/my-components/PopularMenus'));
 const RecommendationCard = React.lazy(() => import('../components/my-components/recommendationCard'));
 import { logEvent, analytics } from '../firebase';
 import { useCartContext } from '../context/cartContext';
@@ -22,13 +22,12 @@ import PaginationControls from '../components/my-components/PaginationControls';
 import { useLocationSelector } from '../hooks/useLocationSelector';
 import CartDrawer from '../components/my-components/CartDrawer';
 const LocationPickerModal = React.lazy(() => import('../components/my-components/LocationPicker'));
+import clsx from "clsx";
 
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(typeof window !== "undefined" && "MSStream" in window);
 const isInStandaloneMode = () =>
     window.matchMedia('(display-mode: standalone)').matches ||
     (window.navigator as any).standalone === true;
-
-console.log("isIOS", isIOS);               // should be false on desktop
+// should be false on desktop
 console.log("standalone", isInStandaloneMode());  // should be false if not installed
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -97,7 +96,7 @@ const MenuExplorer = () => {
     const { menuItems, loadingMenu, priceRange, pagination, setPagination, setPriceRange } = useMenu();
 
     // Cart state (now from hook)
-    const { cart,  cartTotal, addToCart, removeFromCart, updateQuantity, clearCart, checkout, loading } = useCartContext();
+    const { cart, cartTotal, addToCart, removeFromCart, updateQuantity, clearCart, checkout, loading } = useCartContext();
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
     // Filter states
@@ -167,7 +166,7 @@ const MenuExplorer = () => {
 
 
 
-   
+
 
     useEffect(() => {
         const fetchVendors = async () => {
@@ -179,7 +178,6 @@ const MenuExplorer = () => {
             }
         };
         fetchVendors();
-        addCurrentLocation();
     }, []);
 
 
@@ -333,10 +331,13 @@ const MenuExplorer = () => {
                                         });
                                         setIsLocationOpen(true);
                                     }}
-                                    className="relative p-2 rounded-md dark:border-gray-600 dark:text-white hover:bg-gray-100 hover:text-black dark:hover:bg-gray-700 transition"
+                                    className="relative p-2 rounded-md dark:border-gray-600 dark:text-white hover:bg-gray-100 hover:text-black dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    aria-label="Open location selector"
+                                    title="Select Location"
                                 >
                                     <MapPin />
                                 </button>
+
                             </TooltipTrigger>
                             <div >
                                 <TooltipContent className='w-[250px]'>
@@ -347,15 +348,22 @@ const MenuExplorer = () => {
 
                         <button
                             onClick={() => setIsCartOpen(true)}
-                            className="relative p-2"
+                            className="relative p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                            aria-label="Open cart"
+                            title="Open cart"
                         >
                             <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
+
                             {cart.length > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                <span
+                                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[11px] rounded-full min-h-[20px] min-w-[20px] flex items-center justify-center px-1 shadow-sm"
+                                    aria-label={`${cart.reduce((sum, item) => sum + item.quantity, 0)} items in cart`}
+                                >
                                     {cart.reduce((sum, item) => sum + item.quantity, 0)}
                                 </span>
                             )}
                         </button>
+
                         <ThemeToggle />
                     </div>
                 </header>
@@ -373,8 +381,6 @@ const MenuExplorer = () => {
                                 </div>
 
                                 <ul className="mt-4 space-y-2">
-
-
                                     <li
                                         onClick={addCurrentLocation}
                                         className="p-2 flex justify-center rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-blue-500 font-medium"
@@ -400,8 +406,6 @@ const MenuExplorer = () => {
                                             useCurrentLocation={addCurrentLocation}
                                             handleSelectLocation={handleSelectLocation}
                                         />
-
-
                                     </li>
                                 </ul>
                             </div>
@@ -410,27 +414,7 @@ const MenuExplorer = () => {
 
 
                     <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
-                        <div className="mb-4 flex justify-between">
-                            <div className="relative w-[85%]">
-                                <Search className="absolute left-3 top-5 -translate-y-1/2 h-5 w-5 text-gray-400 " />
-                                <input
-                                    type="text"
-                                    placeholder="Search menu items..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full h-10 pl-10 pr-4 py-3 rounded-3xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all dark:bg-gray-500 dark:text-black"
-                                />
-                            </div>
 
-                            <div className="justify-right mb-1">
-                                <button
-                                    onClick={resetFilters}
-                                    className="text-sm text-[#00bfff] hover:text-blue-700  gap-1"
-                                >
-                                    <RefreshCw className="h-10 w-10" />
-                                </button>
-                            </div>
-                        </div>
 
 
 
@@ -442,47 +426,78 @@ const MenuExplorer = () => {
 
                                     <div className="space-y-4">
                                         <PopularMenus />
+
                                         <div>
-                                            <div className="flex gap-4 overflow-x-auto py-1 px-2 relative group">
+                                            <div
+                                                className="flex gap-4 overflow-x-auto py-1 px-2 relative group"
+                                                role="toolbar"
+                                                aria-label="Select food category"
+                                            >
                                                 {categories.map(({ label, value, icon }) => {
                                                     const isSelected = selectedCategory === value;
                                                     return (
                                                         <button
                                                             key={value}
                                                             onClick={() => setSelectedCategory(value)}
-                                                            className={`
-    flex flex-col items-center justify-center
-    p-3 rounded-xl transition-all duration-200 ease-in-out
-    focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
-    dark:text-gray-200
-    ${isSelected
+                                                            aria-pressed={isSelected}
+                                                            className={clsx(
+                                                                "flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-gray-200",
+                                                                isSelected
                                                                     ? "bg-transparent text-white shadow-md dark:bg-blue-600"
                                                                     : "bg-transparent hover:bg-gray-100 border-gray-200 dark:bg-transparent hover:dark:bg-gray-600/50"
-                                                                }
-  `}
-                                                            aria-pressed={isSelected}
+                                                            )}
+                                                            type="button"
                                                         >
-                                                            <img
-                                                                src={icon}
-                                                                alt={label}
-                                                                className={`
-      w-10 h-10 mb-2 object-contain
-      transition-transform duration-150
-      ${isSelected ? "scale-110" : "group-hover:scale-105"}
-    `}
-                                                            />
+                                                            <figure className="w-10 h-10 mb-2">
+                                                                <img
+                                                                    src={icon}
+                                                                    alt={label}
+                                                                    width={40}
+                                                                    height={40}
+                                                                    className={clsx(
+                                                                        "object-contain transition-transform duration-150",
+                                                                        isSelected ? "scale-110" : "group-hover:scale-105"
+                                                                    )}
+                                                                    loading="lazy"
+                                                                    decoding="async"
+                                                                />
+                                                                {/* Optionally, figcaption if you want semantic label linked to image */}
+                                                                {/* <figcaption className="sr-only">{label}</figcaption> */}
+                                                            </figure>
                                                             <span
-                                                                className={`text-sm font-bold text-center ${isSelected ? "text-white" : "text-gray-700 dark:text-gray-200"
-                                                                    }`}
+                                                                className={clsx(
+                                                                    "text-sm font-bold text-center",
+                                                                    isSelected ? "text-white" : "text-gray-700 dark:text-gray-200"
+                                                                )}
                                                             >
                                                                 {label}
                                                             </span>
                                                         </button>
-
                                                     );
                                                 })}
                                             </div>
 
+                                        </div>
+                                        <div className="mb-4 flex justify-between gap-2">
+                                            <div className="relative w-[80%]">
+                                                <Search className="absolute left-3 top-5 -translate-y-1/2 h-5 w-5 text-gray-400 " />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search menu items..."
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                    className="w-full font-bold h-10 pl-10 pr-4 py-3 bg-gray-300 rounded-3xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all dark:bg-gray-500 dark:text-black"
+                                                />
+                                            </div>
+
+                                            <div className="justify-right mb-1">
+                                                <button
+                                                    onClick={resetFilters}
+                                                    className="text-sm text-[#00bfff] bg-gray-700 dark:bg-gray-700 border h-10 p-2 rounded-3xl hover:text-blue-700  gap-1"
+                                                >
+                                                    <span className='font-bold'>Refresh</span>
+                                                </button>
+                                            </div>
                                         </div>
                                         <div>
                                             <div className="hidden flex overflow-auto h-full w-full gap-2">
@@ -600,7 +615,15 @@ const MenuExplorer = () => {
                                                     >
                                                         <div className="relative aspect-square rounded-t-xl overflow-hidden">
                                                             {item.image_url ? (
-                                                                <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
+                                                                <img
+                                                                    src={`${item.image_url.replace('/upload/', '/upload/f_auto,q_auto,w_600/')}`}
+                                                                    alt={`${item.name} from Vendor No. ${item.vendor_id} - Order on Sosika`}
+                                                                    loading="lazy"
+                                                                    className="w-full h-full object-cover"
+                                                                    width={600}
+                                                                    height={400}
+                                                                />
+
                                                             ) : (
                                                                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                                                                     <ImageIcon className="h-12 w-12 text-gray-400" />
@@ -659,7 +682,15 @@ const MenuExplorer = () => {
                                                     >
                                                         <div className="relative h-32 w-32 rounded-l-xl overflow-hidden flex-shrink-0">
                                                             {item.image_url ? (
-                                                                <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
+                                                                <img
+                                                                    src={item.image_url.replace('/upload/', '/upload/f_auto,q_auto,w_600/')}
+                                                                    alt={`${item.name} from Vendor No. ${item.vendor_id} - Order on Sosika`}
+                                                                    loading="lazy"
+                                                                    width="600"
+                                                                    height="400"
+                                                                    className="w-full h-full object-cover"
+                                                                />
+
                                                             ) : (
                                                                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                                                                     <ImageIcon className="h-8 w-8 text-gray-400" />
@@ -724,7 +755,14 @@ const MenuExplorer = () => {
                                                     >
                                                         <div className="relative aspect-video rounded-t-xl overflow-hidden">
                                                             {item.image_url ? (
-                                                                <img src={item.image_url} alt={item.name} loading='lazy' className="w-full h-full object-cover" />
+                                                                <img
+                                                                    src={item.image_url.replace('/upload/', '/upload/f_auto,q_auto,w_600/')}
+                                                                    alt={`${item.name} from Vendor No. ${item.vendor_id} - Order on Sosika`}
+                                                                    loading="lazy"
+                                                                    width="600"
+                                                                    height="400"
+                                                                    className="w-full h-full object-cover"
+                                                                />
                                                             ) : (
                                                                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                                                                     <ImageIcon className="h-8 w-8 text-gray-400" />
@@ -782,6 +820,12 @@ const MenuExplorer = () => {
 
                             </div>
                         </div>
+                        <PaginationControls
+                            currentPage={pagination.currentPage}
+                            totalPages={pagination.totalPages}
+                            onPageChange={handlePageChange}
+                            className="mb-6"
+                        />
                         <div className='mb-18 bt-2'>
                             <RecommendationCard />
                             <div className='py-8'>
@@ -789,12 +833,7 @@ const MenuExplorer = () => {
                             </div>
                         </div>
 
-                        <PaginationControls
-                            currentPage={pagination.currentPage}
-                            totalPages={pagination.totalPages}
-                            onPageChange={handlePageChange}
-                            className="hidden"
-                        />
+
 
                     </div>
 
