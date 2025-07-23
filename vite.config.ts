@@ -1,11 +1,19 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
+import { visualizer } from "rollup-plugin-visualizer";
 import { VitePWA } from "vite-plugin-pwa";
+
 
 export default defineConfig({
   plugins: [
     react(),
+    visualizer({
+      open: true,
+      filename: 'dist/stats.html',
+      gzipSize: true,
+      brotliSize: true,
+    }),
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "script",

@@ -1,0 +1,11 @@
+[build]
+  command = "vite build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/"
+  to = "/.netlify/functions/ssr-home"
+  status = 200
