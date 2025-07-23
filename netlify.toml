@@ -1,5 +1,5 @@
 [build]
-  command = "npm install --legacy-peer-deps && vite build"
+  command = "npm install --force && vite build"
   publish = "dist"
 
 [functions]
