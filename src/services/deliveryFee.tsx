@@ -50,7 +50,6 @@ export const getDeliveryFee = async (vendorId: string): Promise<number> => {
         const MAPBOX_TOKEN = "pk.eyJ1IjoiLS11bHJpa2siLCJhIjoiY203YzV5dHIyMGY3NjJqc2Q5MmpxNm4ycCJ9.TilyKOmKcw2ekL2PY8Xofw";
         const to = `${current.lng},${current.lat}`;
         const vendorLocation = JSON.parse(localStorage.getItem("vendorGeolocation") || "{}");
-        console.log("Using vendor geolocation:", vendorLocation);
         const vendorLng = vendorLocation.y || vendor.lng;
         const vendorLat = vendorLocation.x || vendor.lat;
         if (!vendorLng || !vendorLat) {

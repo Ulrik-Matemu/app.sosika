@@ -11,7 +11,7 @@ export function AuthRedirect() {
     if (token) {
       navigate('/explore');
     } else {
-      navigate('/home');
+      navigate('/login');
     }
   }, [token, navigate]);
 

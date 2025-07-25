@@ -84,13 +84,10 @@ const LoginPage: React.FC = () => {
       if (response.ok) {
         setTimeout(() => {
           setLoading(false);
-          console.log('Login successful:', data);
 
           // Store the token (if received)
           localStorage.setItem('authToken', data.token);
           localStorage.setItem('email', formData.email);
-          localStorage.setItem('password', formData.password);
-          console.log(data.userId);
           localStorage.setItem('userId', data.userId);
 
 
