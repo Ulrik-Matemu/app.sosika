@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import React from 'react';
 import axios from 'axios';
 import { Search, X, Frown, Image as ImageIcon, ShoppingCart, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
@@ -319,7 +319,7 @@ const MenuExplorer = () => {
             <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
                 <NotificationHandler />
                 <header className="sticky top-0 z-50 flex justify-between bg-[#ededed] dark:bg-[#2b2b2b] px-4 py-4">
-                    <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika<span className='text-[12px] font-medium text-green-400'> BETA</span></h1>
+                    <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
                     <div className="flex items-center gap-4">
                         <Tooltip open={showTooltip}>
                             <TooltipTrigger asChild>
@@ -395,17 +395,18 @@ const MenuExplorer = () => {
                                         )}
                                     </li>
                                     <li>
-                                        <LocationPickerModal
-                                            isOpen={isLocationOpen}
-                                            onClose={() => setIsLocationOpen(false)}
-                                            onLocationSelect={(lng, lat, address) => {
-                                                console.log('Selected location:', { lng, lat, address });
-                                                setSelectedCoords({ lng, lat });
-                                            }}
-                                            loading={locationLoading}
-                                            useCurrentLocation={addCurrentLocation}
-                                            handleSelectLocation={handleSelectLocation}
-                                        />
+                                        <Suspense fallback={<div className="text-center text-gray-500">Loading...</div>}>
+                                            <LocationPickerModal
+                                                isOpen={isLocationOpen}
+                                                onClose={() => setIsLocationOpen(false)}
+                                                onLocationSelect={(lng, lat) => {
+                                                    setSelectedCoords({ lng, lat });
+                                                }}
+                                                loading={locationLoading}
+                                                useCurrentLocation={addCurrentLocation}
+                                                handleSelectLocation={handleSelectLocation}
+                                            />
+                                        </Suspense>
                                     </li>
                                 </ul>
                             </div>

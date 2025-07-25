@@ -37,7 +37,6 @@ export const useWakeWordListener = (wakeWord: string, onWake: () => void) => {
 
     recognizer.onresult = (event: any) => {
       const transcript = event.results[event.resultIndex][0].transcript.toLowerCase();
-      console.log("Heard:", transcript);
 
       if (transcript.includes(wakeWord.toLowerCase())) {
         onWake();
