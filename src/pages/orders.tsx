@@ -138,7 +138,7 @@ const OrdersPage = () => {
             ["show menu", "go to menu", "open menu", "menu page", "menu please", "home", "homepage", "explore", "go home", "take me to menu", "go to home", "open home screen", "menu"]
                 .some(phrase => command.includes(phrase))
         ) {
-            window.location.href = "#/explore";
+            window.location.href = "/explore";
             navigator.vibrate(200);
             return;
         }
@@ -147,7 +147,7 @@ const OrdersPage = () => {
             ["profile", "my profile", "go to profile", "open profile", "show profile", "profile page", "user profile", "account", "my account"]
                 .some(phrase => command.includes(phrase))
         ) {
-            window.location.href = "#/profile";
+            window.location.href = "/profile";
             navigator.vibrate(200);
             return;
         }
@@ -156,7 +156,7 @@ const OrdersPage = () => {
             ["orders", "my orders", "show orders", "view orders", "order history", "order page", "open orders", "go to orders", "past orders"]
                 .some(phrase => command.includes(phrase))
         ) {
-            window.location.href = "#/orders";
+            window.location.href = "/orders";
             navigator.vibrate(200);
             return;
         }
@@ -168,7 +168,7 @@ const OrdersPage = () => {
             toast.toast({
                 title: "Uh oh! Something went wrong.",
                 description: "You have to be on the home page to set your location.",
-                action: <ToastAction altText='Navigate' onClick={() => window.location.href = "#/explore"}>Navigate</ToastAction>
+                action: <ToastAction altText='Navigate' onClick={() => window.location.href = "/explore"}>Navigate</ToastAction>
             });
             speak("You have to be on the home page to set your location");
         }
@@ -263,7 +263,7 @@ const OrdersPage = () => {
     };
 
     const trackOrder = (orderId: number) => {
-        window.location.href = `#/order-tracking/${orderId}`;
+        window.location.href = `/order-tracking/${orderId}`;
     };
 
     if (isLoading) {
@@ -401,7 +401,7 @@ const OrdersPage = () => {
                                 </div>
                                 <h3 className="text-lg font-medium dark:text-white mb-2">No orders found</h3>
                                 <p className="text-gray-500 dark:text-gray-400 mb-6">You haven't placed any orders yet</p>
-                                <a href="#/explore" className="px-6 py-3 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc]">
+                                <a href="/explore" className="px-6 py-3 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc]">
                                     Explore Menu
                                 </a>
                             </div>

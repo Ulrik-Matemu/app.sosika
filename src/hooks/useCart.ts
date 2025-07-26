@@ -146,7 +146,7 @@ export function useCart() {
         });
         setCart([]);
         // Optionally close cart drawer if you pass a callback
-        window.location.href = `#/order-tracking/${response.data.order_id}`;
+        window.location.href = `/order-tracking/${response.data.order_id}`;
       }
     } catch (error) {
       console.error("Checkout error:", error);

@@ -1,5 +1,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, X, Frown, Image as ImageIcon, ShoppingCart, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
@@ -104,6 +105,7 @@ const MenuExplorer = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [availableOnly, setAvailableOnly] = useState<boolean>(false);
     const [vendorFilter, setVendorFilter] = useState<string>('');
+    const navigate = useNavigate();
 
     type Vendor = {
         id: string;
@@ -124,6 +126,13 @@ const MenuExplorer = () => {
             // Optionally handle after location update
         },
     });
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+        }
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => {
