@@ -55,7 +55,7 @@ const WelcomePage: React.FC = () => {
     const password = localStorage.getItem('password');
 
     if (email && password) {
-      window.location.href = '#/login';
+      window.location.href = '/login';
     }
     
   }

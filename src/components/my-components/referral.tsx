@@ -26,7 +26,7 @@ export function ReferralLinkDialog() {
     if (storedId) {
       const parsedId = parseInt(storedId)
       setUserId(parsedId)
-      setReferralLink(`https://sosika.netlify.app/#/register?ref=${parsedId}`)
+      setReferralLink(`https://sosika.app/register?ref=${parsedId}`)
     }
   }, [])
 

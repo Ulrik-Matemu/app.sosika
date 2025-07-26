@@ -61,7 +61,7 @@ export function EnhancedReferralDialog() {
         if (storedId) {
             const parsedId = parseInt(storedId)
             setUserId(parsedId)
-            setReferralLink(`https://sosika.netlify.app/#/register?ref=${parsedId}`)
+            setReferralLink(`https://sosika.app/register?ref=${parsedId}`)
 
             // Fetch real referral count from backend
             fetch(`https://sosika-backend.onrender.com/api/auth/referral/check?user_id=${parsedId}&target=5`, { cache: "no-store" })

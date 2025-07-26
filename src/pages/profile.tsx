@@ -34,7 +34,9 @@ interface Reviews {
 const logout = () => {
     localStorage.removeItem('email');
     localStorage.removeItem('password');
-    window.location.href = '#/login';
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');  
+    window.location.href = '/login';
 }
 
 
@@ -99,7 +101,7 @@ const ProfileManagement = () => {
             ["show menu", "go to menu", "open menu", "menu page", "menu please", "home", "homepage", "explore", "go home", "take me to menu", "go to home", "open home screen", "menu"]
                 .some(phrase => command.includes(phrase))
         ) {
-            window.location.href = "#/explore";
+            window.location.href = "/explore";
             navigator.vibrate(200);
             return;
         }
@@ -108,7 +110,7 @@ const ProfileManagement = () => {
             ["profile", "my profile", "go to profile", "open profile", "show profile", "profile page", "user profile", "account", "my account"]
                 .some(phrase => command.includes(phrase))
         ) {
-            window.location.href = "#/profile";
+            window.location.href = "/profile";
             navigator.vibrate(200);
             return;
         }
@@ -117,7 +119,7 @@ const ProfileManagement = () => {
             ["orders", "my orders", "show orders", "view orders", "order history", "order page", "open orders", "go to orders", "past orders"]
                 .some(phrase => command.includes(phrase))
         ) {
-            window.location.href = "#/orders";
+            window.location.href = "/orders";
             navigator.vibrate(200);
             return;
         }
@@ -129,7 +131,7 @@ const ProfileManagement = () => {
             toast.toast({
                 title: "Uh oh! Something went wrong.",
                 description: "You have to be on the home page to set your location. Navigate and try again.",
-                action: <ToastAction altText='Navigate' onClick={() => window.location.href = "#/explore"}>Navigate</ToastAction>
+                action: <ToastAction altText='Navigate' onClick={() => window.location.href = "/explore"}>Navigate</ToastAction>
             });
             speak("You have to be on the home page to set your location");
         }

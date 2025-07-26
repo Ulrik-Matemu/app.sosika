@@ -144,7 +144,7 @@ export const RegisterPage: React.FC = () => {
                     localStorage.setItem('userId', data.user.id);
                     localStorage.setItem('email', formData.email);
                     localStorage.setItem('password', formData.password);
-                    window.location.href = '#/explore';
+                    window.location.href = '/explore';
                     // Optionally, redirect user after successful registration
                 }, 1500);
             } else {
