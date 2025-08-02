@@ -192,7 +192,7 @@ export const RegisterPage: React.FC = () => {
 
 
     return (
-        <div className="min-h-screen bg-[#2b2b2b] text-[#e7e7e7]">
+        <div className="min-h-screen bg-[#121212] text-[#e7e7e7]">
             {/* Header with logo and progress */}
             <header className="pt-8 pb-4 px-6">
                 <div className="flex items-center justify-center mb-6">
@@ -356,7 +356,7 @@ export const RegisterPage: React.FC = () => {
                             <p className="text-[#a0a0a0] mb-8">Your account has been created successfully.</p>
                             <button
                                 type="button"
-                                className="w-full py-4 px-6 bg-[#e7e7e7] text-[#2b2b2b] rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all"
+                                className="w-full py-4 px-6 bg-[#e7e7e7] text-[#121212] rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all"
                                 onClick={() => {
                                     // Would normally redirect to login or dashboard
                                     alert('Redirecting to login...');
@@ -385,7 +385,7 @@ export const RegisterPage: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={handleNext}
-                                    className="flex-1 py-4 bg-[#e7e7e7] text-[#2b2b2b] rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+                                    className="flex-1 py-4 bg-[#e7e7e7] text-[#121212] rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
                                 >
                                     Continue
                                 </button>
@@ -393,10 +393,10 @@ export const RegisterPage: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 py-4 bg-[#e7e7e7] text-[#2b2b2b] rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex justify-center items-center"
+                                    className="flex-1 py-4 bg-[#e7e7e7] text-[#121212] rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex justify-center items-center"
                                 >
                                     {loading ? (
-                                        <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <svg className="animate-spin h-5 w-5 text-[#121212]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>

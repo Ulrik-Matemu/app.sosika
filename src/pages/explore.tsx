@@ -325,9 +325,9 @@ const MenuExplorer = () => {
     return (
         <>
             <Toaster />
-            <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
+            <div className="min-h-screen bg-gray-50 dark:bg-[#121212] pb-8">
                 <NotificationHandler />
-                <header className="sticky top-0 z-50 flex justify-between bg-[#ededed] dark:bg-[#2b2b2b] px-4 py-4">
+                <header className="sticky top-0 z-50 flex justify-between bg-[rgba(237,237,237,0.95)] dark:bg-[rgba(18,18,18,0.95)] px-4 py-4">
                     <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
                     <div className="flex items-center gap-4">
                         <Tooltip open={showTooltip}>
@@ -355,23 +355,7 @@ const MenuExplorer = () => {
                             </div>
                         </Tooltip>
 
-                        <button
-                            onClick={() => setIsCartOpen(true)}
-                            className="relative p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
-                            aria-label="Open cart"
-                            title="Open cart"
-                        >
-                            <ShoppingCart className="h-6 w-6 text-[#00bfff]" />
-
-                            {cart.length > 0 && (
-                                <span
-                                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[11px] rounded-full min-h-[20px] min-w-[20px] flex items-center justify-center px-1 shadow-sm"
-                                    aria-label={`${cart.reduce((sum, item) => sum + item.quantity, 0)} items in cart`}
-                                >
-                                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                                </span>
-                            )}
-                        </button>
+                       
 
                         <ThemeToggle />
                     </div>
@@ -381,7 +365,7 @@ const MenuExplorer = () => {
                     {/* Location Selection Modal */}
                     {isLocationOpen && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                            <div className="bg-[#ededed] dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-80">
+                            <div className="bg-[#ededed] dark:bg-[#121212] p-6 rounded-lg shadow-lg w-80">
                                 <div className="flex justify-between items-center">
                                     <h2 className="text-lg font-bold text-[#00bfff]">Select Location</h2>
                                     <button onClick={() => setIsLocationOpen(false)}>
@@ -395,7 +379,7 @@ const MenuExplorer = () => {
                                         className="p-2 flex justify-center rounded-md cursor-pointer border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition text-blue-500 font-medium"
                                     >
                                         {locationLoading ? (
-                                            <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <svg className="animate-spin h-5 w-5 text-[#121212]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
@@ -431,7 +415,7 @@ const MenuExplorer = () => {
                         <div className="lg:grid lg:grid-cols-12 lg:gap-6">
                             {/* Filters Sidebar */}
                             <div className="lg:col-span-3 mb-6 lg:mb-0">
-                                <div className="dark:bg-[#2b2b2b] p-0 rounded-xl  border border-[transparent] dark:border-[transparent]">
+                                <div className="dark:bg-[#121212] p-0 rounded-xl  border border-[transparent] dark:border-[transparent]">
 
 
                                     <div className="space-y-4">
@@ -850,7 +834,7 @@ const MenuExplorer = () => {
                     {/* Order Tracking Modal */}
                     {isOrderTrackingOpen && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-                            <div className="w-full max-w-md bg-[#ededed] dark:bg-[#2b2b2b] h-full flex flex-col animate-slide-in-right">
+                            <div className="w-full max-w-md bg-[#ededed] dark:bg-[#121212] h-full flex flex-col animate-slide-in-right">
                                 <div className="p-4 border-b flex justify-between items-center">
                                     <h2 className="text-xl font-bold flex items-center gap-2">
                                         <MapPinIcon className="h-5 w-5" />

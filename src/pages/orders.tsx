@@ -311,7 +311,7 @@ const OrdersPage = () => {
                 <span>S</span>
                 <MicIcon className='animate-pulse' />
             </Button>
-            <div className="min-h-screen bg-gray-50 dark:bg-[#2b2b2b] pb-8">
+            <div className="min-h-screen bg-gray-50 dark:bg-[#121212] pb-8">
                 <NotificationHandler />
                 <Header />
                 <PageWrapper>

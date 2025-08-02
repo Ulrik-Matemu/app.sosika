@@ -107,7 +107,7 @@ export default function LocationPickerModal({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-[#ededed] dark:bg-[#2b2b2b] p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+            <div className="bg-[#ededed] dark:bg-[#121212] p-6 rounded-lg shadow-lg w-[90%] max-w-md">
                 <div className="flex justify-between items-center">
                     <h2 className="text-lg font-bold text-[#00bfff]">Select Location</h2>
                     <button onClick={onClose}>
