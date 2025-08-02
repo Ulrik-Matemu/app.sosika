@@ -30,6 +30,13 @@ export default function Navbar() {
   } = useCartContext();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  const triggerHapticFeedback = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate([0, 30]); // 30ms vibration
+    }
+  };
+
+
   return (
     <>
       <nav
@@ -48,7 +55,10 @@ export default function Navbar() {
                   ? "text-blue-600 dark:text-blue-400"
                   : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               )}
-              onClick={() => setIsCartOpen(true)}
+              onClick={() => {
+                setIsCartOpen(true);
+                triggerHapticFeedback();
+              }}
             >
               <div
                 className={clsx(
