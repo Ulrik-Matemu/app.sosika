@@ -2,7 +2,7 @@ import { useState, useEffect, Suspense } from 'react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Search, X, Frown, Image as ImageIcon, ShoppingCart, MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
+import { Search, X, Frown, Image as ImageIcon,  MapPinIcon, MapPin, LayoutGrid, List, Columns } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import ThemeToggle from '../components/my-components/themeToggle';
 import NotificationHandler from '../components/my-components/notification-handler';
