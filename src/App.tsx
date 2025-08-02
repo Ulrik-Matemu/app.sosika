@@ -19,26 +19,27 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/cartContext";
 // import { AuthRedirect } from "./pages/AuthRedirects";
 import VendorPage from "./pages/vendor";
+import  PageWrapper  from "./services/page-transition";
 
 
 function App() {
   useEffect(() => {
-  const sessionStart = Date.now();
+    const sessionStart = Date.now();
 
-  const handleBeforeUnload = () => {
-    const sessionEnd = Date.now();
-    const durationMs = sessionEnd - sessionStart;
+    const handleBeforeUnload = () => {
+      const sessionEnd = Date.now();
+      const durationMs = sessionEnd - sessionStart;
 
-    logEvent(analytics, "session_duration", {
-      duration_seconds: Math.floor(durationMs / 1000),
-    });
-  };
+      logEvent(analytics, "session_duration", {
+        duration_seconds: Math.floor(durationMs / 1000),
+      });
+    };
 
-  window.addEventListener("beforeunload", handleBeforeUnload);
-  return () => {
-    window.removeEventListener("beforeunload", handleBeforeUnload); // ✅ correct
-  };
-}, []);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload); // ✅ correct
+    };
+  }, []);
 
 
   useEffect(() => {
@@ -51,18 +52,20 @@ function App() {
       <CartProvider>
         <Router>
           <TooltipProvider>
-            <Routes>
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/" element={<MenuExplorer />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/explore" element={<MenuExplorer />} />
-              <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
-              <Route path="/orders" element={<OrdersPage />} />
-              <Route path="/profile" element={<ProfileManagement />} />
-              <Route path="/vendor" element={<VendorPage vendorId={1} />} />
-            </Routes>
+            <PageWrapper>
+              <Routes>
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/" element={<MenuExplorer />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/explore" element={<MenuExplorer />} />
+                <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
+                <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/profile" element={<ProfileManagement />} />
+                <Route path="/vendor" element={<VendorPage vendorId={1} />} />
+              </Routes>
+            </PageWrapper>
           </TooltipProvider>
         </Router>
       </CartProvider>

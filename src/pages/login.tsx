@@ -124,7 +124,7 @@ const LoginPage: React.FC = () => {
  
 
   return (
-    <div className="min-h-screen bg-[#2b2b2b] text-[#e7e7e7] flex flex-col">
+    <div className="min-h-screen bg-[#121212] text-[#e7e7e7] flex flex-col">
       <NotificationHandler />
       {/* Top wave decoration */}
       <div className="relative h-40 overflow-hidden">
@@ -236,7 +236,7 @@ const LoginPage: React.FC = () => {
                 <span className="sr-only">Remember me</span>
                 <span
                   aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-[#2b2b2b] shadow transform ring-0 transition ease-in-out duration-200 ${rememberMe ? 'translate-x-5' : 'translate-x-0'}`}
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-[#121212] shadow transform ring-0 transition ease-in-out duration-200 ${rememberMe ? 'translate-x-5' : 'translate-x-0'}`}
                 ></span>
               </button>
               <span className="ml-3 text-sm text-[#a0a0a0]">Remember me</span>
@@ -247,10 +247,10 @@ const LoginPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center items-center py-4 px-4 bg-[#e7e7e7] text-[#2b2b2b] rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                className="w-full flex justify-center items-center py-4 px-4 bg-[#e7e7e7] text-[#121212] rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
               >
                 {loading ? (
-                  <svg className="animate-spin h-5 w-5 text-[#2b2b2b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-5 w-5 text-[#121212]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>

@@ -200,7 +200,7 @@ const ExploreContent: React.FC = () => {
         <div className="lg:grid lg:grid-cols-12 lg:gap-6">
             {/* Filters Sidebar */}
             <div className="lg:col-span-3 mb-6 lg:mb-0">
-                <div className="dark:bg-[#2b2b2b] p-0 rounded-xl border border-[transparent] dark:border-[transparent]">
+                <div className="dark:bg-[#121212] p-0 rounded-xl border border-[transparent] dark:border-[transparent]">
                     <div className="space-y-4">
                         <PopularMenus /> {/* This component is assumed to be self-contained */}
 

@@ -65,7 +65,7 @@ const WelcomePage: React.FC = () => {
   })
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#2b2b2b] text-[#e7e7e7]">
+    <div className="flex flex-col min-h-screen bg-[#121212] text-[#e7e7e7]">
       <NotificationHandler />
       {/* Logo and Header */}
       <div className="py-8 px-6 flex justify-center items-center">
@@ -122,7 +122,7 @@ const WelcomePage: React.FC = () => {
         <div className="space-y-4">
         <Link to="/register">
   <button 
-    className="w-full py-4 px-6 bg-[#e7e7e7] text-[#2b2b2b] rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:translate-y-px"
+    className="w-full py-4 px-6 bg-[#e7e7e7] text-[#121212] rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:translate-y-px"
   >
     Get Started
   </button>
