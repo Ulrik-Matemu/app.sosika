@@ -32,7 +32,7 @@ export default function Navbar() {
 
   const triggerHapticFeedback = () => {
     if (navigator.vibrate) {
-      navigator.vibrate([0, 30]); // 30ms vibration
+      navigator.vibrate(20); // 30ms vibration
     }
   };
 
