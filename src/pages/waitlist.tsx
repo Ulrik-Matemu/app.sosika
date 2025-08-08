@@ -143,7 +143,7 @@ export default function Waitlist() {
                         value={email}
                         onChange={handleEmailChange}
                         placeholder="Enter your email"
-                        className="p-2 rounded-l-md"
+                        className="p-2 rounded-l-md text-black"
                         required
                     />
                     <button
