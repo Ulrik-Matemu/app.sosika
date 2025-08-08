@@ -20,6 +20,7 @@ import { CartProvider } from "./context/cartContext";
 // import { AuthRedirect } from "./pages/AuthRedirects";
 import VendorPage from "./pages/vendor";
 import  PageWrapper  from "./services/page-transition";
+import Waitlist from "./pages/waitlist";
 
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/profile" element={<ProfileManagement />} />
                 <Route path="/vendor" element={<VendorPage vendorId={1} />} />
+                <Route path="/waitlist" element={<Waitlist />} />
               </Routes>
             </PageWrapper>
           </TooltipProvider>
