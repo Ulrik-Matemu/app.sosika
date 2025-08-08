@@ -13,6 +13,10 @@ const navigateToVendor = () => {
     window.location.href = "https://sosikavendor.netlify.app/";
 }
 
+const navigateToLearnMore = () => {
+    window.location.href = "/waitlist"
+}
+
 
 export function VendorCall() {
     const [loading, setLoading] = React.useState(false);
@@ -31,7 +35,7 @@ export function VendorCall() {
                     </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                    <Button className="w-full" variant="link">
+                    <Button className="w-full" variant="link" onClick={navigateToLearnMore}>
                         <Label className="text-sm">
                             Learn more
                         </Label>
