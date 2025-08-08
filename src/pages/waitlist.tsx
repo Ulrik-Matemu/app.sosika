@@ -82,6 +82,9 @@ export default function Waitlist() {
                         ))}
                     </CarouselContent>
                 </Carousel>
+                <div className="scroll-down text-white mt-10">
+                    Keep going, almost there!
+                </div>
                 {/* Add your form or content here */}
             </section>
             <section className="min-h-screen flex flex-col  items-center bg-black px-4 snap-start" id="waitlist">
@@ -104,12 +107,22 @@ export default function Waitlist() {
                     To help us boost your sales, please reach out to us via our socials.
                 </p>
                 <div className="flex gap-4 mt-4">
-                    <div className="bg-white p-4 rounded-full flex items-center justify-center gap-4">
-                        <img width="40" height="40" src="/icons/whatsapp.png" alt="whatsapp--v2" />
-                    </div>
-                    <div className="bg-white p-4 rounded-full flex items-center justify-center gap-4">
-                        <img width="40" height="40" src="/icons/instagram.png" alt="whatsapp--v2" />
-                    </div>
+                    <a
+                        href="https://www.whatsapp.com/channel/0029VbBJANZC6ZvcIT3c9V0F"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white p-4 rounded-full flex items-center justify-center gap-4"
+                    >
+                        <img width="40" height="40" src="/icons/whatsapp.png" alt="whatsapp" />
+                    </a>
+                    <a
+                        href="https://www.instagram.com/sosikaapp/?igsh=MTE0am1qeXNzdzh0aQ%3D%3D#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white p-4 rounded-full flex items-center justify-center gap-4"
+                    >
+                        <img width="40" height="40" src="/icons/instagram.png" alt="instagram" />
+                    </a>
                 </div>
             </section>
             <footer className="relative bottom-0 w-full">
@@ -124,7 +137,7 @@ export default function Waitlist() {
                     }
                     @keyframes scrollDown {
                         0% { transform: translateY(0); }
-                        50% { transform: translateY(10px); }
+                        50% { transform: translateY(20px); }
                         100% { transform: translateY(0); }
                     }
                 `}
