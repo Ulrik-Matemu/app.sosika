@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState, FormEvent, ChangeEvent } from "react"
 import { Card, CardContent } from "../components/ui/card"
 import Autoplay from "embla-carousel-autoplay"
 import {
@@ -7,11 +7,53 @@ import {
     CarouselItem,
 } from "../components/ui/carousel"
 
+interface StatusMessage {
+    type: "success" | "error"
+    message: string
+}
+
+interface ApiResponse {
+    message?: string
+    error?: string
+}
 
 export default function Waitlist() {
+    const [email, setEmail] = useState<string>("")
+    const [status, setStatus] = useState<StatusMessage | null>(null)
+
     const plugin = React.useRef(
         Autoplay({ delay: 2000, stopOnInteraction: true })
     )
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setStatus(null)
+
+        try {
+            const res = await fetch("https://sosika-backend.onrender.com/api/auth/waitlist", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            })
+
+            const data: ApiResponse = await res.json()
+
+            if (res.ok) {
+                setStatus({ type: "success", message: data.message ?? "Email added to waitlist" })
+                setEmail("")
+            } else {
+                setStatus({ type: "error", message: data.error ?? "Something went wrong" })
+            }
+        } catch (err) {
+            console.error(err)
+            setStatus({ type: "error", message: "Network error" })
+        }
+    }
+
+    const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setEmail(e.target.value)
+    }
+
     return (
         <div
             className="h-screen w-full overflow-y-scroll snap-y snap-mandatory"
@@ -34,6 +76,7 @@ export default function Waitlist() {
                     Scroll down
                 </div>
             </section>
+
             {/* Panel 2 */}
             <section className="min-h-screen flex flex-col items-center bg-[#00bfff] px-4 snap-start" id="testimonials">
                 <h2 className="text-5xl z-10 text-center font-extrabold text-white mt-36 mb-6">Growth Accelerated</h2>
@@ -85,27 +128,60 @@ export default function Waitlist() {
                 <div className="scroll-down text-white mt-10">
                     Keep going, almost there!
                 </div>
-                {/* Add your form or content here */}
             </section>
-            <section className="min-h-screen flex flex-col  items-center bg-black px-4 snap-start" id="waitlist">
+
+            {/* Waitlist Form */}
+            <section className="min-h-screen flex flex-col items-center bg-black px-4 snap-start" id="waitlist">
                 <h2 className="text-3xl text-center font-extrabold text-white mt-36 mb-6">Join Us and Our Community</h2>
                 <p className="text-xl text-center text-white mb-4">
                     Get notified when we launch our official rollout and be part of our growing community of vendors.
                 </p>
-                {/* Add your form or content here */}
-                <form className="mt-8">
+
+                <form className="mt-8 flex" onSubmit={handleSubmit}>
                     <input
                         type="email"
+                        value={email}
+                        onChange={handleEmailChange}
                         placeholder="Enter your email"
                         className="p-2 rounded-l-md"
+                        required
                     />
-                    <button className="bg-[#00bfff] text-white p-2 rounded-r-md">
-                        Join Waitlist
+                    <button
+                        type="submit"
+                        className="bg-[#00bfff] text-white p-2 rounded-r-md flex items-center justify-center min-w-[120px]"
+                        disabled={status?.type === "success" ? true : undefined}
+                    >
+                        {status === null ? (
+                            "Join Waitlist"
+                        ) : status.type === "success" ? (
+                            "Joined!"
+                        ) : status.type === "error" ? (
+                            "Try Again"
+                        ) : (
+                            <span className="flex items-center">
+                                <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                            </span>
+                        )}
                     </button>
                 </form>
+
+                {status && (
+                    <p
+                        className={`mt-4 text-center ${
+                            status.type === "success" ? "text-green-500" : "text-red-500"
+                        }`}
+                    >
+                        {status.message}
+                    </p>
+                )}
+
                 <p className="text-xl text-center text-gray-500 mt-16 mb-4">
                     To help us boost your sales, please reach out to us via our socials.
                 </p>
+
                 <div className="flex gap-4 mt-4">
                     <a
                         href="https://www.whatsapp.com/channel/0029VbBJANZC6ZvcIT3c9V0F"
@@ -125,11 +201,13 @@ export default function Waitlist() {
                     </a>
                 </div>
             </section>
+
             <footer className="relative bottom-0 w-full">
                 <div className="bg-black text-white p-6 text-center">
                     <p className="text-sm">© 2023 Sosika. All rights reserved.</p>
                 </div>
             </footer>
+
             <style>
                 {`
                     .scroll-down {
@@ -143,5 +221,5 @@ export default function Waitlist() {
                 `}
             </style>
         </div>
-    );
+    )
 }
