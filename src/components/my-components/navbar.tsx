@@ -1,4 +1,4 @@
-import { Home, User, History, ShoppingCart } from "lucide-react";
+import { Home, User, History, ShoppingCart, Search } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import clsx from "clsx";
 import { useCartContext } from "../../context/cartContext";
@@ -13,6 +13,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { name: "Home", icon: Home, path: "/explore" },
+  { name: "Search", icon: Search, path: "/browse" },
   { name: "Orders", icon: History, path: "/orders" },
   { name: "Profile", icon: User, path: "/profile" },
   { name: "Cart", icon: ShoppingCart, path: "/cart" },
