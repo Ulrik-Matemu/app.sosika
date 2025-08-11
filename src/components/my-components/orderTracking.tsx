@@ -155,7 +155,7 @@ const OrderTracking: React.FC = () => {
 
   if (isLoading) {
     return (
-        <div className="flex flex-col justify-center items-center h-screen bg-black text-gray-400">
+      <div className="flex flex-col justify-center items-center h-screen bg-black text-gray-400">
         <Loader2Icon size={48} className="animate-spin text-blue-400 mb-4" />
         <p className="text-sm">Connecting to your order...</p>
       </div>
@@ -164,56 +164,56 @@ const OrderTracking: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-  {(userLocation && deliveryLocation) && (
-    <MapContainer
-      center={[
-        (userLocation.lat + deliveryLocation.lat) / 2,
-        (userLocation.lng + deliveryLocation.lng) / 2
-      ]}
-      zoom={13}
-      className="absolute top-0 left-0 w-full h-full z-0"
-    >
-      <LocationTracker userLocation={userLocation} deliveryLocation={deliveryLocation} />
+      {(userLocation && deliveryLocation) && (
+        <MapContainer
+          center={[
+            (userLocation.lat + deliveryLocation.lat) / 2,
+            (userLocation.lng + deliveryLocation.lng) / 2
+          ]}
+          zoom={13}
+          className="absolute top-0 left-0 w-full h-full z-0"
+        >
+          <LocationTracker userLocation={userLocation} deliveryLocation={deliveryLocation} />
 
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      />
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          />
 
-      <Marker position={[deliveryLocation.lat, deliveryLocation.lng]} icon={createCustomIcon("deepskyblue")}>
-        <Popup className="font-semibold text-sm text-blue-700">Delivery Location 🚚</Popup>
-      </Marker>
+          <Marker position={[deliveryLocation.lat, deliveryLocation.lng]} icon={createCustomIcon("deepskyblue")}>
+            <Popup className="font-semibold text-sm text-blue-700">Delivery Location 🚚</Popup>
+          </Marker>
 
-      <Marker position={[userLocation.lat, userLocation.lng]} icon={createCustomIcon("limegreen")}>
-        <Popup className="font-semibold text-sm text-green-700">Your Location 📍</Popup>
-      </Marker>
-    </MapContainer>
-  )}
+          <Marker position={[userLocation.lat, userLocation.lng]} icon={createCustomIcon("limegreen")}>
+            <Popup className="font-semibold text-sm text-green-700">Your Location 📍</Popup>
+          </Marker>
+        </MapContainer>
+      )}
 
-  {/* Floating Card */}
-  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] sm:w-[400px] bg-black/70 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl text-white px-6 py-5 z-10 animate-fade-in-up">
-    <h2 className="text-lg sm:text-xl font-bold mb-2 tracking-wide">Tracking Your Order</h2>
+      {/* Floating Card */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] sm:w-[400px] bg-black/70 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl text-white px-6 py-5 z-10 animate-fade-in-up">
+        <h2 className="text-lg sm:text-xl font-bold mb-2 tracking-wide">Tracking Your Order</h2>
 
-    <div className="flex justify-between items-center mb-4">
-      <span className="text-sm text-gray-300">Status</span>
-      <span
-        className={`px-3 py-1 rounded-full text-xs font-medium
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-sm text-gray-300">Status</span>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium
           ${orderStatus === "Pending"
-            ? "bg-yellow-600/20 text-yellow-400 animate-pulse"
-            : "bg-green-600/20 text-green-400 animate-bounce"}`}
-      >
-        {orderStatus}
-      </span>
-    </div>
+                ? "bg-yellow-600/20 text-yellow-400 animate-pulse"
+                : "bg-green-600/20 text-green-400 animate-bounce"}`}
+          >
+            {orderStatus}
+          </span>
+        </div>
 
-    {userLocation && (
-      <div className="flex items-center gap-2 text-sm font-medium text-blue-300">
-        <NavigationIcon size={18} className="animate-wiggle" />
-        Live location tracked
+        {userLocation && (
+          <div className="flex items-center gap-2 text-sm font-medium text-blue-300">
+            <NavigationIcon size={18} className="animate-wiggle" />
+            Live location tracked
+          </div>
+        )}
       </div>
-    )}
-  </div>
-</div>
+    </div>
 
   );
 };

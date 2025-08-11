@@ -1,4 +1,3 @@
-// src/components/RecommendationCard.tsx
 import { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -22,22 +21,19 @@ interface Recommendation {
   image_url: string;
 }
 
-
-
-
 interface RecommendationResponse {
   success: boolean;
   recommendation: Recommendation;
 }
 
-
+const CACHE_KEY = "recommendationCache";
+const CACHE_DURATION = 3 * 60 * 60 * 1000; // 3 hours in ms
 
 const RecommendationCard: React.FC = () => {
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-
 
   useEffect(() => {
     fetchRecommendation();
@@ -46,19 +42,38 @@ const RecommendationCard: React.FC = () => {
   const fetchRecommendation = async () => {
     try {
       setLoading(true);
-      const userId = localStorage.getItem("userId"); // Assuming userId is stored in localStorage
+      const userId = localStorage.getItem("userId");
       if (!userId) {
         setError("User ID is missing. Please log in again.");
         setLoading(false);
         return;
       }
 
+      // Check cache
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      if (cachedData) {
+        const { timestamp, data } = JSON.parse(cachedData);
+        if (Date.now() - timestamp < CACHE_DURATION && data) {
+          setRecommendation(data);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Fetch from API if no valid cache
       const response = await axios.get<RecommendationResponse>(
         `https://sosika-backend.onrender.com/api/one-tap/${userId}`
       );
 
       if (response.data.success) {
         setRecommendation(response.data.recommendation);
+        localStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({
+            timestamp: Date.now(),
+            data: response.data.recommendation,
+          })
+        );
       } else {
         setError("Couldn't get a recommendation at this time");
       }
@@ -81,17 +96,15 @@ const RecommendationCard: React.FC = () => {
 
   const handleReject = () => {
     sendFeedback(false);
-
     toast({
       title: "Recommendation rejected",
       description: "We'll improve our suggestions based on your feedback.",
       duration: 3000,
     });
-
   };
 
   const sendFeedback = async (accepted: boolean) => {
-    const userId = localStorage.getItem("userId");  
+    const userId = localStorage.getItem("userId");
     try {
       await axios.post(`https://sosika-backend.onrender.com/api/feedback/${userId}`, {
         recommendationId: recommendation?.recommendedItemId,
@@ -130,7 +143,7 @@ const RecommendationCard: React.FC = () => {
 
   if (loading) {
     return (
-      <Card className="w-full  max-w-md mx-auto shadow-md hover:shadow-lg transition-shadow">
+      <Card className="w-full max-w-md mx-auto shadow-md hover:shadow-lg transition-shadow">
         <CardHeader className="pb-2">
           <Skeleton className="h-4 w-3/4 mb-2" />
           <Skeleton className="h-6 w-full" />
@@ -158,9 +171,11 @@ const RecommendationCard: React.FC = () => {
   return (
     <Card className="w-full max-w-md mx-auto shadow-md hover:shadow-lg transition-shadow">
       <CardHeader className="pb-2">
-        <CardDescription className="text-sm font-medium"> <span className="text-[12px] text-blue-500 bg-blue-100 px-2 py-[2px] rounded-full">
-          AI Pick
-        </span>   {getGreeting()}</CardDescription>
+        <CardDescription className="text-sm font-medium">
+          <span className="text-[12px] text-blue-500 bg-blue-100 px-2 py-[2px] rounded-full">
+            AI Pick
+          </span> {getGreeting()}
+        </CardDescription>
         <CardTitle className="text-xl">{recommendedItemName}</CardTitle>
       </CardHeader>
       <CardContent>
@@ -179,8 +194,6 @@ const RecommendationCard: React.FC = () => {
             Accept <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
-
-       
       </CardContent>
       <CardFooter className="justify-end pt-0">
         <Button

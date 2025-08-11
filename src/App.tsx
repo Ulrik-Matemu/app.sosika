@@ -17,10 +17,11 @@ import { setupPushNotifications } from "./services/push-notifications";
 import { analytics, logEvent } from "./firebase";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/cartContext";
-// import { AuthRedirect } from "./pages/AuthRedirects";
+import { AuthRedirect } from "./pages/AuthRedirects";
 import VendorPage from "./pages/vendor";
 import  PageWrapper  from "./services/page-transition";
 import Waitlist from "./pages/waitlist";
+import Browser from "./pages/browse";
 
 
 function App() {
@@ -38,7 +39,7 @@ function App() {
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload); // ✅ correct
+      window.removeEventListener("beforeunload", handleBeforeUnload); 
     };
   }, []);
 
@@ -57,7 +58,7 @@ function App() {
               <Routes>
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={<MenuExplorer />} />
+                <Route path="/" element={<AuthRedirect />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/explore" element={<MenuExplorer />} />
@@ -66,6 +67,7 @@ function App() {
                 <Route path="/profile" element={<ProfileManagement />} />
                 <Route path="/vendor" element={<VendorPage vendorId={1} />} />
                 <Route path="/waitlist" element={<Waitlist />} />
+                <Route path="/browse" element={<Browser />} />
               </Routes>
             </PageWrapper>
           </TooltipProvider>

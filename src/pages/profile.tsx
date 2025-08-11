@@ -31,15 +31,13 @@ interface Reviews {
     review: string;
 }
 
-
 const logout = () => {
     localStorage.removeItem('email');
     localStorage.removeItem('password');
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
     window.location.href = '/login';
 }
-
 
 const ProfileManagement = () => {
     const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -67,10 +65,7 @@ const ProfileManagement = () => {
 
     loadVoices();
 
-
-
-
-    useEffect(() => {
+     useEffect(() => {
         const fetchProfile = async (forceRefresh = false) => {
             const cacheKey = `profile_cache_${userId}`;
             const cached = localStorage.getItem(cacheKey);
@@ -123,10 +118,7 @@ const ProfileManagement = () => {
         }
     }, [userId]);
 
-
-
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };

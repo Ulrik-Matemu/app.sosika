@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar, MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen, PhoneCallIcon, MicIcon } from 'lucide-react';
+import { Loader2, X, ChevronDown, ChevronUp, Star, Calendar, MapPin, RefreshCw, Filter, CheckCircle, AlertCircle, TruckIcon, PackageOpen, PhoneCallIcon } from 'lucide-react';
 import Navbar from '../components/my-components/navbar';
 import NotificationHandler from '../components/my-components/notification-handler';
 import PageWrapper from '../services/page-transition';
@@ -8,8 +8,6 @@ import { Header } from '../components/my-components/header';
 import { Toaster } from '../components/ui/toaster';
 import { useToast } from '../hooks/use-toast';
 import { ToastAction } from '../components/ui/toast';
-import { Button } from '../components/ui/button';
-
 
 // Define interfaces for order data
 interface OrderItem {
@@ -88,93 +86,6 @@ const OrdersPage = () => {
     const API_URL = import.meta.env.VITE_API_URL;
 
     const toast = useToast();
-
-    let voices: SpeechSynthesisVoice[] = [];
-
-    const loadVoices = () => {
-        voices = window.speechSynthesis.getVoices();
-        if (!voices.length) {
-            // try again when voices change
-            window.speechSynthesis.onvoiceschanged = () => {
-                voices = window.speechSynthesis.getVoices();
-            };
-        }
-    };
-
-    loadVoices();
-
-
-    const speak = (text: string) => {
-        if (!('speechSynthesis' in window)) return;
-      
-        const synth = window.speechSynthesis;
-      
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.voice = voices.find(v => v.lang === 'en-US') || voices[0];
-        utter.rate = 1;
-        synth.cancel(); // Cancel any ongoing speech
-        synth.speak(utter);
-      };
-
-    const startListening = () => {
-
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US'; // or 'sw' for Swahili if supported
-        recognition.interimResults = false;
-        recognition.onresult = (event: { results: { transcript: string; }[][]; }) => {
-            const transcript = event.results[0][0].transcript.toLowerCase();
-            handleVoiceCommand(transcript);
-        };
-        recognition.start();
-    };
-
-    const handleVoiceCommand = (text: string) => {
-        const command = text.toLowerCase();
-
-
-
-
-        if (
-            ["show menu", "go to menu", "open menu", "menu page", "menu please", "home", "homepage", "explore", "go home", "take me to menu", "go to home", "open home screen", "menu"]
-                .some(phrase => command.includes(phrase))
-        ) {
-            window.location.href = "/explore";
-            navigator.vibrate(200);
-            return;
-        }
-
-        if (
-            ["profile", "my profile", "go to profile", "open profile", "show profile", "profile page", "user profile", "account", "my account"]
-                .some(phrase => command.includes(phrase))
-        ) {
-            window.location.href = "/profile";
-            navigator.vibrate(200);
-            return;
-        }
-
-        if (
-            ["orders", "my orders", "show orders", "view orders", "order history", "order page", "open orders", "go to orders", "past orders"]
-                .some(phrase => command.includes(phrase))
-        ) {
-            window.location.href = "/orders";
-            navigator.vibrate(200);
-            return;
-        }
-
-        if (
-            ["set location", "update location", "change location", "share location", "mark my location", "use current location", "set my location", "enable location", "add location", "use my location", "use my current location", "update my location", "update my current location"]
-            .some(phrase => command.includes(phrase))
-        ) {
-            toast.toast({
-                title: "Uh oh! Something went wrong.",
-                description: "You have to be on the home page to set your location.",
-                action: <ToastAction altText='Navigate' onClick={() => window.location.href = "/explore"}>Navigate</ToastAction>
-            });
-            speak("You have to be on the home page to set your location");
-        }
-    
-    };
-
 
     const fetchOrders = async (forceRefresh = false) => {
         try {
@@ -304,13 +215,7 @@ const OrdersPage = () => {
     return (
         <>
             <Toaster />
-            <Button
-                onClick={startListening}
-                className="font-extrabold text-2xl fixed bottom-[90px] right-4 flex items-center gap-2 bg-[#00bfff] text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition"
-            >
-                <span>S</span>
-                <MicIcon className='animate-pulse' />
-            </Button>
+           
             <div className="min-h-screen bg-gray-50 dark:bg-[#121212] pb-8">
                 <NotificationHandler />
                 <Header />
@@ -585,7 +490,6 @@ const OrdersPage = () => {
         </>
     );
 };
-
 
 
 export default OrdersPage;

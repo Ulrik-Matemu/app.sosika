@@ -1,8 +1,6 @@
-// src/components/PopularMenus.tsx
 import React, { useEffect, useState } from 'react';
 import { useCartContext } from '../../context/cartContext';
 
-// Define the MenuItem type
 type MenuItem = {
     id: number;
     name: string;
@@ -13,9 +11,6 @@ type MenuItem = {
     is_available: boolean;
 };
 
-// Removed unused CartItem type
-
-// Skeleton item component for loading state
 const SkeletonMenuItem: React.FC = () => (
     <div className="min-w-[220px] snap-start bg-gray-200 animate-pulse rounded-2xl shadow-md shrink-0 h-60">
         <div className="h-36 w-full bg-gray-300 rounded-t-2xl"></div>
@@ -30,20 +25,45 @@ const SkeletonMenuItem: React.FC = () => (
 const PopularMenus: React.FC = () => {
     const [items, setItems] = useState<MenuItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null); // State for error handling
+    const [error, setError] = useState<string | null>(null);
     const { addToCart } = useCartContext();
+
+    const CACHE_KEY = "popularMenusCache";
+    const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 
     useEffect(() => {
         const fetchPopularMenus = async () => {
             setLoading(true);
-            setError(null); // Clear any previous errors
+            setError(null);
+
             try {
+                // Check cache first
+                const cachedData = localStorage.getItem(CACHE_KEY);
+                if (cachedData) {
+                    const { timestamp, data } = JSON.parse(cachedData);
+                    if (Date.now() - timestamp < CACHE_DURATION && data) {
+                        setItems(data);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
+                // Fetch if no valid cache
                 const response = await fetch('https://sosika-backend.onrender.com/api/menuItem/popular-menu-items');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
                 setItems(data.items);
+
+                // Store in cache
+                localStorage.setItem(
+                    CACHE_KEY,
+                    JSON.stringify({
+                        timestamp: Date.now(),
+                        data: data.items
+                    })
+                );
             } catch (err) {
                 console.error('Failed to fetch popular menu items', err);
                 setError('Failed to load popular menus. Please try again later.');
@@ -53,7 +73,7 @@ const PopularMenus: React.FC = () => {
         };
 
         fetchPopularMenus();
-    }, []); // Empty dependency array means this effect runs once on mount
+    }, []);
 
     if (error) {
         return (
@@ -61,7 +81,7 @@ const PopularMenus: React.FC = () => {
                 <h2 className="text-xl font-semibold mb-2">Oops!</h2>
                 <p>{error}</p>
                 <button
-                    onClick={() => window.location.reload()} // Simple retry by refreshing
+                    onClick={() => window.location.reload()}
                     className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                 >
                     Retry
@@ -77,8 +97,6 @@ const PopularMenus: React.FC = () => {
                     <span role="img" aria-label="fire" className="mr-2 text-red-500 text-3xl">🔥</span>
                     Popular Picks
                 </h2>
-                {/* Optional: Add a "View All" button if there's a dedicated page */}
-                {/* <button className="text-blue-600 font-semibold hover:underline">View All</button> */}
             </div>
 
             <div className="flex overflow-x-auto space-x-4 pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -100,7 +118,6 @@ const PopularMenus: React.FC = () => {
                                     width={800}
                                     height={144}
                                 />
-
                                 <div className="p-4">
                                     <h3 className="text-lg font-bold text-black dark:text-white truncate mb-1">
                                         {item.name}
@@ -128,8 +145,6 @@ const PopularMenus: React.FC = () => {
                                                 className="h-5 w-5"
                                                 viewBox="0 0 20 20"
                                                 fill="currentColor"
-                                                aria-hidden="true"
-                                                focusable="false"
                                             >
                                                 <path
                                                     fillRule="evenodd"
@@ -138,7 +153,6 @@ const PopularMenus: React.FC = () => {
                                                 />
                                             </svg>
                                         </button>
-
                                     </div>
                                 </div>
                             </div>
