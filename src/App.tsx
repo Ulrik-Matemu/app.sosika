@@ -22,6 +22,7 @@ import VendorPage from "./pages/vendor";
 import  PageWrapper  from "./services/page-transition";
 import Waitlist from "./pages/waitlist";
 import Browser from "./pages/browse";
+import VendorRegistration from "./pages/vendorRegistration";
 
 
 function App() {
@@ -65,9 +66,11 @@ function App() {
                 <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/profile" element={<ProfileManagement />} />
-                <Route path="/vendor" element={<VendorPage vendorId={1} />} />
+                <Route path="/vendor" element={<VendorPage vendorId={29} />} />
                 <Route path="/waitlist" element={<Waitlist />} />
                 <Route path="/browse" element={<Browser />} />
+                <Route path="/vendor-registration" element={<VendorRegistration />} />
+                {/* <Route path="/maintenance" element={<Maintenance />} /> */}
               </Routes>
             </PageWrapper>
           </TooltipProvider>

@@ -63,7 +63,7 @@ export function CustomItemRequestDialog() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button className="bg-black text-white dark:bg-[#ededed] dark:text-black" variant="outline">Can't find what you're looking for?</Button>
+                <Button className="bg-black text-white dark:bg-[#ededed] dark:text-black w-full font-bold" variant="outline">Can't find what you're looking for?</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md bg-[#ededed] dark:bg-[#121212]">
                 <DialogHeader>

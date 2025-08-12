@@ -10,7 +10,7 @@ import {
 import { Label } from "../ui/label";
 
 const navigateToVendor = () => {
-    window.location.href = "https://sosikavendor.netlify.app/";
+    window.location.href = "/vendor-registration";
 }
 
 const navigateToLearnMore = () => {
@@ -42,7 +42,7 @@ export function VendorCall() {
                     </Button>
                     <Button className="w-full" variant="default" onClick={handleClick} disabled={loading}>
                         <Label className="text-sm">
-                            {loading ? "Redirecting to vendor..." : "Start Selling"}
+                            {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Start Selling"}
                         </Label>
                     </Button>
                     
