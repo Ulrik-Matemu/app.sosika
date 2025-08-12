@@ -169,7 +169,7 @@ const RecommendationCard: React.FC = () => {
   const confidenceBadgeClass = getConfidenceBadgeColor(confidence);
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-md hover:shadow-lg transition-shadow">
+    <Card className="w-full max-w-md mx-auto rounded-2xl bg-white dark:bg-black shadow-md hover:shadow-lg transition-shadow">
       <CardHeader className="pb-2">
         <CardDescription className="text-sm font-medium">
           <span className="text-[12px] text-blue-500 bg-blue-100 px-2 py-[2px] rounded-full">

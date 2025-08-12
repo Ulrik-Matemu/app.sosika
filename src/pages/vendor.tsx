@@ -12,6 +12,7 @@ interface Vendor {
   college_id: number;
   is_open: boolean;
   geolocation: string;
+  logo_url: string;
 }
 
 interface MenuItem {
@@ -135,22 +136,19 @@ const VendorPage: React.FC<{ vendorId: number }> = ({ vendorId }) => {
       <div
         className="relative h-48 sm:h-64 bg-cover bg-center"
         style={{
-          backgroundImage: `url('https://via.placeholder.com/800x400/F3F4F6/9CA3AF?text=${vendor.name.replace(
-            /\s/g,
-            "+"
-          )}')`,
+          backgroundImage: `url('${vendor.logo_url}')`,
         }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-40 flex items-end p-4">
           <div>
             <h1 className="text-3xl font-bold text-white mb-1">{vendor.name}</h1>
             <p
-              className={`mt-1 font-semibold text-sm ${
-                vendor.is_open ? "text-green-400" : "text-red-400"
-              }`}
+              className={`mt-1 font-semibold text-sm ${vendor.is_open ? "text-green-400" : "text-red-400"
+                }`}
             >
               {vendor.is_open ? "Open Now" : "Closed"}
             </p>
+           
           </div>
         </div>
       </div>
@@ -166,10 +164,9 @@ const VendorPage: React.FC<{ vendorId: number }> = ({ vendorId }) => {
                   setSelectedCategory(category as MenuItem["category"] | "all")
                 }
                 className={`flex-shrink-0 capitalize px-4 py-2 rounded-full text-sm font-medium mr-2 transition-all duration-200
-                  ${
-                    selectedCategory === category
-                      ? "bg-blue-600 text-white shadow-lg scale-105"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  ${selectedCategory === category
+                    ? "bg-blue-600 text-white shadow-lg scale-105"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
               >
                 {category === "all" ? "All Items" : category}
@@ -177,6 +174,7 @@ const VendorPage: React.FC<{ vendorId: number }> = ({ vendorId }) => {
             ))}
           </div>
         </div>
+        
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
@@ -209,10 +207,9 @@ const VendorPage: React.FC<{ vendorId: number }> = ({ vendorId }) => {
                     </p>
                     <p
                       className={`text-xs font-medium px-2 py-1 rounded-full
-                        ${
-                          item.is_available
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                        ${item.is_available
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
                         }`}
                     >
                       {item.is_available ? "Available" : "Out of Stock"}
@@ -265,7 +262,7 @@ const VendorPage: React.FC<{ vendorId: number }> = ({ vendorId }) => {
         updateQuantity={updateQuantity}
         removeFromCart={removeFromCart}
         clearCart={clearCart}
-        checkout={() => {}}
+        checkout={() => { }}
         loading={false}
       />
     </div>

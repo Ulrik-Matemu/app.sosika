@@ -228,7 +228,7 @@ const MenuExplorer = () => {
                         </div>
                         <div className='mb-18 bt-2'>
                             <RecommendationCard />
-                            <div className='py-8'>
+                            <div className='py-8 flex justify-center w-full'>
                                 <CustomItemRequestDialog />
                             </div>
                         </div>
