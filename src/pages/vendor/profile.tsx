@@ -25,10 +25,12 @@ const VendorProfile: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
+    const vendorId = localStorage.getItem('vendorId');
+
     useEffect(() => {
         const fetchVendor = async () => {
             try {
-                const response = await axios.get('https://sosika-backend.onrender.com/api/vendor/29');
+                const response = await axios.get(`https://sosika-backend.onrender.com/api/vendor/${vendorId}`);
                 setVendor(response.data);
                 setFormData({
                     name: response.data.name,
@@ -67,7 +69,7 @@ const VendorProfile: React.FC = () => {
         setSaving(true);
         try {
             const updatedVendor = { ...formData, logo_url: vendor?.logo_url };
-            await axios.put(`https://sosika-backend.onrender.com/api/vendor/${vendor?.id}`, updatedVendor);
+            await axios.put(`https://sosika-backend.onrender.com/api/vendor/${vendorId}`, updatedVendor);
             setIsEditing(false);
         } catch (error) {
             console.error('Error updating vendor:', error);
@@ -82,7 +84,7 @@ const VendorProfile: React.FC = () => {
             formData.append('logo', logoFile);
 
             try {
-                await axios.post(`https://sosika-backend.onrender.com/api/vendors/${vendor?.id}/logo`, formData);
+                await axios.post(`https://sosika-backend.onrender.com/api/vendors/${vendorId}/logo`, formData);
                 setLogoFile(null);
             } catch (error) {
                 console.error('Error uploading logo:', error);
