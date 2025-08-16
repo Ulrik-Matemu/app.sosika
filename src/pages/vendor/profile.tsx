@@ -104,6 +104,7 @@ const VendorProfile: React.FC = () => {
       const updatedVendor = { ...formData, logo_url: vendor?.logo_url };
       await axios.put(`https://sosika-backend.onrender.com/api/vendor/${vendorId}`, updatedVendor);
       setIsEditing(false);
+      window.location.reload(); // Reload to fetch updated vendor data
     } catch (error) {
       console.error('Error updating vendor:', error);
     } finally {
@@ -245,7 +246,7 @@ const VendorProfile: React.FC = () => {
                 </div>
 
                 {/* Content Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className={`grid grid-cols-1 ${isEditing ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-8`}>
                     {/* Details Card */}
                     <div className="bg-white dark:bg-black rounded-br-2xl px-4">
                         <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-gray-200">Vendor Details</h2>
@@ -311,7 +312,8 @@ const VendorProfile: React.FC = () => {
                         </div>
 
                         {isEditing && (
-                            <div className="flex gap-3 mt-6">
+                            <div>
+                                <div className="flex gap-3 mt-6">
                                 <button
                                     onClick={handleSave}
                                     disabled={saving}
@@ -333,39 +335,30 @@ const VendorProfile: React.FC = () => {
                                     Cancel
                                 </button>
                             </div>
+                            </div>
+                            
                         )}
                     </div>
 
-                    {/* Location Card */}
-                    <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-lg p-6 mx-2">
-                        <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-gray-200 flex items-center">
-                            <MapPin className="w-5 h-5 mr-2" />
-                           Business Location
-                        </h2>
+                    {/* Location Card - Only visible when editing */}
+                    {isEditing && (
+                        <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-lg p-6 mx-2">
+                            <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-gray-200 flex items-center">
+                                <MapPin className="w-5 h-5 mr-2" />
+                                Business Location
+                            </h2>
 
-                        {isEditing ? (
                             <div className="mb-4">
-                                <VendorMap
-                                    initialLongitude={formData.geolocation?.x ?? vendor?.geolocation?.x ?? 0}
-                                    initialLatitude={formData.geolocation?.y ?? vendor?.geolocation?.y ?? 0}
-                                    onGeolocationChange={handleGeolocationChange}
-                                />
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <Suspense>
+                                <Suspense fallback={<div>Loading map...</div>}>
                                     <VendorMap
-                                        initialLongitude={vendor.geolocation.x}
-                                        initialLatitude={vendor.geolocation.y}
-                                        onGeolocationChange={() => { }}
+                                        initialLongitude={formData.geolocation?.x ?? vendor?.geolocation?.x ?? 0}
+                                        initialLatitude={formData.geolocation?.y ?? vendor?.geolocation?.y ?? 0}
+                                        onGeolocationChange={handleGeolocationChange}
                                     />
                                 </Suspense>
-
-
-                                
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
             <Navbar />
