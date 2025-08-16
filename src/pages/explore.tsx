@@ -35,9 +35,9 @@ const MenuExplorer = () => {
     const [showInstallBtn, setShowInstallBtn] = useState(false);
     const [hasScrolled, setHasScrolled] = useState(false);
     const [error] = useState<string | null>(null);
-    const [showTooltip, setShowTooltip] = useState(false);  
-   // Cart state (now from hook)
-    const { cart, cartTotal,  removeFromCart, updateQuantity, clearCart, checkout, loading } = useCartContext();
+    const [showTooltip, setShowTooltip] = useState(false);
+    // Cart state (now from hook)
+    const { cart, cartTotal, removeFromCart, updateQuantity, clearCart, checkout, loading } = useCartContext();
     const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
     const navigate = useNavigate();
 
@@ -157,11 +157,10 @@ const MenuExplorer = () => {
                                 >
                                     <MapPin />
                                 </button>
-
                             </TooltipTrigger>
                             <div >
                                 <TooltipContent className='w-[250px]'>
-                                    Make sure to select your location before placing an order!
+                                    Select your location before placing an order!
                                 </TooltipContent>
                             </div>
                         </Tooltip>
@@ -214,24 +213,13 @@ const MenuExplorer = () => {
                     )}
 
                     <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
-                        <div className="lg:grid lg:grid-cols-12 lg:gap-6">
-                            {/* Filters Sidebar */}
-                            <div className="lg:col-span-3 mb-6 lg:mb-0">
-                                <div className="dark:bg-[#121212] p-0 rounded-xl  border border-[transparent] dark:border-[transparent]">
-
-
-                                    <div className="space-y-4">
-                                        <PopularMenus />
-                                    </div>
-                                </div>
+                            <div className='my-4'>
+                               <PopularMenus />
                             </div>
-                        </div>
-                        <div className='mb-18 bt-2'>
                             <RecommendationCard />
                             <div className='py-8 flex justify-center w-full'>
                                 <CustomItemRequestDialog />
                             </div>
-                        </div>
                     </div>
 
                     <CartDrawer
@@ -264,7 +252,6 @@ const MenuExplorer = () => {
                         >
                             Install App
                         </button>
-
                     </>
                 )}
                 <Navbar />

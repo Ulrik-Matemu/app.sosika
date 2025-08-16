@@ -281,6 +281,7 @@ const VendorRegistration = () => {
             if (response.ok) {
                 // Success - you might want to redirect or show success message
                 alert('Vendor registration successful!');
+                localStorage.setItem('vendorId', data.vendor_id);
                 // Reset form or redirect
                 setCurrentStep(1);
                 setFormData({

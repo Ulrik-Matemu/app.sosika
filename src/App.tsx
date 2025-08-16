@@ -23,6 +23,7 @@ import  PageWrapper  from "./services/page-transition";
 import Waitlist from "./pages/waitlist";
 import Browser from "./pages/browse";
 import VendorRegistration from "./pages/vendorRegistration";
+import VendorProfile from "./pages/vendor/profile";
 
 
 function App() {
@@ -70,6 +71,7 @@ function App() {
                 <Route path="/waitlist" element={<Waitlist />} />
                 <Route path="/browse" element={<Browser />} />
                 <Route path="/vendor-registration" element={<VendorRegistration />} />
+                <Route path="/vendor-profile" element={<VendorProfile />} />
                 {/* <Route path="/maintenance" element={<Maintenance />} /> */}
               </Routes>
             </PageWrapper>

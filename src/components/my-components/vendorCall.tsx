@@ -44,8 +44,7 @@ export function VendorCall() {
                         <Label className="text-sm">
                             {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Start Selling"}
                         </Label>
-                    </Button>
-                    
+                    </Button>    
                 </CardFooter>
             </Card>
         </>
