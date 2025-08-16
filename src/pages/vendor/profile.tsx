@@ -263,7 +263,7 @@ const VendorProfile: React.FC = () => {
                                             name="name"
                                             value={formData.name || ''}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full dark:text-gray-900 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             placeholder="Enter vendor name"
                                         />
                                     </div>
@@ -278,7 +278,7 @@ const VendorProfile: React.FC = () => {
                                             name="ownerName"
                                             value={formData.ownerName || ''}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full dark:text-gray-900 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             placeholder="Enter owner name"
                                         />
                                     </div>
@@ -287,20 +287,20 @@ const VendorProfile: React.FC = () => {
                                 </>
                             ) : (
                                 <>
-                                    <div className="flex items-center p-4 bg-gray-50 rounded-xl">
-                                        <User className="w-5 h-5 text-gray-600 mr-3" />
+                                    <div className="flex items-center p-4 bg-gray-50 dark:bg-[#121212] rounded-xl">
+                                        <User className="w-5 h-5 text-gray-600 mr-3 dark:text-gray-200" />
                                         <div>
-                                            <p className="text-sm text-gray-500">Owner</p>
-                                            <p className="font-medium text-gray-900">{vendor.owner_name}</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Owner</p>
+                                            <p className="font-medium text-gray-900 dark:text-gray-200">{vendor.owner_name}</p>
                                         </div>
                                     </div>
 
 
 
-                                    <div className="flex items-center p-4 bg-gray-50 rounded-xl">
-                                        <Truck className="w-5 h-5 text-gray-600 mr-3" />
+                                    <div className="flex items-center p-4 bg-gray-50 dark:bg-[#121212] rounded-xl">
+                                        <Truck className="w-5 h-5 text-gray-600 mr-3 dark:text-gray-200" />
                                         <div>
-                                            <p className="text-sm text-gray-500">Own Delivery</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Own Delivery</p>
                                             <p className={`font-medium ${vendor.does_own_delivery ? 'text-green-600' : 'text-red-600'}`}>
                                                 {vendor.does_own_delivery ? 'Available' : 'Not Available'}
                                             </p>
@@ -322,7 +322,7 @@ const VendorProfile: React.FC = () => {
                                     ) : (
                                         <Save className="w-4 h-4" />
                                     )}
-                                    {saving ? 'Saving...' : 'Save Changes'}
+                                    {saving ? '' : 'Save'}
                                 </button>
 
                                 <button
@@ -340,7 +340,7 @@ const VendorProfile: React.FC = () => {
                     <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-lg p-6 mx-2">
                         <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-gray-200 flex items-center">
                             <MapPin className="w-5 h-5 mr-2" />
-                            Location
+                           Business Location
                         </h2>
 
                         {isEditing ? (
@@ -362,18 +362,7 @@ const VendorProfile: React.FC = () => {
                                 </Suspense>
 
 
-                                <div className="bg-blue-50 p-4 rounded-xl">
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <p className="text-gray-500">Latitude</p>
-                                            <p className="font-mono font-medium text-gray-900">{vendor.geolocation.y}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-gray-500">Longitude</p>
-                                            <p className="font-mono font-medium text-gray-900">{vendor.geolocation.x}</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                
                             </div>
                         )}
                     </div>
