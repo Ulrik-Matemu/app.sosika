@@ -296,6 +296,7 @@ const VendorRegistration = () => {
                     marker.current.remove();
                     marker.current = null;
                 }
+                window.location.href = '/profile';
             } else {
                 throw new Error(data.error || 'Registration failed');
             }
