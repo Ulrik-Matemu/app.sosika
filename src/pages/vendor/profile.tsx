@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, Suspense, useRef } from 'react';
 import axios from 'axios';
 import { MapPin, Edit3, Save, X, Upload, Camera, Store, User, Truck } from 'lucide-react';
 const VendorMap = React.lazy(() => import('../../components/my-components/vendorMap'));
@@ -6,104 +6,137 @@ import { Header } from '../../components/my-components/header';
 import Navbar from '../../components/my-components/navbar'
 
 type Vendor = {
-    id: number;
-    name: string;
-    owner_name: string;
-    college_id: number;
-    geolocation: { x: number; y: number };
-    is_open: boolean;
-    category: string;
-    does_own_delivery: boolean;
-    logo_url: string;
+  id: number;
+  name: string;
+  owner_name: string;
+  college_id: number;
+  geolocation: { x: number; y: number };
+  is_open: boolean;
+  category: string;
+  does_own_delivery: boolean;
+  logo_url: string;
+};
+
+type VendorFormData = {
+  name: string;
+  ownerName: string;
+  collegeId: number;
+  geolocation?: { x: number; y: number };
 };
 
 const VendorProfile: React.FC = () => {
-    const [vendor, setVendor] = useState<Vendor | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState<any>({});
-    const [logoFile, setLogoFile] = useState<File | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<VendorFormData>({
+    name: '',
+    ownerName: '',
+    collegeId: 0,
+  });
+  const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-    const vendorId = localStorage.getItem('vendorId');
+  const vendorId = localStorage.getItem('vendorId');
 
-    useEffect(() => {
-        const fetchVendor = async () => {
-            try {
-                const response = await axios.get(`https://sosika-backend.onrender.com/api/vendor/${vendorId}`);
-                setVendor(response.data);
-                setFormData({
-                    name: response.data.name,
-                    ownerName: response.data.owner_name,
-                    collegeId: response.data.college_id,
-                });
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching vendor:', error);
-                setLoading(false);
-            }
-        };
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-        fetchVendor();
-    }, []);
-
-    const handleGeolocationChange = (longitude: number, latitude: number) => {
-        setFormData((prevData: any) => ({
-            ...prevData,
-            geolocation: { x: longitude, y: latitude },
-        }));
+  // Fetch vendor
+  useEffect(() => {
+    const fetchVendor = async () => {
+      if (!vendorId) return;
+      try {
+        const response = await axios.get<Vendor>(`https://sosika-backend.onrender.com/api/vendor/${vendorId}`);
+        setVendor(response.data);
+        setFormData({
+          name: response.data.name,
+          ownerName: response.data.owner_name,
+          collegeId: response.data.college_id,
+          geolocation: response.data.geolocation,
+        });
+      } catch (error) {
+        console.error('Error fetching vendor:', error);
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchVendor();
+  }, [vendorId]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData((prevData: any) => ({ ...prevData, [name]: value }));
-    };
-
-    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setLogoFile(e.target.files[0]);
-        }
-    };
-
-    const handleSave = async () => {
-        setSaving(true);
-        try {
-            const updatedVendor = { ...formData, logo_url: vendor?.logo_url };
-            await axios.put(`https://sosika-backend.onrender.com/api/vendor/${vendorId}`, updatedVendor);
-            setIsEditing(false);
-        } catch (error) {
-            console.error('Error updating vendor:', error);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleLogoUpload = async () => {
-        if (logoFile) {
-            const formData = new FormData();
-            formData.append('logo', logoFile);
-
-            try {
-                await axios.post(`https://sosika-backend.onrender.com/api/vendors/${vendorId}/logo`, formData);
-                setLogoFile(null);
-            } catch (error) {
-                console.error('Error uploading logo:', error);
-            }
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading vendor profile...</p>
-                </div>
-            </div>
-        );
+  // File change handler
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size <= 5 * 1024 * 1024) {
+        setSelectedLogo(file);
+      } else {
+        alert('File too large. Please select an image under 5MB.');
+      }
     }
+  };
 
-    if (!vendor) return <div>Vendor not found</div>;
+  const handleCancelUpload = () => {
+    setSelectedLogo(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleGeolocationChange = (longitude: number, latitude: number) => {
+    setFormData(prev => ({
+      ...prev,
+      geolocation: { x: longitude, y: latitude },
+    }));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'collegeId' ? Number(value) : value,
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!vendorId) return;
+    setSaving(true);
+    try {
+      const updatedVendor = { ...formData, logo_url: vendor?.logo_url };
+      await axios.put(`https://sosika-backend.onrender.com/api/vendor/${vendorId}`, updatedVendor);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating vendor:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogoUpload = async () => {
+    if (!selectedLogo || !vendorId) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('logo', selectedLogo);
+
+    try {
+      await axios.post(`https://sosika-backend.onrender.com/api/vendors/${vendorId}/logo`, formData);
+      setSelectedLogo(null);
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!vendor) return <div>Vendor not found</div>;
 
     return (
         <div className="min-h-screen bg-white dark:bg-black">
@@ -120,30 +153,60 @@ const VendorProfile: React.FC = () => {
                             <div className="relative group">
                                 <div className="w-32 h-32 rounded-2xl overflow-hidden shadow-lg bg-white p-2">
                                     <img
-                                        src={vendor.logo_url}
+                                        src={selectedLogo ? URL.createObjectURL(selectedLogo) : vendor.logo_url}
                                         alt="Vendor Logo"
                                         className="w-full h-full object-cover rounded-xl"
                                     />
                                 </div>
 
-                                {isEditing ? (
-                                    <label className="absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Camera className="w-8 h-8 text-white" />
-                                        <input
-                                            type="file"
-                                            className="hidden"
-                                            accept="image/*"
-                                            onChange={handleLogoChange}
-                                        />
-                                    </label>
-                                ) : logoFile ? (
+                                {/* Hover overlay for file selection */}
+                                <label className="absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="text-center">
+                                        <Camera className="w-8 h-8 text-white mx-auto mb-1" />
+                                        <span className="text-white text-xs">Change Logo</span>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleLogoChange}
+                                        ref={fileInputRef}
+                                    />
+                                </label>
+
+                                {/* Upload button - shows when file is selected */}
+                                {selectedLogo && (
                                     <button
                                         onClick={handleLogoUpload}
-                                        className="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full p-2 shadow-lg hover:bg-blue-700 transition-colors"
+                                        disabled={uploading}
+                                        className="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full p-2 shadow-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <Upload className="w-4 h-4" />
+                                        {uploading ? (
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                            <Upload className="w-4 h-4" />
+                                        )}
                                     </button>
-                                ) : null}
+                                )}
+
+                                {/* Cancel button - shows when file is selected */}
+                                {selectedLogo && (
+                                    <button
+                                        onClick={handleCancelUpload}
+                                        className="absolute -bottom-2 -left-2 bg-gray-600 text-white rounded-full p-2 shadow-lg hover:bg-gray-700 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+
+                                {/* File size/type indicator */}
+                                {selectedLogo && (
+                                    <div className="absolute -top-8 left-0 right-0 text-center">
+                                        <span className="bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                            {(selectedLogo.size / 1024 / 1024).toFixed(1)}MB
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Title and Status */}
@@ -292,12 +355,12 @@ const VendorProfile: React.FC = () => {
                             <div className="space-y-4">
                                 <Suspense>
                                     <VendorMap
-                                    initialLongitude={vendor.geolocation.x}
-                                    initialLatitude={vendor.geolocation.y}
-                                    onGeolocationChange={() => { }}
-                                />
+                                        initialLongitude={vendor.geolocation.x}
+                                        initialLatitude={vendor.geolocation.y}
+                                        onGeolocationChange={() => { }}
+                                    />
                                 </Suspense>
-                                
+
 
                                 <div className="bg-blue-50 p-4 rounded-xl">
                                     <div className="grid grid-cols-2 gap-4 text-sm">
