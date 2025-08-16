@@ -140,7 +140,7 @@ const VendorMap: React.FC<VendorMapProps> = ({
       />
 
       {/* Coordinates display */}
-      <div className="absolute bottom-2 left-2 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg px-3 py-1 text-xs text-gray-600 border">
+      <div className="absolute bottom-2 right-2 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg px-3 py-1 text-xs text-gray-600 border">
         <MapPin className="w-3 h-3 inline mr-1" />
         {initialLatitude.toFixed(4)}, {initialLongitude.toFixed(4)}
       </div>

@@ -43,7 +43,7 @@ export default function Navbar() {
       <nav
         role="navigation"
         aria-label="Main navigation"
-        className="fixed bottom-4 left-4 right-4 z-50 bg-[#e0e0de] dark:bg-[#363634] shadow-xl rounded-xl p-2 flex justify-around md:hidden border border-gray-100 dark:border-gray-800"
+        className="fixed bottom-4 left-4 right-4 z-50 bg-[#e0e0de] dark:bg-[#363634] shadow-xl rounded-xl p-2 flex justify-around  border border-gray-100 dark:border-gray-800"
       >
         {navItems.map(({ name, icon: Icon, path }) =>
           name === "Cart" ? (
