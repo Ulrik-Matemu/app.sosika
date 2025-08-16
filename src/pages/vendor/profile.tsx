@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import axios from 'axios';
 import { MapPin, Edit3, Save, X, Upload, Camera, Store, User, Truck } from 'lucide-react';
-import VendorMap from '../../components/my-components/vendorMap';
+const VendorMap = React.lazy(() => import('../../components/my-components/vendorMap'));
 import { Header } from '../../components/my-components/header';
 import Navbar from '../../components/my-components/navbar'
 
@@ -288,11 +288,14 @@ const VendorProfile: React.FC = () => {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                <VendorMap
+                                <Suspense>
+                                    <VendorMap
                                     initialLongitude={vendor.geolocation.x}
                                     initialLatitude={vendor.geolocation.y}
                                     onGeolocationChange={() => { }}
                                 />
+                                </Suspense>
+                                
 
                                 <div className="bg-blue-50 p-4 rounded-xl">
                                     <div className="grid grid-cols-2 gap-4 text-sm">
