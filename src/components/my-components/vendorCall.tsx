@@ -81,10 +81,10 @@ export function VendorCall() {
             <Button onClick={() => navigateToPage("/vendor-profile")} className="w-full">
               Profile
             </Button>
-            <Button onClick={() => navigateToPage("/vendor/orders")} className="w-full">
+            <Button onClick={() => navigateToPage("/vendor/orders")} className="w-full" disabled>
               Orders
             </Button>
-            <Button onClick={() => navigateToPage("/vendor/menu-items")} className="w-full">
+            <Button onClick={() => navigateToPage("/vendor/menu-items")} className="w-full" disabled>
               Menu Items
             </Button>
           </CardFooter>
