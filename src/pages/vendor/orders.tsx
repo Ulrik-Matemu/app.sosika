@@ -24,6 +24,7 @@ interface OrderItem {
     price: number;
     total_amount: number;
     name?: string; // We'll populate this from the API
+    
 }
 
 interface Action {
@@ -42,6 +43,7 @@ interface Order {
     order_datetime: string;
     total_amount: number;
     items: OrderItem[];
+    phone_number: string; // Assuming this is part of the order details
 }
 
 // ---------- Helper Functions ----------
@@ -236,6 +238,9 @@ const VendorOrders: React.FC = () => {
                                                         </div>
                                                         <span className="hidden sm:inline">•</span>
                                                         <span className="text-gray-600 dark:text-gray-400">{formatDateTime(order.order_datetime)}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span>Customer phone: {order.phone_number}</span>
                                                     </div>
                                                 </div>
 
