@@ -231,13 +231,12 @@ const VendorOrders: React.FC = () => {
                                                         ))}
                                                     </div>
 
-                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-300">
+                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-black dark:text-gray-300">
                                                         <div className="flex items-center gap-1">
-                                                            <DollarSign size={14} />
                                                             <span className="font-medium">{formatCurrency(order.total_amount)}</span>
                                                         </div>
                                                         <span className="hidden sm:inline">•</span>
-                                                        <span>{formatDateTime(order.order_datetime)}</span>
+                                                        <span className="text-gray-600 dark:text-gray-400">{formatDateTime(order.order_datetime)}</span>
                                                     </div>
                                                 </div>
 
