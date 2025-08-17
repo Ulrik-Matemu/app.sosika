@@ -11,7 +11,6 @@ import {
     XCircle,
     Play,
     UserCheck,
-    DollarSign,
     RefreshCw
 } from "lucide-react";
 import { Header } from "../../components/my-components/header";
