@@ -467,7 +467,7 @@ export default function VendorCatalogPage() {
 
                         <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                             <DrawerTrigger asChild>
-                                <Button onClick={startAdd} className="bg-green-600 hover:bg-green-700 shadow-lg">
+                                <Button onClick={startAdd} className="bg-[#00bfff] hover:bg-green-700 font-bold shadow-lg">
                                     <PlusIcon className="h-4 w-4 mr-2" />
                                     Add New Item
                                 </Button>
@@ -509,7 +509,7 @@ export default function VendorCatalogPage() {
                             </p>
                             <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                                 <DrawerTrigger asChild>
-                                    <Button onClick={startAdd} className="bg-green-600 hover:bg-green-700">
+                                    <Button onClick={startAdd} className="bg-[#00bfff] hover:bg-green-700 font-bold">
                                         <PlusIcon className="h-4 w-4 mr-2" />
                                         Add Your First Item
                                     </Button>
