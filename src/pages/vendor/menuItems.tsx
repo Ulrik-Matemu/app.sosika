@@ -456,7 +456,7 @@ export default function VendorCatalogPage() {
     return (
         <>
             <Header />
-            <div className="min-h-screen bg-white dark:bg-black p-4 md:p-6">
+            <div className="min-h-screen bg-[#fdfdfd] dark:bg-[#080808] p-4 md:p-6">
                 <div className="max-w-7xl mx-auto">
 
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

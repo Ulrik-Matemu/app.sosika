@@ -136,7 +136,7 @@ const MenuExplorer = () => {
     return (
         <>
             <Toaster />
-            <div className="min-h-screen bg-gray-50 dark:bg-[#121212] pb-8">
+            <div className="min-h-screen bg-[#fdfdfd] dark:bg-[#121212] pb-8">
                 <NotificationHandler />
                 <header className="sticky top-0 z-50 flex justify-between bg-[rgba(237,237,237,0.95)] dark:bg-[rgba(18,18,18,0.95)] px-4 py-4">
                     <h1 className="text-3xl text-center font-extrabold text-[#00bfff]">Sosika</h1>
