@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -66,7 +66,11 @@ export function VendorCall() {
 
   if (isVendor === null) {
     // Loading state
-    return <div>Loading...</div>;
+    return <div>
+      <div className="w-full flex justify-center p-4 border rounded-xl">
+        <span className="font-bold">Please wait...</span>
+      </div>
+    </div>;
   }
 
   return (
@@ -81,7 +85,7 @@ export function VendorCall() {
             <Button onClick={() => navigateToPage("/vendor-profile")} className="w-full">
               Profile
             </Button>
-            <Button onClick={() => navigateToPage("/vendor/orders")} className="w-full" disabled>
+            <Button onClick={() => navigateToPage("/vendor-orders")} className="w-full">
               Orders
             </Button>
             <Button onClick={() => navigateToPage("/vendor-catalog")} className="w-full">
