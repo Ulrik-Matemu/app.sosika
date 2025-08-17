@@ -84,8 +84,8 @@ export function VendorCall() {
             <Button onClick={() => navigateToPage("/vendor/orders")} className="w-full" disabled>
               Orders
             </Button>
-            <Button onClick={() => navigateToPage("/vendor/menu-items")} className="w-full" disabled>
-              Menu Items
+            <Button onClick={() => navigateToPage("/vendor-catalog")} className="w-full">
+              Catalog
             </Button>
           </CardFooter>
         </Card>

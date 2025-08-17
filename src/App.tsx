@@ -24,6 +24,7 @@ import Waitlist from "./pages/waitlist";
 import Browser from "./pages/browse";
 import VendorRegistration from "./pages/vendorRegistration";
 import VendorProfile from "./pages/vendor/profile";
+import VendorCatalogPage from "./pages/vendor/menuItems";
 
 
 function App() {
@@ -72,7 +73,7 @@ function App() {
                 <Route path="/browse" element={<Browser />} />
                 <Route path="/vendor-registration" element={<VendorRegistration />} />
                 <Route path="/vendor-profile" element={<VendorProfile />} />
-                {/* <Route path="/maintenance" element={<Maintenance />} /> */}
+                <Route path="/vendor-catalog" element={<VendorCatalogPage />} />
               </Routes>
             </PageWrapper>
           </TooltipProvider>
