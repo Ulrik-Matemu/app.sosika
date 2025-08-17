@@ -240,7 +240,7 @@ const Browser = () => {
     return (
         <>
             <Toaster />
-            <div className="min-h-screen bg-gray-50 dark:bg-[#121212] pb-8">
+            <div className="min-h-screen bg-[#fdfdfd] dark:bg-[#121212] pb-8">
                 <NotificationHandler />
                 <Header />
                 <PageWrapper>

@@ -158,7 +158,7 @@ const VendorOrders: React.FC = () => {
     return (
         <>
             <Header />
-            <div className="min-h-screen bg-gray-50 dark:bg-black p-4">
+            <div className="min-h-screen bg-[#fdfdfd] dark:bg-[#080808] p-4">
 
                 <div className="max-w-4xl mx-auto space-y-6">
                     {/* Header */}

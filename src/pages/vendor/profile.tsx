@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Suspense, useRef } from 'react';
 import axios from 'axios';
-import { MapPin, Save, X, Upload, Camera, Store, User, Truck } from 'lucide-react';
+import { MapPin, Save, X, Upload, Camera, Store, User, Truck, Loader2 } from 'lucide-react';
 const VendorMap = React.lazy(() => import('../../components/my-components/vendorMap'));
 import { Header } from '../../components/my-components/header';
 import Navbar from '../../components/my-components/navbar'
@@ -131,8 +131,8 @@ const VendorProfile: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="flex justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
             </div>
         );
     }
@@ -140,12 +140,12 @@ const VendorProfile: React.FC = () => {
     if (!vendor) return <div>Vendor not found</div>;
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black">
+        <div className="min-h-screen bg-[#fdfdfd] dark:bg-[#080808]">
             <Header />
             <div className="max-w-4xl mx-auto px-2 pb-24">
                 {/* Header Card */}
-                <div className="bg-white dark:bg-black rounded-br-2xl overflow-hidden">
-                    <div className="bg-white dark:bg-black h-20 relative">
+                <div className="bg-white dark:bg-[#080808] rounded-br-2xl overflow-hidden">
+                    <div className="bg-white dark:bg-[#080808] h-20 relative">
                     </div>
 
                     <div className="px-4 pb-8 -mt-14 relative">
@@ -245,7 +245,7 @@ const VendorProfile: React.FC = () => {
                 {/* Content Cards */}
                 <div className={`grid grid-cols-1 ${isEditing ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-8`}>
                     {/* Details Card */}
-                    <div className="bg-white dark:bg-black rounded-br-2xl px-4">
+                    <div className="bg-white dark:bg-[#080808] rounded-br-2xl px-4">
                         <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-gray-200">Vendor Details</h2>
 
                         <div className="space-y-4">

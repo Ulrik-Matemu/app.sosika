@@ -9,6 +9,7 @@ import {
 } from "../ui/card";
 import { Label } from "../ui/label";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 interface Vendor {
   id: number;
@@ -52,16 +53,18 @@ export function VendorCall() {
     checkVendorStatus();
   }, [userId]);
 
+   const navigate = useNavigate();
+
   const navigateToVendorRegistration = () => {
-    window.location.href = "/vendor-registration";
+    navigate("/vendor-registration");
   };
 
   const navigateToLearnMore = () => {
-    window.location.href = "/waitlist";
+    navigate("/waitlist");
   };
 
   const navigateToPage = (path: string) => {
-    window.location.href = path;
+    navigate(path);
   };
 
   if (isVendor === null) {
