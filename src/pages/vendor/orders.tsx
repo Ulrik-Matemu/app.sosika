@@ -59,7 +59,7 @@ const getStatusConfig = (status: OrderStatus) => {
 };
 
 const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'TZS' }).format(amount);
 
 const formatDateTime = (datetime: string) =>
     new Intl.DateTimeFormat('en-US', {
@@ -164,11 +164,20 @@ const VendorOrders: React.FC = () => {
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Orders</h1>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{stats.total} orders • {formatCurrency(stats.revenue)} revenue</p>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center">Your Orders</h1>
+                            <div className="flex justify-center gap-4 mt-2">
+                                <div className="w-full bg-gray-200 dark:bg-[#121212] p-4 rounded-lg">
+                                    <p className="text-sm dark:text-gray-400">Orders</p>
+                                    <p className="text-lg font-bold">{stats.total}</p>
+                                </div>
+                                <div className="w-full bg-gray-200 dark:bg-[#121212] p-4 rounded-lg">
+                                    <p className="text-sm dark:text-gray-400">Earnings</p>
+                                    <p className="text-lg font-bold">{formatCurrency(stats.revenue)}</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex justify-center gap-2">
                             <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val as OrderStatus | "all")}>
                                 <SelectTrigger className="w-32 text-black dark:text-white">
                                     <SelectValue />
@@ -204,7 +213,7 @@ const VendorOrders: React.FC = () => {
                             </CardContent>
                         </Card>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-3 pb-24">
                             {orders.map((order) => {
                                 const statusConfig = getStatusConfig(order.order_status);
                                 const StatusIcon = statusConfig.icon;
@@ -226,7 +235,7 @@ const VendorOrders: React.FC = () => {
                                                     <div className="space-y-1">
                                                         {order.items.map((item, idx) => (
                                                             <div key={item.id} className="text-lg text-gray-900 dark:text-white">
-                                                                <span className="font-medium">{item.quantity}x {item.name}</span>
+                                                                <span className="font-medium"><span className="font-bold">Items:</span> {item.quantity}x {item.name}</span>
                                                                 {idx < order.items.length - 1 && <span className="text-gray-400"> • </span>}
                                                             </div>
                                                         ))}
@@ -234,13 +243,13 @@ const VendorOrders: React.FC = () => {
 
                                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-black dark:text-gray-300">
                                                         <div className="flex items-center gap-1">
-                                                            <span className="font-medium">{formatCurrency(order.total_amount)}</span>
+                                                            <span className="font-medium"><span className="font-bold">Total:</span> {formatCurrency(order.total_amount)}</span>
                                                         </div>
                                                         <span className="hidden sm:inline">•</span>
-                                                        <span className="text-gray-600 dark:text-gray-400">{formatDateTime(order.order_datetime)}</span>
+                                                        <span className="text-gray-600 dark:text-gray-400"><span className="font-bold">Placed On:</span> {formatDateTime(order.order_datetime)}</span>
                                                     </div>
                                                     <div>
-                                                        <span>Customer phone: {order.phone_number}</span>
+                                                        <span className="text-lg">Customer phone: <a href={`tel:${order.phone_number}`} className="text-blue-400">{order.phone_number}</a></span>
                                                     </div>
                                                 </div>
 
