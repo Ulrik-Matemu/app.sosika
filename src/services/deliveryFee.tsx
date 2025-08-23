@@ -47,7 +47,7 @@ export const getDeliveryFee = async (vendorId: string): Promise<number> => {
     };
 
     const calculateDistance = async (current: GeoLocation, vendor: GeoLocation): Promise<number> => {
-        const MAPBOX_TOKEN = "pk.eyJ1IjoiLS11bHJpa2siLCJhIjoiY203YzV5dHIyMGY3NjJqc2Q5MmpxNm4ycCJ9.TilyKOmKcw2ekL2PY8Xofw";
+        const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
         const to = `${current.lng},${current.lat}`;
         const vendorLocation = JSON.parse(localStorage.getItem("vendorGeolocation") || "{}");
         const vendorLng = vendorLocation.y || vendor.lng;
