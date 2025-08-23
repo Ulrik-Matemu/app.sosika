@@ -26,7 +26,7 @@ const SkeletonMenuItem: React.FC = () => (
     </div>
 );
 
-const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 50 }) => {
+const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 150 }) => {
     const [items, setItems] = useState<MenuItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
