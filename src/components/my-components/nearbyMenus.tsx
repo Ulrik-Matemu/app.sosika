@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCartContext } from '../../context/cartContext';
+import { useNavigate } from 'react-router-dom';
 
 type MenuItem = {
     id: number;
@@ -35,6 +36,11 @@ const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 150 }) => {
 
     const CACHE_KEY = userLocation ? `nearbyMenusCache_${userLocation.lat}_${userLocation.lng}_${radius}` : '';
     const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+    const navigate = useNavigate();
+
+    const navigateToVendorRegistration = () => {
+        navigate("/vendor-registration");
+    }
 
     useEffect(() => {
         if (!navigator.geolocation) {
@@ -132,9 +138,17 @@ const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 150 }) => {
                             </div>
                         ))
                     ) : (
-                        <div className="w-full text-center text-gray-500 py-8">
+                        <div className="w-full  rounded-xl text-center text-gray-500 py-8">
                             <p className="mb-2">No nearby menus found in your area.</p>
-                            <p>Will notify you when vendors start selling in your area!</p>
+                            <p className="mb-4">We’ll notify you when vendors start selling nearby!</p>
+                            <button
+                                onClick={navigateToVendorRegistration}
+                                className="inline-block bg-[#00bfff] text-black font-semibold px-6 py-3 rounded-full shadow-md hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400"
+                                aria-label="Start selling in your area"
+                                title="Start selling in your area"
+                            >
+                                Start Selling in Your Area
+                            </button>
                         </div>
                     )
                 }

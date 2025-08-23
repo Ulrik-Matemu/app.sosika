@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Header } from '../components/my-components/header';
 import { Button } from '../components/ui/button'
 import PageWrapper from '../services/page-transition';
+import { useNavigate } from 'react-router-dom';
 
 const VendorRegistration = () => {
     const [currentStep, setCurrentStep] = useState(1);
@@ -57,9 +58,11 @@ const VendorRegistration = () => {
         'Other'
     ];
 
+    const navigate = useNavigate();
 
-    const navigateToProfile = () => {
-        window.location.href = '/profile';
+
+    const navigateToPath = (path: string) => {
+        navigate(path);
     }
 
 
@@ -296,7 +299,7 @@ const VendorRegistration = () => {
                     marker.current.remove();
                     marker.current = null;
                 }
-                window.location.href = '/profile';
+                navigateToPath('/vendor-profile');
             } else {
                 throw new Error(data.error || 'Registration failed');
             }
@@ -601,7 +604,7 @@ const VendorRegistration = () => {
                     </div>
                 </div>
                 <div className='flex justify-center items-center mt-8'>
-                    <Button variant='destructive' onClick={navigateToProfile}>Go Back to Profile</Button>
+                    <Button variant='destructive' onClick={() => navigateToPath('/profile')}>Go Back to Profile</Button>
                 </div>
             </div>
             </PageWrapper>

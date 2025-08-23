@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useCartContext } from '../../context/cartContext';
+import { Link } from 'react-router-dom';
+import { Star } from 'lucide-react';
 
 type MenuItem = {
     id: number;
@@ -9,6 +11,8 @@ type MenuItem = {
     vendor_id: number;
     total_sold: number;
     is_available: boolean;
+    avg_rating?: number;
+    review_count?: number;
 };
 
 const SkeletonMenuItem: React.FC = () => (
@@ -29,7 +33,7 @@ const PopularMenus: React.FC = () => {
     const { addToCart } = useCartContext();
 
     const CACHE_KEY = "popularMenusCache";
-    const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+ const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 
     useEffect(() => {
         const fetchPopularMenus = async () => {
@@ -38,15 +42,15 @@ const PopularMenus: React.FC = () => {
 
             try {
                 // Check cache first
-                const cachedData = localStorage.getItem(CACHE_KEY);
-                if (cachedData) {
-                    const { timestamp, data } = JSON.parse(cachedData);
-                    if (Date.now() - timestamp < CACHE_DURATION && data) {
-                        setItems(data);
-                        setLoading(false);
-                        return;
-                    }
-                }
+                 const cachedData = localStorage.getItem(CACHE_KEY);
+                 if (cachedData) {
+                     const { timestamp, data } = JSON.parse(cachedData);
+                     if (Date.now() - timestamp < CACHE_DURATION && data) {
+                         setItems(data);
+                         setLoading(false);
+                         return;
+                     }
+                 }
 
                 // Fetch if no valid cache
                 const response = await fetch('https://sosika-backend.onrender.com/api/menuItem/popular-menu-items');
@@ -106,35 +110,51 @@ const PopularMenus: React.FC = () => {
                     ))
                     : items.length > 0 ? (
                         items.map(item => (
+
                             <div
                                 key={item.id}
-                                className="min-w-[220px] snap-center bg-[#DEDEDE] dark:bg-[#1C1C1C] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer overflow-hidden"
+                                className="min-w-[220px] max-w-[230px] snap-center bg-[#DEDEDE] dark:bg-[#1C1C1C] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer overflow-hidden"
                             >
-                                <img
-                                    src={item.image_url.replace('/upload/', '/upload/f_auto,q_auto,w_800/')}
-                                    alt={`${item.name} from Vendor No. ${item.vendor_id} - Order now on Sosika`}
-                                    className="h-36 w-full object-cover rounded-t-2xl transform hover:scale-105 transition-transform duration-300"
-                                    loading="lazy"
-                                    width={800}
-                                    height={144}
-                                />
+                                <Link to={`/menu-item/${item.id}`} key={item.id}>
+                                    <img
+                                        src={item.image_url.replace('/upload/', '/upload/f_auto,q_auto,w_800/')}
+                                        alt={`${item.name} from Vendor No. ${item.vendor_id} - Order now on Sosika`}
+                                        className="h-36 w-full object-cover rounded-t-2xl transform hover:scale-105 transition-transform duration-300"
+                                        loading="lazy"
+                                        width={800}
+                                        height={144}
+                                    />
+                                </Link>
                                 <div className="p-4">
                                     <h3 className="text-lg font-bold text-black dark:text-white truncate mb-1">
                                         {item.name}
                                     </h3>
                                     <div className="flex items-center justify-between mt-2">
-                                        <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-                                            TSH{item.price}
-                                        </span>
+                                        <Link to={`/menu-item/${item.id}`} key={item.id}>
+                                            <div className='flex flex-col'>
+                                                <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
+                                                    TSH{item.price}
+                                                </span>
+                                                <span>
+                                                    {item.avg_rating && item.avg_rating > 0 ? (
+                                                        <span className="text-gray-200 font-bold"><Star className="inline-block text-yellow-300" /> {(Number(item.avg_rating) || 0).toFixed(1)}</span>
+                                                    ) : (
+                                                        <span className="text-gray-500">No ratings yet</span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </Link>
                                         <button
                                             className="bg-[#00bfff] text-white p-2 rounded-full shadow-md hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400"
-                                            onClick={() =>
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // prevents triggering the card click
                                                 addToCart({
                                                     ...item,
                                                     vendorId: item.vendor_id,
                                                     imageUrl: item.image_url,
                                                     isAvailable: true,
-                                                })
+                                                });
+                                            }
                                             }
                                             aria-label={`Add ${item.name} to cart`}
                                             title={`Add ${item.name} to cart`}
@@ -156,6 +176,7 @@ const PopularMenus: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+
                         ))
                     ) : (
                         <div className="w-full text-center text-gray-500 py-8">
