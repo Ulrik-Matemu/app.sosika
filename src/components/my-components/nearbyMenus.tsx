@@ -26,7 +26,7 @@ const SkeletonMenuItem: React.FC = () => (
     </div>
 );
 
-const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 7 }) => {
+const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 30 }) => {
     const [items, setItems] = useState<MenuItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -109,7 +109,7 @@ const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 7 }) => {
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-extrabold text-black dark:text-white flex items-center">
                     <span role="img" aria-label="pin" className="mr-2 text-blue-400 text-3xl">📍</span>
-                    Nearby Menus
+                    From Nearby Vendors
                 </h2>
             </div>
             <div className="flex overflow-x-auto space-x-4 pb-4 snap-x snap-mandatory scrollbar-hide">
