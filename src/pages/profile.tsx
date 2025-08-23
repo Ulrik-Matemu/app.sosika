@@ -36,6 +36,7 @@ const logout = () => {
     localStorage.removeItem('password');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
+    localStorage.removeItem('vendorId');
     window.location.href = '/login';
 }
 
