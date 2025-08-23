@@ -26,7 +26,7 @@ const SkeletonMenuItem: React.FC = () => (
     </div>
 );
 
-const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 30 }) => {
+const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 50 }) => {
     const [items, setItems] = useState<MenuItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -108,7 +108,6 @@ const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 30 }) => {
         <section className="p-4 bg-transparent rounded-2xl shadow-sm">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-extrabold text-black dark:text-white flex items-center">
-                    <span role="img" aria-label="pin" className="mr-2 text-blue-400 text-3xl">📍</span>
                     From Nearby Vendors
                 </h2>
             </div>
@@ -135,7 +134,7 @@ const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 30 }) => {
                     ) : (
                         <div className="w-full text-center text-gray-500 py-8">
                             <p className="mb-2">No nearby menus found in your area.</p>
-                            <p>Expand your search radius or check back later!</p>
+                            <p>Will notify you when vendors start selling in your area!</p>
                         </div>
                     )
                 }
