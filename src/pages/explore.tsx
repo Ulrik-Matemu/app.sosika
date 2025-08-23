@@ -10,7 +10,6 @@ import PageWrapper from '../services/page-transition';
 import { Toaster } from '../components/ui/toaster';
 import { CustomItemRequestDialog } from '../components/my-components/otherItems';
 const PopularMenus = React.lazy(() => import('../components/my-components/PopularMenus'));
-const NearbyMenus = React.lazy(() => import('../components/my-components/nearbyMenus'));
 const RecommendationCard = React.lazy(() => import('../components/my-components/recommendationCard'));
 import { logEvent, analytics } from '../firebase';
 import { useCartContext } from '../context/cartContext';
@@ -216,9 +215,6 @@ const MenuExplorer = () => {
                     <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
                             <div className='my-4'>
                                <PopularMenus />
-                            </div>
-                            <div className='my-4'>
-                               <NearbyMenus />
                             </div>
                             <RecommendationCard />
                             <div className='py-8 flex justify-center w-full'>
