@@ -26,6 +26,7 @@ import VendorRegistration from "./pages/vendorRegistration";
 import VendorProfile from "./pages/vendor/profile";
 import VendorCatalogPage from "./pages/vendor/menuItems";
 import VendorOrders from "./pages/vendor/orders";
+import MenuItemScreen from "./pages/menuItemScreen";
 
 
 function App() {
@@ -76,6 +77,7 @@ function App() {
                 <Route path="/vendor-profile" element={<VendorProfile />} />
                 <Route path="/vendor-catalog" element={<VendorCatalogPage />} />
                 <Route path="/vendor-orders" element={<VendorOrders />} />
+                <Route path="/menu-item/:id" element={<MenuItemScreen />} />
               </Routes>
             </PageWrapper>
           </TooltipProvider>
