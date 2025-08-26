@@ -4,6 +4,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from "../ui/carousel";
+import { Link } from "react-router-dom";
 
 type Vendor = {
   id: number
@@ -28,8 +29,8 @@ const VendorCarousel: React.FC = () => {
   }, [])
 
   return (
-    <div className="w-full">
-      <h2 className="text-xl font-semibold mb-4">Our Vendors</h2>
+    <div className="w-full px-4">
+      <h2 className="text-3xl font-extrabold mb-4">Vendors</h2>
       <Carousel className="w-full max-w-lg mx-auto">
         <CarouselContent>
           {vendors.map((vendor) => (
@@ -38,11 +39,13 @@ const VendorCarousel: React.FC = () => {
               className="basis-1/3 flex justify-center"
             >
               <div className="p-2">
-                <img
-                  src={vendor.logo_url}
-                  alt={vendor.name}
-                  className="h-20 w-20 object-contain rounded-lg shadow-md"
-                />
+                <Link to={`/vendor/${vendor.id}`}>
+                  <img
+                    src={vendor.logo_url}
+                    alt={vendor.name}
+                    className="h-20 w-20 object-contain rounded-lg shadow-md"
+                  />
+                </Link>
               </div>
             </CarouselItem>
           ))}
