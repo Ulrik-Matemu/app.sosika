@@ -82,7 +82,7 @@ function App() {
                 <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/profile" element={<ProfileManagement />} />
-                <Route path="/vendor" element={<VendorPage vendorId={32} />} />
+                <Route path="/vendor/:vendorId" element={<VendorPage />} />
                 <Route path="/vendor-registration" element={<VendorRegistration />} />
                 <Route path="/vendor-profile" element={<VendorProfile />} />
                 <Route path="/vendor-catalog" element={<VendorCatalogPage />} />

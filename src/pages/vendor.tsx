@@ -2,8 +2,8 @@ import { Header } from "../components/my-components/header";
 import React, { useEffect, useState } from "react";
 import { useCartContext } from '../context/cartContext';
 import CartDrawer from '../components/my-components/CartDrawer';
-import { ShoppingCart } from 'lucide-react';
 import Navbar from "../components/my-components/navbar";
+import { useParams } from "react-router-dom";
 
 interface Vendor {
   id: number;
@@ -26,7 +26,8 @@ interface MenuItem {
   image_url: string;
 }
 
-const VendorPage: React.FC<{ vendorId: number }> = ({ vendorId }) => {
+const VendorPage: React.FC = () => {
+  const { vendorId } = useParams<{ vendorId: string }>();
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<
@@ -241,18 +242,7 @@ const VendorPage: React.FC<{ vendorId: number }> = ({ vendorId }) => {
         </div>
       </div>
 
-      {/* Floating Cart Button */}
-      <button
-        className="fixed bottom-24 right-8 z-50 bg-[#00bfff] hover:bg-[#0099cc] text-white rounded-full shadow-lg p-4 flex items-center gap-2 transition-all duration-200"
-        onClick={() => setIsCartOpen(true)}
-      >
-        <ShoppingCart className="h-6 w-6" />
-        {cart.length > 0 && (
-          <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs font-bold">
-            {cart.reduce((sum, item) => sum + item.quantity, 0)}
-          </span>
-        )}
-      </button>
+      
       <Navbar />
       <CartDrawer
         isOpen={isCartOpen}
