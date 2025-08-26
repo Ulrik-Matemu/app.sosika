@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useCartContext } from '../../context/cartContext';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom'
 
 type MenuItem = {
     id: number;
@@ -27,7 +28,7 @@ const SkeletonMenuItem: React.FC = () => (
     </div>
 );
 
-const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 150 }) => {
+const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 1500 }) => {
     const [items, setItems] = useState<MenuItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -122,10 +123,14 @@ const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 150 }) => {
                     items.length > 0 ? (
                         items.map(item => (
                             <div key={item.id} className="min-w-[220px] snap-center bg-[#DEDEDE] dark:bg-[#1C1C1C] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer overflow-hidden">
-                                <img src={item.image_url.replace('/upload/', '/upload/f_auto,q_auto,w_800/')} alt={`${item.name} from ${item.vendor_name || `Vendor No. ${item.vendor_id}`} - Order now on Sosika`} className="h-36 w-full object-cover rounded-t-2xl transform hover:scale-105 transition-transform duration-300" loading="lazy" width={800} height={144} />
+                                <Link to={`/menu-item/${item.id}`} key={item.id}>
+                                    <img src={item.image_url.replace('/upload/', '/upload/f_auto,q_auto,w_800/')} alt={`${item.name} from ${item.vendor_name || `Vendor No. ${item.vendor_id}`} - Order now on Sosika`} className="h-36 w-full object-cover rounded-t-2xl transform hover:scale-105 transition-transform duration-300" loading="lazy" width={800} height={144} />
+                                </Link>
                                 <div className="p-4">
-                                    <h3 className="text-lg font-bold text-black dark:text-white truncate mb-1">{item.name}</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{item.vendor_name || `Vendor ${item.vendor_id}`}</p>
+                                    <Link to={`/menu-item/${item.id}`} key={item.id}>
+                                        <h3 className="text-lg font-bold text-black dark:text-white truncate mb-1">{item.name}</h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{item.vendor_name || `Vendor ${item.vendor_id}`}</p>
+                                    </Link>
                                     <div className="flex items-center justify-between mt-2">
                                         <span className="text-base font-semibold text-gray-800 dark:text-gray-200">TSH{item.price}</span>
                                         <button className="bg-[#00bfff] text-white p-2 rounded-full shadow-md hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400" onClick={() => addToCart({ ...item, vendorId: item.vendor_id, imageUrl: item.image_url, isAvailable: true })} aria-label={`Add ${item.name} to cart`} title={`Add ${item.name} to cart`} type="button">
