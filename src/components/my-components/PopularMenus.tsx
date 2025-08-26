@@ -137,7 +137,7 @@ const PopularMenus: React.FC = () => {
                                                 </span>
                                                 <span>
                                                     {item.avg_rating && item.avg_rating > 0 ? (
-                                                        <span className="text-gray-200 font-bold"><Star className="inline-block text-yellow-300" /> {(Number(item.avg_rating) || 0).toFixed(1)}</span>
+                                                        <span className="text-gray-800 dark:text-gray-200 font-bold"><Star className="inline-block text-yellow-400 dark:text-yellow-300" /> {(Number(item.avg_rating) || 0).toFixed(1)}</span>
                                                     ) : (
                                                         <span className="text-gray-500">No ratings yet</span>
                                                     )}

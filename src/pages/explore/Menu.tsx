@@ -140,7 +140,7 @@ export const useMenu = () => {
     try {
       // Fetch from API
       const response = await axios.get(`${API_URL}/menuItems`, {
-        params: { page, limit: 10 },
+        params: { page, limit: 30 },
       });
   
       // Safely extract data with defaults

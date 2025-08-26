@@ -19,6 +19,7 @@ import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
 import { useLocationSelector } from '../hooks/useLocationSelector';
 import CartDrawer from '../components/my-components/CartDrawer';
 const LocationPickerModal = React.lazy(() => import('../components/my-components/LocationPicker'));
+import VendorCarousel from '../components/my-components/vendorCaurosel';
 
 
 const isInStandaloneMode = () =>
@@ -214,6 +215,9 @@ const MenuExplorer = () => {
                     )}
 
                     <div className="max-w-7xl mx-auto px-4 py-2 pb-12">
+                            <div className='my-4'>
+                               <VendorCarousel />
+                            </div>
                             <div className='my-4'>
                                <PopularMenus />
                             </div>
