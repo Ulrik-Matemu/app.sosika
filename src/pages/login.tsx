@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import NotificationHandler from '../components/my-components/notification-handler';
 
 interface LoginFormData {
@@ -21,6 +21,11 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const navigate = useNavigate();
+
+  const navigateToPath = (path: string) => {
+    navigate(path);
+  };
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -57,8 +62,8 @@ const LoginPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  
-  
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,7 +126,7 @@ const LoginPage: React.FC = () => {
     setShowPassword(!showPassword);
   };
 
- 
+
 
   return (
     <div className="min-h-screen bg-[#121212] text-[#e7e7e7] flex flex-col">
@@ -240,10 +245,10 @@ const LoginPage: React.FC = () => {
                 ></span>
               </button>
               <span className="ml-3 text-sm text-[#a0a0a0]">Remember me</span>
-              
+
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col gap-8">
               <button
                 type="submit"
                 disabled={loading}
@@ -255,8 +260,12 @@ const LoginPage: React.FC = () => {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                 ) : (
-                  'Sign In'
+                  'Log In'
                 )}
+              </button>
+
+              <button onClick={() => navigateToPath('/register')} className='w-full flex justify-center items-center py-4 px-4 bg-black text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5'>
+                Register Instead
               </button>
             </div>
           </form>
@@ -269,12 +278,7 @@ const LoginPage: React.FC = () => {
 
           <div className="mt-8 text-center">
             <p className='text-[#a0a0a0] mb-10'>Forgot Password.<Link to="/forgot-password" className='text-blue-400'>Click Me</Link></p>
-            <p className="text-[#a0a0a0]">
-              Don't have an account?{' '}<Link to="/register" className="text-[#e7e7e7] font-medium hover:underline">
-  Register
-</Link>
-
-            </p>
+            
           </div>
         </div>
       </div>
