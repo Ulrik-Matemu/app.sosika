@@ -4,6 +4,7 @@ import { getOrderSummaryHtml } from '../pages/explore/orderSummaryHtml';
 import { logEvent, analytics } from '../firebase';
 import axios from 'axios';
 import { getDeliveryFee } from '../services/deliveryFee';
+import { useNavigate } from 'react-router-dom';
 
 type MenuItem = {
   id: number;
@@ -73,9 +74,17 @@ export function useCart() {
     setCart([]);
   }, []);
 
+
+
   // Global checkout function
   const checkout = async () => {
     setLoading(true);
+
+    const navigate = useNavigate();
+
+    const navigateToLogin = () => {
+      navigate('/login');
+    }
 
     const userId = localStorage.getItem('userId');
 
@@ -92,7 +101,7 @@ export function useCart() {
       });
 
       if (result.isConfirmed) {
-        window.location.href = '/login'; // redirect to login/register page
+        navigateToLogin();
       }
       return;
     }

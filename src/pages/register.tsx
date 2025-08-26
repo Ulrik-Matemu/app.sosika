@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function useQuery() {
     return new URLSearchParams(useLocation().search);
@@ -41,6 +41,10 @@ export const RegisterPage: React.FC = () => {
     const [step, setStep] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
     const API_URL = import.meta.env.VITE_API_URL;
+    const navigate = useNavigate();
+    const navigateToPath = (path: string) => {
+        navigate(path);
+    }
     
 
 
@@ -144,7 +148,7 @@ export const RegisterPage: React.FC = () => {
                     localStorage.setItem('userId', data.user.id);
                     localStorage.setItem('email', formData.email);
                     localStorage.setItem('password', formData.password);
-                    window.location.href = '/explore';
+                    navigateToPath('/explore');
                     // Optionally, redirect user after successful registration
                 }, 1500);
             } else {
