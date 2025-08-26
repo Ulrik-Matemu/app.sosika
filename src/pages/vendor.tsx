@@ -185,6 +185,7 @@ const VendorPage: React.FC = () => {
                 key={item.id}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-200 flex flex-col"
               >
+                <Link to={`/menu-item/${item.id}`} key={item.id}>
                 <img
                   src={
                     item.image_url ||
@@ -193,6 +194,7 @@ const VendorPage: React.FC = () => {
                   alt={item.name}
                   className="w-full h-36 sm:h-48 object-cover rounded-t-xl"
                 />
+                </Link>
                 <div className="p-4 flex-grow flex flex-col justify-between">
                   <Link to={`/menu-item/${item.id}`} key={item.id}>
                     <div>
