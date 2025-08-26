@@ -30,7 +30,6 @@ const VendorCarousel: React.FC = () => {
 
   return (
     <div className="w-full px-4">
-      <h2 className="text-3xl font-extrabold mb-4">Vendors</h2>
       <Carousel className="w-full max-w-lg mx-auto">
         <CarouselContent>
           {vendors.map((vendor) => (
