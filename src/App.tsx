@@ -74,21 +74,20 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/waitlist" element={<Waitlist />} />
-
+              <Route path="/vendor/:vendorId" element={<VendorPage />} />
+              <Route path="/menu-item/:id" element={<MenuItemScreen />} />
+              <Route path="/explore" element={<MenuExplorer />} />
+              <Route path="/browse" element={<Browser />} />
               {/* Private Routes */}
               <Route element={<PrivateRoutes />}>
-                <Route path="/" element={<AuthRedirect />} />
-                <Route path="/explore" element={<MenuExplorer />} />
+                <Route path="/" element={<AuthRedirect />} />     
                 <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/profile" element={<ProfileManagement />} />
-                <Route path="/vendor/:vendorId" element={<VendorPage />} />
                 <Route path="/vendor-registration" element={<VendorRegistration />} />
                 <Route path="/vendor-profile" element={<VendorProfile />} />
                 <Route path="/vendor-catalog" element={<VendorCatalogPage />} />
                 <Route path="/vendor-orders" element={<VendorOrders />} />
-                <Route path="/menu-item/:id" element={<MenuItemScreen />} />
-                <Route path="/browse" element={<Browser />} />
               </Route>
             </Routes>
           </PageWrapper>

@@ -6,21 +6,21 @@ import axios from 'axios';
 import { getDeliveryFee } from '../services/deliveryFee';
 
 type MenuItem = {
-    id: number;
-    name: string;
-    price: string;
-    vendorId: number;
-    description?: string;
-    imageUrl?: string;
-    category?: string;
-    isAvailable?: boolean;
-    quantity?: number;
-    // Add other fields as needed
+  id: number;
+  name: string;
+  price: string;
+  vendorId: number;
+  description?: string;
+  imageUrl?: string;
+  category?: string;
+  isAvailable?: boolean;
+  quantity?: number;
+  // Add other fields as needed
 };
 
 type CartItem = MenuItem & {
-    quantity: number;
-    vendorId: number;
+  quantity: number;
+  vendorId: number;
 };
 export function useCart() {
   // Load cart from localStorage if available
@@ -75,107 +75,127 @@ export function useCart() {
 
   // Global checkout function
   const checkout = async () => {
-  setLoading(true);
-  logEvent(analytics, 'reached_checkout', {
-    userId: localStorage.getItem('userId'),
-  });
+    setLoading(true);
 
-  if (cart.length === 0) {
-    await Swal.fire({
-      title: 'Empty Cart',
-      text: 'Your cart is empty.',
-      icon: 'warning'
-    });
-    setLoading(false);
-    return;
-  }
+    const userId = localStorage.getItem('userId');
 
-  try {
-    const user_id = localStorage.getItem('userId');
-    const vendor_id = cart[0].vendorId;
-
-    // Dynamically calculate delivery fee
-    let delivery_fee = 0;
-    try {
-      delivery_fee = await getDeliveryFee(vendor_id.toString());
-    } catch (err) {
-      console.warn('Failed to calculate delivery fee:', err);
-      delivery_fee = 0; // fallback
-    }
-
-    let info = 'Delivery fee is calculated according to distance. If too high, try ordering from nearby vendors';
-    if (delivery_fee > 50000) {
-      info = "Your delivery fee seems too high. Try checking your location or ordering from nearby vendors.";
-    }
-
-    let deliveryTime = "ASAP";
-    let note = "Made Fresh Just for You!";
-    let requested_asap = true;
-
-    if (cart[0].id === 7) {
-      deliveryTime = "Tomorrow";
-      note = "This delightful treat takes a day to prepare with extra care and love. We'll deliver it fresh and fabulous by tomorrow!🍰";
-      await Swal.fire({
-        title: "Special Order!",
-        text: "This special treat takes a day to prepare with love. We’ll have it delivered fresh and delightful by tomorrow!",
-        icon: "info",
+    // 1️⃣ Check if user is logged in
+    if (!userId) {
+      setLoading(false);
+      const result = await Swal.fire({
+        title: 'Login Required',
+        text: 'You need to login or register to place an order.',
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Login / Register',
+        cancelButtonText: 'Cancel',
       });
+
+      if (result.isConfirmed) {
+        window.location.href = '/login'; // redirect to login/register page
+      }
+      return;
     }
 
-    // Show order summary with calculated delivery fee
-    const result = await Swal.fire({
-      title: 'Confirm Your Order',
-      html: getOrderSummaryHtml({ cart, deliveryTime, delivery_fee, info: { message: info }, note }),
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Place Order',
-      cancelButtonText: 'Cancel'
-    });
+    logEvent(analytics, 'reached_checkout', { userId });
 
-    if (!result.isConfirmed) {
+    // 2️⃣ Check if cart is empty
+    if (cart.length === 0) {
+      await Swal.fire({
+        title: 'Empty Cart',
+        text: 'Your cart is empty.',
+        icon: 'warning'
+      });
       setLoading(false);
       return;
     }
 
-    // Prepare order payload
-    const orderData = {
-      user_id,
-      vendor_id,
-      delivery_fee,
-      requested_asap,
-      payment_method: "Cash on Delivery",
-      order_items: cart.map(item => ({
-        menu_item_id: item.id,
-        quantity: item.quantity,
-        price: parseFloat(item.price)
-      }))
-    };
+    try {
+      const vendor_id = cart[0].vendorId;
 
-    // Place order
-    const response = await axios.post(`${import.meta.env.VITE_API_URL}/orders`, orderData);
+      // Calculate delivery fee
+      let delivery_fee = 0;
+      try {
+        delivery_fee = await getDeliveryFee(vendor_id.toString());
+      } catch (err) {
+        console.warn('Failed to calculate delivery fee:', err);
+        delivery_fee = 0;
+      }
 
-    if (response.status === 201) {
-      await Swal.fire({
-        title: 'Order Placed',
-        text: `Order ID: ${response.data.order_id} placed successfully! 🚀`,
-        icon: "success"
+      let info = 'Delivery fee is calculated according to distance. If too high, try ordering from nearby vendors';
+      if (delivery_fee > 50000) {
+        info = "Your delivery fee seems too high. Try checking your location or ordering from nearby vendors.";
+      }
+
+      let deliveryTime = "ASAP";
+      let note = "Made Fresh Just for You!";
+      let requested_asap = true;
+
+      if (cart[0].id === 7) {
+        deliveryTime = "Tomorrow";
+        note = "This delightful treat takes a day to prepare with extra care and love. We'll deliver it fresh and fabulous by tomorrow!🍰";
+        await Swal.fire({
+          title: "Special Order!",
+          text: note,
+          icon: "info",
+        });
+      }
+
+      // Order summary
+      const result = await Swal.fire({
+        title: 'Confirm Your Order',
+        html: getOrderSummaryHtml({ cart, deliveryTime, delivery_fee, info: { message: info }, note }),
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Place Order',
+        cancelButtonText: 'Cancel'
       });
-      setCart([]);
-      window.location.href = `/order-tracking/${response.data.order_id}`;
-    }
 
-  } catch (error) {
-    console.error("Checkout error:", error);
-    await Swal.fire({
-      title: 'Error',
-      text: 'Failed to place order. Please try again.',
-      icon: 'error'
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+      if (!result.isConfirmed) {
+        setLoading(false);
+        return;
+      }
+
+      // Prepare order payload
+      const orderData = {
+        user_id: userId,
+        vendor_id,
+        delivery_fee,
+        requested_asap,
+        payment_method: "Cash on Delivery",
+        order_items: cart.map(item => ({
+          menu_item_id: item.id,
+          quantity: item.quantity,
+          price: parseFloat(item.price)
+        }))
+      };
+
+      // Place order
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/orders`, orderData);
+
+      if (response.status === 201) {
+        await Swal.fire({
+          title: 'Order Placed',
+          text: `Order ID: ${response.data.order_id} placed successfully! 🚀`,
+          icon: "success"
+        });
+        setCart([]);
+        window.location.href = `/order-tracking/${response.data.order_id}`;
+      }
+
+    } catch (error) {
+      console.error("Checkout error:", error);
+      await Swal.fire({
+        title: 'Error',
+        text: 'Failed to place order. Please try again.',
+        icon: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
 
   return {

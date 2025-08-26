@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useCartContext } from '../context/cartContext';
 import { Header } from '../components/my-components/header';
 import NavBar from '../components/my-components/navbar';
 import { Button } from '../components/ui/button';
 import { Star } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 type MenuItem = {
     id: number;
@@ -41,6 +42,11 @@ const MenuItemScreen: React.FC = () => {
     const [userReview, setUserReview] = useState<string>('');
     const [submitting, setSubmitting] = useState(false);
     const userId = localStorage.getItem('userId'); // adjust according to auth
+    const navigate = useNavigate();
+
+    const navigateToPath = (path:string) => {
+        navigate(path);
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -72,6 +78,23 @@ const MenuItemScreen: React.FC = () => {
     const handleSubmitReview = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!userRating || !userReview.trim()) return;
+
+        if (!userId) {
+              setLoading(false);
+              const result = await Swal.fire({
+                title: 'Login Required',
+                text: 'You need to login or register to leave a review.',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Login / Register',
+                cancelButtonText: 'Cancel',
+              });
+        
+              if (result.isConfirmed) {
+                navigateToPath('/login');
+              }
+              return;
+            }
 
         setSubmitting(true);
         try {
