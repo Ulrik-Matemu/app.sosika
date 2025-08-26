@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useCartContext } from '../context/cartContext';
 import CartDrawer from '../components/my-components/CartDrawer';
 import Navbar from "../components/my-components/navbar";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 interface Vendor {
   id: number;
@@ -149,7 +149,7 @@ const VendorPage: React.FC = () => {
             >
               {vendor.is_open ? "Open Now" : "Closed"}
             </p>
-           
+
           </div>
         </div>
       </div>
@@ -175,7 +175,7 @@ const VendorPage: React.FC = () => {
             ))}
           </div>
         </div>
-        
+
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
@@ -194,28 +194,30 @@ const VendorPage: React.FC = () => {
                   className="w-full h-36 sm:h-48 object-cover rounded-t-xl"
                 />
                 <div className="p-4 flex-grow flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                      {item.name}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-2 line-clamp-2">
-                      {item.description}
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center mt-auto pt-2">
-                    <p className="text-green-700 dark:text-green-500 font-bold text-lg">
-                      ${item.price}
-                    </p>
-                    <p
-                      className={`text-xs font-medium px-2 py-1 rounded-full
+                  <Link to={`/menu-item/${item.id}`} key={item.id}>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                        {item.name}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-2 line-clamp-2">
+                        {item.description}
+                      </p>
+                    </div>
+                    <div className="flex justify-between items-center mt-auto pt-2">
+                      <p className="text-green-700 dark:text-green-500 font-bold text-lg">
+                        ${item.price}
+                      </p>
+                      <p
+                        className={`text-xs font-medium px-2 py-1 rounded-full
                         ${item.is_available
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                        }`}
-                    >
-                      {item.is_available ? "Available" : "Out of Stock"}
-                    </p>
-                  </div>
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                          }`}
+                      >
+                        {item.is_available ? "Available" : "Out of Stock"}
+                      </p>
+                    </div>
+                  </Link>
                   {/* Add to Cart Button */}
                   <button
                     className="mt-4 w-full bg-[#00bfff] text-white py-2 rounded-lg font-semibold hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -242,7 +244,7 @@ const VendorPage: React.FC = () => {
         </div>
       </div>
 
-      
+
       <Navbar />
       <CartDrawer
         isOpen={isCartOpen}
