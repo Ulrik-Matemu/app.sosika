@@ -97,7 +97,7 @@ const LoginPage: React.FC = () => {
 
 
           // Navigate to explore page
-          window.location.href = '/explore';
+          navigateToPath('/explore');
 
 
 
