@@ -136,7 +136,7 @@ const MenuItemScreen: React.FC = () => {
                         <h2>{item.vendor_name}</h2>
                         <div className="flex flex-col mt-2">
                             <span className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                                TSH{item.price}
+                                TSH {item.price}
                             </span>
                             <div className="flex items-center gap-1">
                                 <Star className="text-yellow-500" />
