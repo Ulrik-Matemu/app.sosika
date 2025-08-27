@@ -4,6 +4,8 @@ import { useCartContext } from '../context/cartContext';
 import CartDrawer from '../components/my-components/CartDrawer';
 import Navbar from "../components/my-components/navbar";
 import { useParams, Link } from "react-router-dom";
+import { Share2 } from "lucide-react";
+import { Button } from "../components/ui/button";
 
 interface Vendor {
   id: number;
@@ -77,10 +79,28 @@ const VendorPage: React.FC = () => {
     fetchData();
   }, [vendorId]);
 
+  const shareVendor = (vendorId: number, vendorName: string) => {
+    const url = `${window.location.origin}/vendor/${vendorId}`
+    if (navigator.share) {
+      navigator
+        .share({
+          title: `Check out ${vendorName} on Sosika!`,
+          url,
+        })
+        .catch((err) => console.error("Share failed:", err))
+    } else {
+      // fallback: copy to clipboard
+      navigator.clipboard.writeText(url)
+      alert("Link copied to clipboard!")
+    }
+  }
+
   const filteredItems =
     selectedCategory === "all"
       ? menuItems
       : menuItems.filter((item) => item.category === selectedCategory);
+
+
 
   if (isLoading) {
     return (
@@ -143,13 +163,22 @@ const VendorPage: React.FC = () => {
         <div className="absolute inset-0 bg-black bg-opacity-40 flex items-end p-4">
           <div>
             <h1 className="text-3xl font-bold text-white mb-1">{vendor.name}</h1>
-            <p
-              className={`mt-1 font-semibold text-sm ${vendor.is_open ? "text-green-400" : "text-red-400"
-                }`}
-            >
-              {vendor.is_open ? "Open Now" : "Closed"}
-            </p>
-
+            <div className="flex items-center space-x-4">
+              <p
+                className={`mt-1 font-semibold text-sm ${vendor.is_open ? "text-green-400" : "text-red-400"
+                  }`}
+              >
+                {vendor.is_open ? "Open Now" : "Closed"}
+              </p>
+              <Button
+                onClick={() => shareVendor(vendor.id, vendor.name)}
+                className="mt-2 text-sm  hover:underline"
+                variant="secondary"
+              >
+                <Share2 className="inline-block mr-1" size={16} />
+                Share
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -186,14 +215,14 @@ const VendorPage: React.FC = () => {
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-200 flex flex-col"
               >
                 <Link to={`/menu-item/${item.id}`} key={item.id}>
-                <img
-                  src={
-                    item.image_url ||
-                    "https://via.placeholder.com/400x250/F3F4F6/9CA3AF?text=No+Image"
-                  }
-                  alt={item.name}
-                  className="w-full h-36 sm:h-48 object-cover rounded-t-xl"
-                />
+                  <img
+                    src={
+                      item.image_url ||
+                      "https://via.placeholder.com/400x250/F3F4F6/9CA3AF?text=No+Image"
+                    }
+                    alt={item.name}
+                    className="w-full h-36 sm:h-48 object-cover rounded-t-xl"
+                  />
                 </Link>
                 <div className="p-4 flex-grow flex flex-col justify-between">
                   <Link to={`/menu-item/${item.id}`} key={item.id}>
@@ -207,7 +236,7 @@ const VendorPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center mt-auto pt-2">
                       <p className="text-green-700 dark:text-green-500 font-bold text-lg">
-                        ${item.price}
+                        TSH {item.price}
                       </p>
                       <p
                         className={`text-xs font-medium px-2 py-1 rounded-full
@@ -221,7 +250,7 @@ const VendorPage: React.FC = () => {
                     </div>
                   </Link>
                   {/* Add to Cart Button */}
-                  <button
+                  <Button
                     className="mt-4 w-full bg-[#00bfff] text-white py-2 rounded-lg font-semibold hover:bg-[#0099cc] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={!item.is_available}
                     onClick={() => addToCart({
@@ -234,7 +263,7 @@ const VendorPage: React.FC = () => {
                     })}
                   >
                     Add to Cart
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))
