@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { useCartContext } from '../../context/cartContext';
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
@@ -189,4 +189,4 @@ const PopularMenus: React.FC = () => {
     );
 };
 
-export default PopularMenus;
+export default memo(PopularMenus);

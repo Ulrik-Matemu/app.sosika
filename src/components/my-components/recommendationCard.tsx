@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import axios from "axios";
 import {
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
@@ -209,4 +209,4 @@ const RecommendationCard: React.FC = () => {
   );
 };
 
-export default RecommendationCard;
+export default memo(RecommendationCard);

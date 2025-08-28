@@ -12,7 +12,7 @@ export const Maintenance = () => {
             Maintenance Mode
             </h1>
             <p className="text-base sm:text-lg text-gray-600 mb-8 text-center">
-            We are currently undergoing maintenance. Please check back later.
+            We improving a few things to provide you with top-notch service.
             </p>
         </div>
     );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { useCartContext } from '../../context/cartContext';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom'
@@ -162,4 +162,4 @@ const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 1500 }) => {
     );
 };
 
-export default NearbyMenus;
+export default memo(NearbyMenus);
