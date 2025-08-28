@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, memo } from "react"
 import {
   Carousel,
   CarouselContent,
@@ -18,12 +18,36 @@ const VendorCarousel: React.FC = () => {
 
   useEffect(() => {
     const fetchVendors = async () => {
+      // Define a cache key and an expiration time (e.g., 1 hour)
+      const cacheKey = "vendorData"
+      const cacheExpirationTime = 2 * 60 * 1000 // 2 minutes in milliseconds
+
+      // Check for cached data in localStorage
+      const cachedData = localStorage.getItem(cacheKey)
+
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData)
+        // Check if the cache is still valid
+        if (Date.now() - timestamp < cacheExpirationTime) {
+          console.log("Using cached vendor data")
+          setVendors(data)
+          setLoading(false)
+          return // Exit early
+        } else {
+          console.log("Cached data expired, fetching new data...")
+          localStorage.removeItem(cacheKey) // Clear expired cache
+        }
+      }
+
+      // If no cached data or it's expired, fetch from the API
       try {
         const res = await fetch(
           "https://sosika-backend.onrender.com/api/vendor"
         )
         const data = await res.json()
         setVendors(data)
+        // Cache the new data with a timestamp
+        localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }))
       } catch (err) {
         console.error("Error fetching vendors:", err)
       } finally {
@@ -70,4 +94,4 @@ const VendorCarousel: React.FC = () => {
   )
 }
 
-export default VendorCarousel
+export default memo(VendorCarousel)

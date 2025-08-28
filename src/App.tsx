@@ -15,7 +15,7 @@ import { setupPushNotifications } from "./services/push-notifications";
 import { analytics, logEvent } from "./firebase";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/cartContext";
-import { AuthRedirect } from "./pages/AuthRedirects";
+// import { AuthRedirect } from "./pages/AuthRedirects";
 import VendorPage from "./pages/vendor";
 import PageWrapper from "./services/page-transition";
 import Waitlist from "./pages/waitlist";
@@ -25,6 +25,7 @@ import VendorProfile from "./pages/vendor/profile";
 import VendorCatalogPage from "./pages/vendor/menuItems";
 import VendorOrders from "./pages/vendor/orders";
 import MenuItemScreen from "./pages/menuItemScreen";
+import { Maintenance } from "./pages/maintenance";
 
 function App() {
   useEffect(() => {
@@ -80,7 +81,7 @@ function App() {
               <Route path="/browse" element={<Browser />} />
               {/* Private Routes */}
               <Route element={<PrivateRoutes />}>
-                <Route path="/" element={<AuthRedirect />} />     
+                <Route path="/" element={<Maintenance />} />     
                 <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/profile" element={<ProfileManagement />} />
