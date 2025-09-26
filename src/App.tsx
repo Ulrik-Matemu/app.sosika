@@ -15,7 +15,7 @@ import { setupPushNotifications } from "./services/push-notifications";
 import { analytics, logEvent } from "./firebase";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/cartContext";
-// import { AuthRedirect } from "./pages/AuthRedirects";
+import { AuthRedirect } from "./pages/AuthRedirects";
 import VendorPage from "./pages/vendor";
 import PageWrapper from "./services/page-transition";
 import Waitlist from "./pages/waitlist";
