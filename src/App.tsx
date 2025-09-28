@@ -25,7 +25,7 @@ import VendorProfile from "./pages/vendor/profile";
 import VendorCatalogPage from "./pages/vendor/menuItems";
 import VendorOrders from "./pages/vendor/orders";
 import MenuItemScreen from "./pages/menuItemScreen";
-// import { Maintenance } from "./pages/maintenance";
+import { Maintenance } from "./pages/maintenance";
 
 function App() {
   useEffect(() => {
@@ -81,7 +81,7 @@ function App() {
               <Route path="/browse" element={<Browser />} />
               {/* Private Routes */}
               <Route element={<PrivateRoutes />}>
-                <Route path="/" element={<MenuExplorer />} />     
+                <Route path="/" element={<Maintenance />} />     
                 <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/profile" element={<ProfileManagement />} />
