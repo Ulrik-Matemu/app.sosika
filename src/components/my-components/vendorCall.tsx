@@ -69,11 +69,16 @@ export function VendorCall() {
 
   if (isVendor === null) {
     // Loading state
-    return <div>
-      <div className="w-full flex justify-center p-4 border rounded-xl">
-        <span className="font-bold">Please wait...</span>
+    <div className="w-full flex justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="animate-pulse flex flex-col gap-4">
+          <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-2/3 mb-2" />
+          <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/2 mb-4" />
+          <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded mb-2" />
+          <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded mb-2" />
+        </div>
       </div>
-    </div>;
+    </div>
   }
 
   return (
