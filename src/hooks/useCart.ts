@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
-import { getOrderSummaryHtml } from '../pages/explore/orderSummaryHtml';
+// import { getOrderSummaryHtml } from '../pages/explore/orderSummaryHtml';
 import { logEvent, analytics } from '../firebase';
-import axios from 'axios';
-import { getDeliveryFee } from '../services/deliveryFee';
-import { toast } from './use-toast';
+// import axios from 'axios';
+// import { getDeliveryFee } from '../services/deliveryFee';
+// import { toast } from './use-toast';
 
 type MenuItem = {
   id: number;
