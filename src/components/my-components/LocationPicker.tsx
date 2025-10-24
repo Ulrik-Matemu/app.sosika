@@ -21,6 +21,9 @@ export default function LocationPickerModal({
     const [address, setAddress] = useState('');
     const [coordinates, setCoordinates] = useState<{ lng: number; lat: number } | null>(null);
     const [buttonSuccess, setButtonSuccess] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+
 
     // 🧠 Throttle so we don’t spam updateLocation on move
     const throttle = (fn: (...args: any) => void, delay: number) => {
@@ -55,6 +58,35 @@ export default function LocationPickerModal({
         onLocationSelect(lng, lat, fetchedAddress);
     }, [onLocationSelect]);
 
+    const handleSearch = async (query: string) => {
+        setSearchQuery(query);
+        if (!query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
+                }&autocomplete=true&limit=5`
+            );
+            const data = await response.json();
+            setSearchResults(data.features || []);
+        } catch (error) {
+            console.error('Search failed:', error);
+        }
+    };
+
+
+    const handleResultClick = (result: any) => {
+        const [lng, lat] = result.center;
+        mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
+        updateLocation(lng, lat);
+        setSearchResults([]);
+        setSearchQuery(result.place_name);
+    };
+
+
     useEffect(() => {
         if (!isOpen || !mapContainerRef.current) return;
 
@@ -65,16 +97,23 @@ export default function LocationPickerModal({
             mapboxgl.default.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
             let center: [number, number] = [39.2083, -6.7924];
-            if (navigator.geolocation) {
+
+            // 🗺️ Try localStorage first
+            const savedLocation = localStorage.getItem("selectedLocation");
+            if (savedLocation) {
+                const parsed = JSON.parse(savedLocation);
+                center = [parsed.lng, parsed.lat];
+            } else if (navigator.geolocation) {
                 try {
                     const position = await new Promise<GeolocationPosition>((resolve, reject) =>
                         navigator.geolocation.getCurrentPosition(resolve, reject)
                     );
                     center = [position.coords.longitude, position.coords.latitude];
                 } catch {
-                    // fallback
+                    // fallback to default
                 }
             }
+
 
             map = new mapboxgl.Map({
                 container: mapContainerRef.current!,
@@ -87,6 +126,13 @@ export default function LocationPickerModal({
                 const center = map.getCenter();
                 updateLocation(center.lng, center.lat);
             });
+
+            if (savedLocation) {
+                const parsed = JSON.parse(savedLocation);
+                setAddress(parsed.name);
+                setCoordinates({ lng: parsed.lng, lat: parsed.lat });
+            }
+
 
             map.on('moveend', throttle(() => {
                 const center = map.getCenter();
@@ -103,11 +149,19 @@ export default function LocationPickerModal({
         };
     }, [isOpen, updateLocation]);
 
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (searchQuery.trim()) handleSearch(searchQuery);
+        }, 400);
+        return () => clearTimeout(timeout);
+    }, [searchQuery]);
+
+
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-[#ededed] dark:bg-[#121212] p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+            <div className="bg-[#ededed] dark:bg-[#121212] p-3 rounded-lg shadow-lg w-[90%] max-w-md">
                 <div className="flex justify-between items-center">
                     <h2 className="text-lg font-bold text-[#00bfff]">Select Location</h2>
                     <button onClick={onClose}>
@@ -115,7 +169,31 @@ export default function LocationPickerModal({
                     </button>
                 </div>
 
-                <div className="mt-4 h-64 rounded overflow-hidden relative">
+                <div className="mt-4 h-[300px] rounded overflow-hidden relative">
+                    <div className="relative mt-3">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search location..."
+                            className="w-full p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00bfff] dark:bg-[#1a1a1a] dark:text-white"
+                        />
+
+                        {searchResults.length > 0 && (
+                            <ul className="absolute z-20 bg-white dark:bg-[#1a1a1a] border border-gray-300 rounded mt-1 w-full max-h-40 overflow-y-auto shadow">
+                                {searchResults.map((result) => (
+                                    <li
+                                        key={result.id}
+                                        onClick={() => handleResultClick(result)}
+                                        className="p-2 hover:bg-[#f0f8ff] dark:hover:bg-[#2a2a2a] cursor-pointer text-sm"
+                                    >
+                                        {result.place_name}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
                     <div ref={mapContainerRef} className="w-full h-full rounded" />
                     <div className="pointer-events-none absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full z-10">
                         <img src="/icons/icons8-map-pin-100.png" className="w-20 h-20" alt="marker" />
@@ -125,20 +203,27 @@ export default function LocationPickerModal({
                 <button
                     onClick={() => {
                         if (coordinates && address) {
-                            handleSelectLocation({
+                            const selectedLocation = {
                                 lat: coordinates.lat,
                                 lng: coordinates.lng,
                                 name: address,
-                            });
+                            };
+
+                            // Save to localStorage
+                            localStorage.setItem("selectedLocation", JSON.stringify(selectedLocation));
+
+                            // Notify parent
+                            handleSelectLocation(selectedLocation);
+
                             setButtonSuccess(true);
                             setTimeout(() => setButtonSuccess(false), 1500);
                         }
+
                     }}
-                    className={`mt-4 w-full ${
-                        buttonSuccess
-                            ? 'bg-green-500 hover:bg-green-600'
-                            : 'bg-[#00bfff] hover:bg-[#0099cc]'
-                    } text-black py-2 px-4 rounded text-center font-semibold transition-colors duration-300`}
+                    className={`mt-4 w-full ${buttonSuccess
+                        ? 'bg-green-500 hover:bg-green-600'
+                        : 'bg-[#00bfff] hover:bg-[#0099cc]'
+                        } text-black py-2 px-4 rounded text-center font-semibold transition-colors duration-300`}
                 >
                     {address
                         ? buttonSuccess

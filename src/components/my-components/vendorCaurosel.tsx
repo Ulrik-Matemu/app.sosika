@@ -67,7 +67,7 @@ const VendorCarousel: React.FC = () => {
   ))
 
   return (
-    <div className="w-full px-4 bg-black rounded-xl">
+    <div className="w-full px-4 rounded-xl">
       <Carousel className="w-full max-w-lg mx-auto">
         <CarouselContent>
           {loading
