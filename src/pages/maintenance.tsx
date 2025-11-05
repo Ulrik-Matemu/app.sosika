@@ -1,53 +1,39 @@
- /*
- import React from "react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-
-
-const EmailSubscriptionForm = () => {
-    const [email, setEmail] = React.useState("");
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setEmail(e.target.value);
-    }
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Handle email subscription logic here
-
-        alert(`Subscribed!, ${email}`);
-    }
-
-    return (
-        <>
-            <div className="flex w-full max-w-sm items-center gap-2">
-                <Input type="email" placeholder="Email" value={email} onChange={handleEmailChange} className="text-black" />
-                <Button type="submit" variant="outline" onClick={handleSubmit} >
-                    Subscribe
-                </Button>
-            </div>
-        </>
-    );
-}
-
-*/
-
 
 
 export const Maintenance = () => {
     return (
-        <>
-         <h1 className="text-[#00bfff] text-center bg-gray-100 border-gray-100 text-4xl p-12 font-extrabold">Sosika</h1>
-            <div className="flex flex-col items-center min-h-screen bg-gray-100 px-4">
-                <img
-                    src="/maintenance.svg"
-                    alt="Maintenance"
-                    className="w-40 h-40 sm:w-64 sm:h-64 mb-4"
-                    style={{ maxWidth: '100%', height: 'auto' }}
-                />
-                <p className="text-base sm:text-lg text-gray-900 mb-8 text-left">
-                    We are improving a few things to provide you with top-notch service. We'll notify you once we're back online!
-                </p>
-                {/* <EmailSubscriptionForm /> */}
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-6">
+            <div className="max-w-md w-full text-center space-y-8">
+                {/* Logo */}
+                <h1 className="text-5xl font-extrabold tracking-wide text-slate-800 mb-12">
+                    Sosika
+                </h1>
+                
+                {/* Maintenance Icon */}
+                <div className="flex justify-center mb-8">
+                    <img
+                        src="/maintenance.svg"
+                        alt="Maintenance"
+                        className="w-48 h-48 opacity-80"
+                    />
+                </div>
+                
+                {/* Message */}
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-light text-slate-700">
+                        We'll be right back
+                    </h2>
+                    <p className="text-slate-600 leading-relaxed font-light">
+                        We're improving a few things to provide you with top-notch service. 
+                        We'll notify you once we're back online.
+                    </p>
+                </div>
+                
+                {/* Subtle decorative element */}
+                <div className="pt-8">
+                    <div className="w-16 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent mx-auto"></div>
+                </div>
             </div>
-        </>
+        </div>
     );
 }

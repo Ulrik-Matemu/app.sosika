@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { MapProvider } from "./services/map-provider";
 import { useEffect } from "react";
 import { RegisterPage } from "./pages/register";
 import LoginPage from "./pages/login";
@@ -25,9 +26,14 @@ import VendorProfile from "./pages/vendor/profile";
 import VendorCatalogPage from "./pages/vendor/menuItems";
 import VendorOrders from "./pages/vendor/orders";
 import MenuItemScreen from "./pages/menuItemScreen";
-// import { Maintenance } from "./pages/maintenance";
+// import { LocationSetup } from "./pages/LocationSetup";
+// import { SavedLocation } from "./hooks/useLocationStorage";
+// import { SavedLocationsModal } from "./components/my-components/SavedLocationsModal";
+import { Maintenance } from "./pages/maintenance";
 
 function App() {
+ // const [selectedLocation, setSelectedLocation] = useState<SavedLocation | null>(null);
+
   useEffect(() => {
     const sessionStart = Date.now();
 
@@ -63,39 +69,53 @@ function App() {
     );
   };
 
-  return (
-    <CartProvider>
-      <Router>
-        <TooltipProvider>
-          <PageWrapper>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/waitlist" element={<Waitlist />} />
-              <Route path="/vendor/:vendorId" element={<VendorPage />} />
-              <Route path="/menu-item/:id" element={<MenuItemScreen />} />
-              <Route path="/explore" element={<MenuExplorer />} />
-              <Route path="/browse" element={<Browser />} />
-              {/* Private Routes */}
-              <Route element={<PrivateRoutes />}>
-                <Route path="/" element={<MenuExplorer />} />     
-                <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
-                <Route path="/orders" element={<OrdersPage />} />
-                <Route path="/profile" element={<ProfileManagement />} />
-                <Route path="/vendor-registration" element={<VendorRegistration />} />
-                <Route path="/vendor-profile" element={<VendorProfile />} />
-                <Route path="/vendor-catalog" element={<VendorCatalogPage />} />
-                <Route path="/vendor-orders" element={<VendorOrders />} />
-              </Route>
-            </Routes>
-          </PageWrapper>
-        </TooltipProvider>
-      </Router>
-    </CartProvider>
-  );
-}
+  // if (!selectedLocation) {
+  //   return (
+  //     <>
+  //       <SavedLocationsModal
+  //         locations={[]} // Replace with your actual locations array
+  //         onSelect={(location) => setSelectedLocation(location)}
+  //         onNew={() => { /* handle new location logic here */ }}
+  //       />
+  //     </>
+  //   );
+  // }
 
-export default App;
+    return (
+      <MapProvider>
+        <CartProvider>
+          <Router>
+            <TooltipProvider>
+              <PageWrapper>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/waitlist" element={<Waitlist />} />
+                  <Route path="/vendor/:vendorId" element={<VendorPage />} />
+                  <Route path="/menu-item/:id" element={<MenuItemScreen />} />
+                  <Route path="/explore" element={<MenuExplorer />} />
+                  <Route path="/browse" element={<Browser />} />
+                  {/* Private Routes */}
+                  <Route element={<PrivateRoutes />}>
+                    <Route path="/" element={<Maintenance />} />
+                    <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
+                    <Route path="/orders" element={<OrdersPage />} />
+                    <Route path="/profile" element={<ProfileManagement />} />
+                    <Route path="/vendor-registration" element={<VendorRegistration />} />
+                    <Route path="/vendor-profile" element={<VendorProfile />} />
+                    <Route path="/vendor-catalog" element={<VendorCatalogPage />} />
+                    <Route path="/vendor-orders" element={<VendorOrders />} />
+                  </Route>
+                </Routes>
+              </PageWrapper>
+            </TooltipProvider>
+          </Router>
+        </CartProvider>
+      </MapProvider>
+    );
+  }
+
+  export default App;
