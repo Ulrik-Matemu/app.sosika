@@ -1,10 +1,9 @@
-// src/hooks/useLocationStorage.ts
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 export interface SavedLocation {
+  address: string;
   lat: number;
   lng: number;
-  address: string;
 }
 
 export const useLocationStorage = () => {
@@ -12,15 +11,13 @@ export const useLocationStorage = () => {
 
   useEffect(() => {
     const saved = localStorage.getItem("sosika_locations");
-    if (saved) {
-      setLocations(JSON.parse(saved));
-    }
+    if (saved) setLocations(JSON.parse(saved));
   }, []);
 
   const saveLocation = (location: SavedLocation) => {
-    const updated = [...locations, location];
-    localStorage.setItem("sosika_locations", JSON.stringify(updated));
+    const updated = [location, ...locations].slice(0, 3);
     setLocations(updated);
+    localStorage.setItem("sosika_locations", JSON.stringify(updated));
   };
 
   return { locations, saveLocation };
