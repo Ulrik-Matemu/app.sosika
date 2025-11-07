@@ -30,6 +30,8 @@ import MenuItemScreen from "./pages/menuItemScreen";
 // import { SavedLocation } from "./hooks/useLocationStorage";
 // import { SavedLocationsModal } from "./components/my-components/SavedLocationsModal";
 import { Maintenance } from "./pages/maintenance";
+import MoodSelection from "./pages/mood/MoodSelection";
+import LocationSelection from "./pages/mood/LocationSelection";
 
 function App() {
  // const [selectedLocation, setSelectedLocation] = useState<SavedLocation | null>(null);
@@ -97,6 +99,8 @@ function App() {
                   <Route path="/vendor/:vendorId" element={<VendorPage />} />
                   <Route path="/menu-item/:id" element={<MenuItemScreen />} />
                   <Route path="/explore" element={<MenuExplorer />} />
+                  <Route path="/mood" element={<MoodSelection />} />
+                  <Route path="/mood/location" element={<LocationSelection />} />
                   <Route path="/browse" element={<Browser />} />
                   {/* Private Routes */}
                   <Route element={<PrivateRoutes />}>
