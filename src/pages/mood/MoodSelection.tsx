@@ -59,9 +59,21 @@ export default function MoodSelection() {
       >
         {/* Header */}
         <div className="text-center mb-5 md:mb-10 ">
-          <h1 className="text-xl md:text-5xl text-white font-medium mb-1 md:mb-3">
-            What are you feeling like?
+          <h1 className="text-xl md:text-3xl font-extralight mb-1 md:mb-3 relative text-transparent bg-clip-text bg-gradient-to-r from-gray-400 via-gray-100 to-gray-400 animate-shine">
+            Hello, what do you feel like having?
           </h1>
+          <style>
+          {`
+            @keyframes shine {
+              0% { background-position: -200% 0; }
+              100% { background-position: 200% 0; }
+            }
+            .animate-shine {
+              background-size: 200% 100%;
+              animation: shine 4.5s linear infinite;
+            }
+          `}
+          </style>
           <p className="text-zinc-400 text-sm sm:text-base">
             Choose your vibe
           </p>
