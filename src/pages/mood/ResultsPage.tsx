@@ -265,6 +265,7 @@ const MenuItemCard = ({ item, vendor }: MenuItemCardProps) => {
         <img
           src={item.image_url}
           alt={item.name}
+          loading="lazy"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           onError={(e) => {
             e.currentTarget.src = `https://via.placeholder.com/400x300/27272a/71717a?text=${encodeURIComponent(item.name)}`;
