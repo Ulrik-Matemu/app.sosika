@@ -32,6 +32,7 @@ import MenuItemScreen from "./pages/menuItemScreen";
 import { Maintenance } from "./pages/maintenance";
 import MoodSelection from "./pages/mood/MoodSelection";
 import LocationSelection from "./pages/mood/LocationSelection";
+import ResultsPage from "./pages/mood/ResultsPage";
 
 function App() {
  // const [selectedLocation, setSelectedLocation] = useState<SavedLocation | null>(null);
@@ -101,6 +102,7 @@ function App() {
                   <Route path="/explore" element={<MenuExplorer />} />
                   <Route path="/mood" element={<MoodSelection />} />
                   <Route path="/mood/location" element={<LocationSelection />} />
+                  <Route path="/mood/results" element={<ResultsPage />} />
                   <Route path="/browse" element={<Browser />} />
                   {/* Private Routes */}
                   <Route element={<PrivateRoutes />}>
