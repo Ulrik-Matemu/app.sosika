@@ -82,8 +82,6 @@ export default function LocationSelection() {
   const handleProceed = () => {
     if (selected && locationName) {
       saveLocation({ address: locationName, lat: selected.lat, lng: selected.lng });
-      console.log("Mood:", mood, "Location:", locationName, selected.lat, selected.lng);
-      alert(`Mood: ${mood}\nLocation: ${locationName}\nLat: ${selected.lat}\nLng: ${selected.lng}`);
       navigate("/mood/results");
       // Navigate to next step
       // navigate("/next-route");
