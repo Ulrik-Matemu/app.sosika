@@ -48,9 +48,9 @@ const mapMoodToCategories = (mood: string): string[] => {
 export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> => {
   console.log("Mock request received:", req);
 
-  // Filter vendors by location proximity (within 2 km)
-  const nearbyVendors = vendors.filter(v => calculateDistance(v.geolocation, req.location) < 10);
-  
+  // Filter vendors by location proximity (within 500000 km)
+  const nearbyVendors = vendors.filter(v => calculateDistance(v.geolocation, req.location) < 500000 );
+
   console.log(`Found ${nearbyVendors.length} nearby vendors:`, nearbyVendors.map(v => v.name));
 
   // Get valid categories for this mood
