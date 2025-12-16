@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
+import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
 // import { getOrderSummaryHtml } from '../pages/explore/orderSummaryHtml';
 import { logEvent, analytics } from '../firebase';
 // import axios from 'axios';
 // import { getDeliveryFee } from '../services/deliveryFee';
 // import { toast } from './use-toast';
+
+emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID);
 
 type MenuItem = {
   id: number;
@@ -86,20 +89,41 @@ export function useCart() {
 
     // 1️⃣ Check if user is logged in
     if (!userId) {
+      // Pause loading while we ask the user for a phone number (guest checkout only)
       setLoading(false);
-      const result = await Swal.fire({
-        title: 'Login Required',
-        text: 'You need to login or register to place an order.',
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: 'Login / Register',
-        cancelButtonText: 'Cancel',
+
+      const phoneResult = await Swal.fire({
+      title: 'Let Us Reach Out',
+      text: 'Please enter your phone number to continue with checkout.',
+      icon: 'info',
+      input: 'tel',
+      inputLabel: 'Phone Number',
+      inputPlaceholder: 'e.g. +1234567890',
+      showCancelButton: true,
+      confirmButtonText: 'Continue',
+      cancelButtonText: 'Cancel',
+      inputValidator: (value) => {
+        if (!value) return 'Phone number is required';
+        const cleaned = value.replace(/\D/g, '');
+        if (cleaned.length < 7) return 'Please enter a valid phone number';
+        return null;
+      }
       });
 
-      if (result.isConfirmed) {
-        window.location.href = '/login';
-      }
+      // If the user cancelled the prompt, stop checkout
+      if (phoneResult.isDismissed) {
       return;
+      }
+
+      const phone = phoneResult.value as string;
+      // Persist guest phone so other parts of the app can access it if needed
+      localStorage.setItem('guestPhone', phone);
+      (window as any).guestPhone = phone;
+
+      // Resume loading and continue checkout as guest
+      setLoading(true);
+      // Note: downstream code currently uses `userId`. Consider updating templateParams/logEvent
+      // to prefer guestPhone when userId is absent.
     }
 
     logEvent(analytics, 'reached_checkout', { userId });
@@ -115,7 +139,93 @@ export function useCart() {
       return;
     }
 
+    // --- BEGIN EmailJS Payload Generation ---
+
+    const locationJsonString = localStorage.getItem('sosika_locations');
+
+let locationCoords = 'N/A';
+let mapLinkCoords = 'N/A';
+
+if (locationJsonString && locationJsonString !== 'N/A') {
     try {
+        // Parse the JSON string into an object
+        const locationObject = JSON.parse(locationJsonString);
+        
+        // Format the coordinates as a comma-separated string for the template
+        locationCoords = `${locationObject.lat},${locationObject.lng}`; 
+        
+        // This is the formatted string used in the Google Maps link
+        mapLinkCoords = locationCoords; 
+
+    } catch (e) {
+        console.error("Error parsing location JSON:", e);
+        // Fallback if parsing fails
+        mapLinkCoords = 'N/A';
+        locationCoords = 'N/A';
+    }
+}
+
+    // 1. Calculate the total price
+    const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    const orderTotal = total.toFixed(2);
+
+    // 2. Format the line items into a readable string (for the email body)
+    const orderItemsHtml = cart.map(item =>
+      `<li>${item.quantity} x ${item.name} @ $${parseFloat(item.price).toFixed(2)}</li>`
+    ).join(''); // This creates a single HTML string of <li> elements
+
+    // 3. Construct the full template parameters object
+    const templateParams = {
+      // These keys must match the variable names in your EmailJS template
+      customer_name: userId, // Assuming userId is the customer's name/ID
+      order_id: `ORD-${Date.now()}`, // Generate a temporary ID
+      order_items: `<ul>${orderItemsHtml}</ul>`, // The HTML list of items
+      total_amount: `$${orderTotal}`,
+      admin_email: 'sosika.app@gmail.com', // The email address you want to send *to*
+      guest_phone: localStorage.getItem('guestPhone') || 'N/A',
+      display_location: (() => {
+        const s = localStorage.getItem('sosika_locations');
+        if (!s) return 'N/A';
+        try {
+          const parsed = JSON.parse(s);
+          const first = Array.isArray(parsed) ? parsed[0] : parsed;
+          return first?.address ?? 'N/A';
+        } catch {
+          return 'N/A';
+        }
+      })(),
+      location_coords: (() => {
+        const s = localStorage.getItem('sosika_locations');
+        if (!s) return 'N/A';
+        try {
+          const parsed = JSON.parse(s);
+          const first = Array.isArray(parsed) ? parsed[0] : parsed;
+          return (first && typeof first.lat !== 'undefined' && typeof first.lng !== 'undefined')
+        ? `${first.lat},${first.lng}`
+        : 'N/A';
+        } catch {
+          return 'N/A';
+        }
+      })(),
+      raw_coordinates: (() => {
+        const s = localStorage.getItem('sosika_locations');
+        if (!s) return 'N/A';
+        try {
+          const parsed = JSON.parse(s);
+          const first = Array.isArray(parsed) ? parsed[0] : parsed;
+          return first ? JSON.stringify(first) : 'N/A';
+        } catch {
+          return 'N/A';
+        }
+      })(),
+      // You can add any other details like delivery info here
+      // delivery_address: '123 Main St', 
+    };
+
+    // --- END EmailJS Payload Generation ---
+
+    try {
+
       // const vendor_id = cart[0].vendorId;
 
       // // Calculate delivery fee
@@ -189,11 +299,43 @@ export function useCart() {
       //   window.location.href = `/order-tracking/${response.data.order_id}`;
       // }
 
-      await Swal.fire({
-        title: 'Checkout Disabled',
-        text: 'Checkout is currently disabled for maintenance. Please try again later.',
-        icon: 'info'
-      });
+      // ----------------------------------------------------------------
+      // NEW EMAILJS INTEGRATION START
+      // ----------------------------------------------------------------
+
+      // 1. Define your IDs
+            const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID; // e.g., 'gmail_service'
+            const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID; // e.g., 'order_notification'
+      
+            // 2. Prepare the payload (reuse values computed above to avoid duplicate calculations)
+            const emailTemplateParams = {
+              ...templateParams,
+              admin_email: 'sosika.app@gmail.com', // Recipient email
+            };
+      
+            // 3. Send the email!
+            const emailResponse = await emailjs.send(
+              SERVICE_ID,
+              TEMPLATE_ID,
+              emailTemplateParams
+            );
+
+      if (emailResponse.status === 200) {
+        await Swal.fire({
+          title: 'Order Submitted',
+          text: `Order ID: ${templateParams.order_id} has been sent successfully! We will contact you shortly.`,
+          icon: "success"
+        });
+        setCart([]); // Clear the cart on success
+        // window.location.href = `/order-tracking/${templateParams.order_id}`; // Redirect if desired
+      } else {
+        // Handle non-200 EmailJS response
+        throw new Error(`EmailJS failed with status: ${emailResponse.status}`);
+      }
+
+      // ----------------------------------------------------------------
+      // NEW EMAILJS INTEGRATION END
+      // ----------------------------------------------------------------
 
     } catch (error) {
       console.error("Checkout error:", error);
