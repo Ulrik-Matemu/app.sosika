@@ -141,30 +141,11 @@ export function useCart() {
 
     // --- BEGIN EmailJS Payload Generation ---
 
-    const locationJsonString = localStorage.getItem('sosika_locations');
+    
 
-let locationCoords = 'N/A';
 
-if (locationJsonString && locationJsonString !== 'N/A') {
-    try {
-        // Parse the JSON string into an object
-        const locationObject = JSON.parse(locationJsonString);
-        
-        // Format the coordinates as a comma-separated string for the template
-        locationCoords = `${locationObject.lat},${locationObject.lng}`; 
 
-        
-        
-        // This is the formatted string used in the Google Maps link
-      
 
-    } catch (e) {
-        console.error("Error parsing location JSON:", e);
-        // Fallback if parsing fails
-        
-        locationCoords = 'N/A';
-    }
-}
 
     // 1. Calculate the total price
     const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
