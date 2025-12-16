@@ -9,7 +9,7 @@ import { logEvent, analytics } from '../firebase';
 
 emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID);
 
-type MenuItem = {
+export type MenuItem = {
   id: number;
   name: string;
   price: string;
@@ -144,7 +144,6 @@ export function useCart() {
     const locationJsonString = localStorage.getItem('sosika_locations');
 
 let locationCoords = 'N/A';
-let mapLinkCoords = 'N/A';
 
 if (locationJsonString && locationJsonString !== 'N/A') {
     try {
@@ -153,14 +152,16 @@ if (locationJsonString && locationJsonString !== 'N/A') {
         
         // Format the coordinates as a comma-separated string for the template
         locationCoords = `${locationObject.lat},${locationObject.lng}`; 
+
+        
         
         // This is the formatted string used in the Google Maps link
-        mapLinkCoords = locationCoords; 
+      
 
     } catch (e) {
         console.error("Error parsing location JSON:", e);
         // Fallback if parsing fails
-        mapLinkCoords = 'N/A';
+        
         locationCoords = 'N/A';
     }
 }
