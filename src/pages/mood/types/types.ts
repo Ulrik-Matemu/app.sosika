@@ -13,7 +13,7 @@ export interface MenuItem {
   name: string;
   description: string;
   category: "breakfast" | "lunch" | "dinner" | "snacks" | "drinks";
-  price: number;
+  price: string;
   is_available: boolean;
   image_url: string;
 }

@@ -6,6 +6,8 @@ import { useMood } from "../../hooks/useMood";
 import { useLocationStorage } from "../../hooks/useLocationStorage";
 import { fetchMoodResults } from "../mood/api/mockApi";
 import { Vendor, MenuItem } from "../mood/types/types";
+import { useCartContext } from "../../context/cartContext";
+import Navbar from "../../components/my-components/navbar";
 
 const ResultsPage = () => {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ const ResultsPage = () => {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
 
   const location = locations[0] || { lat: -6.8, lng: 39.28 };
 
@@ -37,18 +40,27 @@ const ResultsPage = () => {
   }, [mood, location.lat, location.lng]);
 
   // Group items by different aspects
-  const groupedItems = {
-    featured: items.filter(item => item.is_available).slice(0, 6),
-    byVendor: vendors.reduce((acc, vendor) => {
-      const vendorItems = items.filter(item => item.vendor_id === vendor.id);
-      if (vendorItems.length > 0) {
-        acc.push({ vendor, items: vendorItems });
-      }
-      return acc;
-    }, [] as { vendor: Vendor; items: MenuItem[] }[]),
-    affordable: items.filter(item => item.price < 5000).sort((a, b) => a.price - b.price),
-    popular: items.filter(item => item.is_available).slice(0, 8), // Mock popular items
-  };
+    const groupedItems = {
+      featured: items.filter(item => item.is_available).slice(0, 6),
+      byVendor: vendors.reduce((acc, vendor) => {
+        const vendorItems = items.filter(item => item.vendor_id === vendor.id);
+        if (vendorItems.length > 0) {
+          acc.push({ vendor, items: vendorItems });
+        }
+        return acc;
+      }, [] as { vendor: Vendor; items: MenuItem[] }[]),
+      affordable: items
+        .filter(item => {
+          const priceNum = Number(item.price);
+          return !Number.isNaN(priceNum) && priceNum < 5000;
+        })
+        .sort((a, b) => {
+          const pa = Number(a.price) || 0;
+          const pb = Number(b.price) || 0;
+          return pa - pb;
+        }),
+      popular: items.filter(item => item.is_available).slice(0, 8), // Mock popular items
+    };
 
   if (loading) {
     return (
@@ -165,6 +177,7 @@ const ResultsPage = () => {
           </>
         )}
       </div>
+      <Navbar />
     </div>
   );
 };
@@ -255,6 +268,8 @@ interface MenuItemCardProps {
 }
 
 const MenuItemCard = ({ item, vendor }: MenuItemCardProps) => {
+  const { addToCart } = useCartContext();
+
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.02 }}
@@ -329,13 +344,22 @@ const MenuItemCard = ({ item, vendor }: MenuItemCardProps) => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           disabled={!item.is_available}
+          onClick={() => addToCart({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            vendorId: item.vendor_id,
+            imageUrl: item.image_url,
+            isAvailable: item.is_available,
+            quantity: 1,
+          })}
           className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
             item.is_available
               ? "bg-[#00bfff] hover:bg-black text-white shadow-lg shadow-blue-500/20"
               : "bg-zinc-700 text-zinc-500 cursor-not-allowed"
           }`}
         >
-          {item.is_available ? "Order Now" : "Not Available"}
+          {item.is_available ? "Add to Cart" : "Not Available"}
         </motion.button>
       </div>
     </motion.div>
