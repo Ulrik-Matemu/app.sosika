@@ -36,7 +36,7 @@ export const vendors: Vendor[] = [
   },
 ];
 
-export const menuItems: MenuItem[] = [
+export const menuItems = [
   // Breakfast items
   {
     id: 1,
