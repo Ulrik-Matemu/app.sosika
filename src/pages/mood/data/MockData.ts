@@ -1,4 +1,5 @@
-import { Vendor } from "../types/types";
+
+import { Vendor, MenuItem } from "../types/types";
 
 // Dar es Salaam area coordinates
 export const vendors: Vendor[] = [
@@ -36,7 +37,7 @@ export const vendors: Vendor[] = [
   },
 ];
 
-export const menuItems = [
+export const menuItems: MenuItem[] = [
   // Breakfast items
   {
     id: 1,
@@ -44,7 +45,7 @@ export const menuItems = [
     name: "Pancake Combo",
     description: "Soft pancakes served with fruit and honey",
     category: "breakfast",
-    price: 4500,
+    price: "4500",
     is_available: true,
     image_url: "/images/7f4ae9ca0446cbc23e71d8d395a98428.jpeg",
   },
@@ -54,7 +55,7 @@ export const menuItems = [
     name: "Chapati & Beans",
     description: "Traditional breakfast with chapati and maharage",
     category: "breakfast",
-    price: 3000,
+    price: "3000",
     is_available: true,
     image_url: "/images/images.jpeg",
   },
@@ -64,7 +65,7 @@ export const menuItems = [
     name: "Egg Sandwich",
     description: "Toasted sandwich with scrambled eggs and veggies",
     category: "breakfast",
-    price: 3500,
+    price: "3500",
     is_available: true,
     image_url: "/images/bca8d172-ca20-42fb-9642-94eb36e620dd.avif",
   },
@@ -76,7 +77,7 @@ export const menuItems = [
     name: "Grilled Chicken Rice",
     description: "Tasty grilled chicken with pilau rice",
     category: "lunch",
-    price: 7000,
+    price: "7000",
     is_available: true,
     image_url: "/images/660ac8bac40176ff0d3eae9b_660ac37329d894752af82dcc_f3a2f9eb-cd9c-484c-b084-8417ee62b2d8.webp",
   },
@@ -86,7 +87,7 @@ export const menuItems = [
     name: "Fish & Chips",
     description: "Crispy fried fish with chips and salad",
     category: "lunch",
-    price: 8000,
+    price: "8000",
     is_available: true,                                                         
     image_url: "/images/59736398.jpeg",
   },
@@ -96,7 +97,7 @@ export const menuItems = [
     name: "Beef Stew & Ugali",
     description: "Rich beef stew served with ugali",
     category: "lunch",
-    price: 6500,
+    price: "6500",
     is_available: true,
     image_url: "/images/images (9).jpeg",
   },
@@ -108,7 +109,7 @@ export const menuItems = [
     name: "Fresh Mango Juice",
     description: "Pure mango juice with no sugar added",
     category: "drinks",
-    price: 2500,
+    price: "2500",
     is_available: true,
     image_url: "/images/mango-juice-featured-2-500x500.jpg",
   },
@@ -118,7 +119,7 @@ export const menuItems = [
     name: "Passion Fruit Juice",
     description: "Refreshing passion fruit juice",
     category: "drinks",
-    price: 2500,
+    price: "2500",
     is_available: true,
     image_url: "/images/Passion-Fruit-Juice-square-option.jpeg",
   },
@@ -128,7 +129,7 @@ export const menuItems = [
     name: "Coconut Water",
     description: "Fresh coconut water straight from the shell",
     category: "drinks",
-    price: 2000,
+    price: "2000",
     is_available: true,
     image_url: "/images/AdobeStock_203678537-scaled.jpeg",
   },
@@ -140,7 +141,7 @@ export const menuItems = [
     name: "Crispy Chips",
     description: "Fresh potato chips with ketchup",
     category: "snacks",
-    price: 3000,
+    price: "3000",
     is_available: false,
     image_url: "/images/images (1).jpeg",
   },
@@ -150,7 +151,7 @@ export const menuItems = [
     name: "Samosas (4 pcs)",
     description: "Golden fried samosas with meat filling",
     category: "snacks",
-    price: 2000,
+    price: "2000",
     is_available: true,
     image_url: "/images/x640_Sambus.jpg",
   },
@@ -160,7 +161,7 @@ export const menuItems = [
     name: "Mandazi (6 pcs)",
     description: "Sweet fried dough, perfect with chai",
     category: "snacks",
-    price: 1500,
+    price: "1500",
     is_available: true,
     image_url: "/images/image.jpg",
   },
@@ -170,7 +171,7 @@ export const menuItems = [
     name: "Chicken Wings",
     description: "Spicy grilled chicken wings",
     category: "snacks",
-    price: 5000,
+    price: "5000",
     is_available: true,
     image_url: "/images/images (2).jpeg",
   },
