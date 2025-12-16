@@ -1,4 +1,4 @@
-import { Vendor, MenuItem } from "../types/types";
+import { Vendor } from "../types/types";
 
 // Dar es Salaam area coordinates
 export const vendors: Vendor[] = [
