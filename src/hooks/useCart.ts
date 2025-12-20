@@ -88,7 +88,7 @@ export function useCart() {
     const userId = localStorage.getItem('userId');
 
     // 1️⃣ Check if user is logged in
-    if (!userId) {
+    if (!userId && userId) {
       // Pause loading while we ask the user for a phone number (guest checkout only)
       setLoading(false);
 
