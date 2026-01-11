@@ -61,7 +61,7 @@ export default function LocationSelection() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <button onClick={() => navigate(-1)} className="p-2 bg-zinc-800 rounded-lg"><ChevronLeft /></button>
-          <h1 className="text-xl font-bold text-[#00bfff]">Sosika</h1>
+          <h1 className="text-xl font-extrabold text-[#00bfff]">Sosika</h1>
           <div className="w-10" /> 
         </div>
 
