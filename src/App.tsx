@@ -11,8 +11,8 @@ import { useEffect } from "react";
 // import ResetPassword from "./pages/reset-password";
 import "./App.css";
 import { TooltipProvider } from "./components/ui/tooltip";
-import { listenForForegroundMessages } from "./push-notifications";
-import { setupPushNotifications } from "./services/push-notifications";
+// import { listenForForegroundMessages } from "./push-notifications";
+// import { setupPushNotifications } from "./services/push-notifications";
 import { analytics, logEvent } from "./firebase";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/cartContext";
@@ -56,10 +56,10 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    setupPushNotifications();
-    listenForForegroundMessages();
-  }, []);
+  // useEffect(() => {
+  //   setupPushNotifications();
+  //   listenForForegroundMessages();
+  // }, []);
 
   /**
    * PrivateRoutes wrapper
