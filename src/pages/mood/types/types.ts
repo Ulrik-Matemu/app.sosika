@@ -1,5 +1,5 @@
 export interface Vendor {
-  id: number;
+  id: string;
   name: string;
   owner_name: string;
   college_id: number;
@@ -8,8 +8,8 @@ export interface Vendor {
 }
 
 export interface MenuItem {
-  id: number;
-  vendor_id: number;
+  id: string;
+  vendor_id: string;
   name: string;
   description: string;
   category: "breakfast" | "lunch" | "dinner" | "snacks" | "drinks";

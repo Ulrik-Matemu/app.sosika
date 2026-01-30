@@ -1,0 +1,11 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.sosika",
+      "sha256_cert_fingerprints":
+        ["DB:4D:05:11:BC:DC:69:4C:9E:F6:E4:D7:84:90:25:4F:D8:45:16:25:CB:8C:7E:1E:7F:15:D4:F0:23:43:21:F6"]
+    }
+  }
+]
