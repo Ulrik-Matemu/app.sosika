@@ -34,6 +34,7 @@ import PageWrapper from "./services/page-transition";
 import MoodSelection from "./pages/mood/MoodSelection";
 import LocationSelection from "./pages/mood/LocationSelection";
 import ResultsPage from "./pages/mood/ResultsPage";
+import AdminDashboard from "./pages/admin/Dashboard";
 
 function App() {
   // const [selectedLocation, setSelectedLocation] = useState<SavedLocation | null>(null);
@@ -105,6 +106,7 @@ function App() {
                 <Route path="/mood" element={<MoodSelection />} />
                 <Route path="/mood/location" element={<LocationSelection />} />
                 <Route path="/mood/results" element={<ResultsPage />} />
+                <Route path="/admin" element={<AdminDashboard />} />
                 {/* <Route path="/browse" element={<Browser />} /> */}
                 {/* Private Routes */}
                 <Route element={<PrivateRoutes />}>

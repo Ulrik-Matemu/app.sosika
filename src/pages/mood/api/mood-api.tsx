@@ -1,4 +1,5 @@
-import { vendors, menuItems } from "../data/MockData";
+import { db } from "../../../firebase";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { Vendor, MenuItem } from "../types/types";
 
 export interface UserRequest {
@@ -46,29 +47,52 @@ const mapMoodToCategories = (mood: string): string[] => {
 };
 
 export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> => {
-  console.log("Mock request received:", req);
+  console.log("Firestore request received:", req);
 
-  // Filter vendors by location proximity (within 10000000 km)
-  const nearbyVendors = vendors.filter(v => calculateDistance(v.geolocation, req.location) < 10000000 ); // 
+  // 1. Fetch all vendors from Firestore
+  const vendorsCollection = collection(db, "vendors");
+  const vendorSnapshot = await getDocs(vendorsCollection);
+  const allVendors: Vendor[] = vendorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vendor));
 
+  // 2. Filter vendors by location proximity
+  const nearbyVendors = allVendors.filter(v => calculateDistance(v.geolocation, req.location) < 10000000);
   console.log(`Found ${nearbyVendors.length} nearby vendors:`, nearbyVendors.map(v => v.name));
 
-  // Get valid categories for this mood
+  if (nearbyVendors.length === 0) {
+    return { vendors: [], menuItems: [] };
+  }
+
+  // 3. Get valid categories for this mood
   const validCategories = mapMoodToCategories(req.mood);
   console.log(`Mood "${req.mood}" mapped to categories:`, validCategories);
 
-  // Filter menu items by mood/category and vendor
-  const filteredItems = menuItems.filter(item => {
-    const isNearbyVendor = nearbyVendors.some(v => v.id === item.vendor_id);
-    const matchesCategory = validCategories.includes(item.category);
-    
-    return isNearbyVendor && matchesCategory;
-  });
+  // 4. Fetch menu items for nearby vendors
+  const nearbyVendorIds = nearbyVendors.map(v => v.id);
+
+  if (nearbyVendorIds.length === 0) {
+      return { vendors: nearbyVendors, menuItems: [] };
+  }
+
+  const menuItemsCollection = collection(db, "menuItems");
+  let itemsFromVendors: MenuItem[] = [];
+
+  // Chunking for 'in' query since it's limited to 10 values per query
+  const CHUNK_SIZE = 10;
+  for (let i = 0; i < nearbyVendorIds.length; i += CHUNK_SIZE) {
+      const chunk = nearbyVendorIds.slice(i, i + CHUNK_SIZE);
+      if (chunk.length > 0) {
+          const q = query(menuItemsCollection, where("vendor_id", "in", chunk));
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach(doc => {
+              itemsFromVendors.push({ id: doc.id, ...doc.data() } as MenuItem);
+          });
+      }
+  }
+
+  // Now filter by category client-side
+  const filteredItems = itemsFromVendors.filter(item => validCategories.includes(item.category));
 
   console.log(`Found ${filteredItems.length} menu items:`, filteredItems.map(i => i.name));
-
-  // Simulate delay
-  await new Promise(res => setTimeout(res, 800));
 
   return { vendors: nearbyVendors, menuItems: filteredItems };
 };
