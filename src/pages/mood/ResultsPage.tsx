@@ -149,7 +149,7 @@ const ResultsPage = () => {
               <ChevronLeft className="w-5 h-5 text-zinc-300" />
             </motion.button>
             <div className="flex-1">
-              <h1 className="text-xl font-black text-[#00bfff] tracking-tight">SOSIKA</h1>
+              <h1 className="text-xl font-black text-[#00bfff] tracking-tight">Sosika</h1>
               <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Results for {mood || "Any Mood"}</p>
             </div>
           </div>
