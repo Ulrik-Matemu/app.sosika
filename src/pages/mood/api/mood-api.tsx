@@ -32,22 +32,28 @@ const mapMoodToCategories = (mood: string): string[] => {
   
   // Map moods to their corresponding categories
   const moodMap: Record<string, string[]> = {
-    breakfast: ["breakfast"],
-    lunch: ["lunch"],
+    breakfast: ["breakfast", "sandwiches"],
+    lunch: ["lunch", "dinner", "salads", "pizza", "burgers", "mains", "sides"], // Lunch items could also be dinner items
     dinner: ["dinner", "lunch"], // Dinner items could also be lunch items
     drink: ["drinks"],
     drinks: ["drinks"],
     snack: ["snacks"],
     snacks: ["snacks"],
-    nearby: ["breakfast", "lunch", "dinner", "drinks", "snacks"], // Show all
-    any: ["breakfast", "lunch", "dinner", "drinks", "snacks"], // Show all
+    burger: ["burgers"],
+    burgers: ["burgers"],
+    salad: ["salads"],
+    salads: ["salads"],
+    sandwiches: ["sandwiches"],
+    mains: ["mains"],
+    sides: ["sides"],
+    nearby: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches"], // Show all
+    any: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches"], // Show all
   };
   
   return moodMap[moodLower] || [moodLower];
 };
 
 export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> => {
-  console.log("Firestore request received:", req);
 
   // 1. Fetch all vendors from Firestore
   const vendorsCollection = collection(db, "vendors");
@@ -56,7 +62,7 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
 
   // 2. Filter vendors by location proximity
   const nearbyVendors = allVendors.filter(v => calculateDistance(v.geolocation, req.location) < 10000000);
-  console.log(`Found ${nearbyVendors.length} nearby vendors:`, nearbyVendors.map(v => v.name));
+  
 
   if (nearbyVendors.length === 0) {
     return { vendors: [], menuItems: [] };
@@ -64,7 +70,7 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
 
   // 3. Get valid categories for this mood
   const validCategories = mapMoodToCategories(req.mood);
-  console.log(`Mood "${req.mood}" mapped to categories:`, validCategories);
+  
 
   // 4. Fetch menu items for nearby vendors
   const nearbyVendorIds = nearbyVendors.map(v => v.id);
@@ -92,7 +98,7 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
   // Now filter by category client-side
   const filteredItems = itemsFromVendors.filter(item => validCategories.includes(item.category));
 
-  console.log(`Found ${filteredItems.length} menu items:`, filteredItems.map(i => i.name));
+  
 
   return { vendors: nearbyVendors, menuItems: filteredItems };
 };

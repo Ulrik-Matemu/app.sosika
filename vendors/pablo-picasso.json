@@ -1,0 +1,170 @@
+[
+  {
+    "name": "Queen bee's muesli",
+    "description": "Served with natural yogurt, drizzled with honey",
+    "category": "Breakfast",
+    "price": "10000",
+    "image_url": "/icons/menu/menu_icons/queen_bees_muesli.png",
+    "is_available": true
+  },
+  {
+    "name": "Hot Oats",
+    "description": "Topped with diced bananas, mixed whole nuts with a pinch of cinnamon",
+    "category": "Breakfast",
+    "price": "10000",
+    "image_url": "/icons/menu/menu_icons/hot_oats.png",
+    "is_available": true
+  },
+  {
+    "name": "Pancakes",
+    "description": "Choice of honey, chocolate spread, or maple syrup",
+    "category": "Breakfast",
+    "price": "10000",
+    "image_url": "/icons/menu/menu_icons/pancakes.png",
+    "is_available": true
+  },
+  {
+    "name": "Picasso Crumbed Chicken Salad",
+    "description": "Lettuce, rocket, tomato, parmesan crisps, cucumber & avocado with chicken fingers",
+    "category": "Salads",
+    "price": "19000",
+    "image_url": "/icons/menu/menu_icons/chicken_salad.png",
+    "is_available": true
+  },
+  {
+    "name": "Salad Nicoise",
+    "description": "Lettuce, cucumber, tomato, green beans, tuna chunks & a soft boiled egg",
+    "category": "Salads",
+    "price": "18000",
+    "image_url": "/icons/menu/menu_icons/salad_nicoise.png",
+    "is_available": true
+  },
+  {
+    "name": "Chilli Garlic Prawns",
+    "description": "Served with crusty, warm bread & a garlic butter sauce",
+    "category": "Starters",
+    "price": "16000",
+    "image_url": "/icons/menu/menu_icons/garlic_prawns.png",
+    "is_available": true
+  },
+  {
+    "name": "Plain Garlic Bread",
+    "description": "Home baked bread with garlic",
+    "category": "Starters",
+    "price": "5000",
+    "image_url": "/icons/menu/menu_icons/garlic_bread.png",
+    "is_available": true
+  },
+  {
+    "name": "Picasso Special Burger",
+    "description": "100% Lean beef, cheddar, caramelised onion jam, bacon & guacamole",
+    "category": "Burgers",
+    "price": "18000",
+    "image_url": "/icons/menu/menu_icons/picasso_burger.png",
+    "is_available": true
+  },
+  {
+    "name": "Club Sandwich (Chicken Pesto)",
+    "description": "Shredded chicken, basil pesto, mozzarella, rocket, tomato & roasted nuts",
+    "category": "Sandwiches",
+    "price": "17000",
+    "image_url": "/icons/menu/menu_icons/club_sandwich.png",
+    "is_available": true
+  },
+  {
+    "name": "Steak Sandwich (Fillet)",
+    "description": "Thinly sliced strips of beef fillet, caramelised onions with stout mustard",
+    "category": "Sandwiches",
+    "price": "17000",
+    "image_url": "/icons/menu/menu_icons/steak_sandwich.png",
+    "is_available": true
+  },
+  {
+    "name": "Pizza Margherita",
+    "description": "Tomato sauce, mozzarella cheese, basil",
+    "category": "Pizza",
+    "price": "16000",
+    "image_url": "/icons/menu/menu_icons/pizza_margherita.png",
+    "is_available": true
+  },
+  {
+    "name": "Seafood Pizza",
+    "description": "Garlic prawns, calamari, olive oil & sweet corn",
+    "category": "Pizza",
+    "price": "24000",
+    "image_url": "/icons/menu/menu_icons/pizza_seafood.png",
+    "is_available": true
+  },
+  {
+    "name": "Calzone",
+    "description": "Any of our pizzas can be requested as calzones",
+    "category": "Pizza",
+    "price": "21000",
+    "image_url": "/icons/menu/menu_icons/calzone.png",
+    "is_available": true
+  },
+  {
+    "name": "T-Bone Steak (500g)",
+    "description": "Served with a choice of side and sauce",
+    "category": "Mains",
+    "price": "40000",
+    "image_url": "/icons/menu/menu_icons/t_bone_steak.png",
+    "is_available": true
+  },
+  {
+    "name": "Sirloin Steak",
+    "description": "Served with a choice of side and sauce",
+    "category": "Mains",
+    "price": "30000",
+    "image_url": "/icons/menu/menu_icons/sirloin_steak.png",
+    "is_available": true
+  },
+  {
+    "name": "Grilled Red Snapper",
+    "description": "Grilled fish with hollandaise or garlic butter sauce",
+    "category": "Mains",
+    "price": "30000",
+    "image_url": "/icons/menu/menu_icons/red_snapper.png",
+    "is_available": true
+  },
+  {
+    "name": "Grilled King Prawns",
+    "description": "Recommended with garlic butter sauce",
+    "category": "Mains",
+    "price": "38000",
+    "image_url": "/icons/menu/menu_icons/king_prawns.png",
+    "is_available": true
+  },
+  {
+    "name": "Lobster Thermidor",
+    "description": "Premium lobster preparation",
+    "category": "Mains",
+    "price": "45000",
+    "image_url": "/icons/menu/menu_icons/lobster_thermidor.png",
+    "is_available": true
+  },
+  {
+    "name": "Chips (French Fries)",
+    "description": "Crispy side of chips",
+    "category": "Sides",
+    "price": "3000",
+    "image_url": "/icons/menu/menu_icons/chips.png",
+    "is_available": true
+  },
+  {
+    "name": "Rice",
+    "description": "Steamed rice",
+    "category": "Sides",
+    "price": "3000",
+    "image_url": "/icons/menu/menu_icons/rice.png",
+    "is_available": true
+  },
+  {
+    "name": "Mashed Potatoes",
+    "description": "Creamy mashed potatoes",
+    "category": "Sides",
+    "price": "3000",
+    "image_url": "/icons/menu/menu_icons/mashed_potatoes.png",
+    "is_available": true
+  }
+]

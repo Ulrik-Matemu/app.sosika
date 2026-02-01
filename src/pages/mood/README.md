@@ -21,7 +21,7 @@ The user journey is divided into three main steps:
 *   **`MoodSelection.tsx`:** The entry point of the feature. It allows users to select a mood and navigates them to the location selection screen.
 *   **`LocationSelection.tsx`:** Handles all aspects of location selection, including map interaction, search, and geolocation.
 *   **`ResultsPage.tsx`:** Displays the final list of recommended menu items and vendors. It includes sub-components for rendering the different sections and individual item cards.
-*   **`api/mockApi.tsx`:** Contains the mock API for fetching mood-based results. It simulates fetching data from a backend and includes logic for filtering vendors by location and menu items by category.
+*   **`api/mood-api.tsx`:** Contains the API logic for fetching mood-based results. It fetches data from firebase and includes logic for filtering vendors by location and menu items by category.
 *   **`data/MockData.ts`:** Provides the sample data for vendors and menu items used by the mock API.
 *   **`types/types.ts`:** Defines the TypeScript types for the `Vendor` and `MenuItem` data structures.
 
