@@ -30,7 +30,7 @@ import PageWrapper from "./services/page-transition";
 // import { LocationSetup } from "./pages/LocationSetup";
 // import { SavedLocation } from "./hooks/useLocationStorage";
 // import { SavedLocationsModal } from "./components/my-components/SavedLocationsModal";
-// import { Maintenance } from "./pages/maintenance";
+import { Maintenance } from "./pages/maintenance";
 import MoodSelection from "./pages/mood/MoodSelection";
 import LocationSelection from "./pages/mood/LocationSelection";
 import ResultsPage from "./pages/mood/ResultsPage";
@@ -99,7 +99,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/waitlist" element={<Waitlist />} /> */}
-                <Route path="/" element={<MoodSelection />} />
+                <Route path="/" element={<Maintenance />} />
                 {/* <Route path="/vendor/:vendorId" element={<VendorPage />} />
                 <Route path="/menu-item/:id" element={<MenuItemScreen />} />
                 <Route path="/explore" element={<MenuExplorer />} /> */}
