@@ -5,6 +5,9 @@ export interface Vendor {
   college_id: number;
   geolocation: { lat: number; lng: number };
   is_open: boolean;
+  address: string;
+  averageRating?: number;
+  ratingCount?: number;
 }
 
 export interface MenuItem {
@@ -16,6 +19,19 @@ export interface MenuItem {
   price: string;
   is_available: boolean;
   image_url: string;
+  averageRating?: number;
+  ratingCount?: number;
+}
+
+export interface Review {
+  id?: string;
+  userId?: string;
+  userName?: string;
+  targetId: string;
+  targetType: 'vendor' | 'menuItem';
+  rating: number;
+  reviewText: string;
+  createdAt: any;
 }
 
 export interface SectionProps {
