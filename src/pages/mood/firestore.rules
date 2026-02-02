@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Match for the vendors collection
+    match /vendors/{vendorId} {
+      allow read, write: if true;
+    }
+
+    // Match for the menuItems collection 
+    // (Ensure this matches the 'menuItems' string used in your React code)
+    match /menuItems/{itemId} {
+      allow read, write: if true;
+    }
+
+    // Match for the reviews collection
+    match /reviews/{reviewId} {
+      allow read, write: if true;
+    }
+    
+  }
+}

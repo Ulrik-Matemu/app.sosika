@@ -1,5 +1,5 @@
 import { db } from "../../../firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { Vendor, MenuItem } from "../types/types";
 
 export interface UserRequest {
@@ -33,8 +33,8 @@ const mapMoodToCategories = (mood: string): string[] => {
   // Map moods to their corresponding categories
   const moodMap: Record<string, string[]> = {
     breakfast: ["breakfast", "sandwiches"],
-    lunch: ["lunch", "dinner", "salads", "pizza", "burgers", "mains", "sides"], // Lunch items could also be dinner items
-    dinner: ["dinner", "lunch"], // Dinner items could also be lunch items
+    lunch: ["lunch", "dinner", "salads", "pizza", "burgers", "mains", "sides", "sandwiches"], // Lunch items could also be dinner items
+    dinner: ["dinner", "lunch", "salads", "pizza", "burgers", "mains", "sides"], // Dinner items could also be lunch items
     drink: ["drinks"],
     drinks: ["drinks"],
     snack: ["snacks"],
@@ -101,4 +101,25 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
   
 
   return { vendors: nearbyVendors, menuItems: filteredItems };
+};
+
+export const fetchVendorMenu = async (vendorId: string): Promise<{ vendor: Vendor; menuItems: MenuItem[] }> => {
+  // 1. Fetch the vendor details
+  const vendorRef = doc(db, "vendors", vendorId);
+  const vendorSnap = await getDoc(vendorRef);
+
+  if (!vendorSnap.exists()) {
+    throw new Error("Vendor not found");
+  }
+
+  const vendor = { id: vendorSnap.id, ...vendorSnap.data() } as Vendor;
+
+  // 2. Fetch all menu items for that vendor
+  const menuItemsCollection = collection(db, "menuItems");
+  const q = query(menuItemsCollection, where("vendor_id", "==", vendorId));
+  const querySnapshot = await getDocs(q);
+  
+  const menuItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MenuItem));
+
+  return { vendor, menuItems };
 };

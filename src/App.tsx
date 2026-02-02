@@ -30,11 +30,12 @@ import PageWrapper from "./services/page-transition";
 // import { LocationSetup } from "./pages/LocationSetup";
 // import { SavedLocation } from "./hooks/useLocationStorage";
 // import { SavedLocationsModal } from "./components/my-components/SavedLocationsModal";
-import { Maintenance } from "./pages/maintenance";
+// import { Maintenance } from "./pages/maintenance";
 import MoodSelection from "./pages/mood/MoodSelection";
 import LocationSelection from "./pages/mood/LocationSelection";
 import ResultsPage from "./pages/mood/ResultsPage";
 import AdminDashboard from "./pages/admin/Dashboard";
+import VendorMenuPage from "./pages/vendor/MenuPage";
 
 function App() {
   // const [selectedLocation, setSelectedLocation] = useState<SavedLocation | null>(null);
@@ -99,13 +100,14 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/waitlist" element={<Waitlist />} /> */}
-                <Route path="/" element={<Maintenance />} />
+                <Route path="/" element={<MoodSelection />} />
                 {/* <Route path="/vendor/:vendorId" element={<VendorPage />} />
                 <Route path="/menu-item/:id" element={<MenuItemScreen />} />
                 <Route path="/explore" element={<MenuExplorer />} /> */}
                 <Route path="/mood" element={<MoodSelection />} />
                 <Route path="/mood/location" element={<LocationSelection />} />
                 <Route path="/mood/results" element={<ResultsPage />} />
+                <Route path="/vendor/:vendorId/menu" element={<VendorMenuPage />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 {/* <Route path="/browse" element={<Browser />} /> */}
                 {/* Private Routes */}
