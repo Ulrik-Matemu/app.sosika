@@ -11,6 +11,7 @@ import StarRating from "../../components/my-components/StarRating";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { Textarea } from "../../components/ui/textarea";
+import { Helmet } from "react-helmet-async";
 
 // --- Sub-Components ---
 
@@ -244,6 +245,15 @@ const VendorMenuPage = () => {
 
   return (
     <div className="min-h-screen bg-zinc-900 text-zinc-100">
+      <Helmet>
+        <title>{vendor.name} Menu | Sosika</title>
+        <meta name="description" content={`Explore the menu of ${vendor.name} on Sosika. Browse delicious dishes, read reviews, and place your order today!`} />
+        <meta property="og:title" content={`Order from ${vendor.name}`} />
+        <meta property="og:description" content={`Explore the menu of ${vendor.name} on Sosika. Browse delicious dishes, read reviews, and place your order today!`} />
+        <meta property="og:image" content='https://sosika.app/sosika-vendor-whatsapp-link.png' />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:type" content="website" />
+      </Helmet>
       {/* Header */}
       <div className="sticky top-0 z-20 bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-800/50">
         <div className="max-w-4xl mx-auto px-4 pt-4">
