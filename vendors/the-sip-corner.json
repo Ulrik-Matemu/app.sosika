@@ -1,0 +1,330 @@
+[
+    {
+        "name": "Wali Kuku",
+        "description": "Traditional rice served with seasoned chicken.",
+        "category": "mains",
+        "price": "6000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Ugali Samaki",
+        "description": "Stiff porridge served with fresh fish.",
+        "category": "mains",
+        "price": "8000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Biryani",
+        "description": "Fragrant spiced rice with tender chicken.",
+        "category": "mains",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Beef Burger",
+        "description": "Juicy beef patty with fresh toppings.",
+        "category": "burgers",
+        "price": "8000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Pizza",
+        "description": "Freshly baked pizza topped with seasoned chicken.",
+        "category": "pizza",
+        "price": "12000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Tropical Sunrise Smoothie",
+        "description": "Mango, pineapple, coconut milk, and a splash of orange juice.",
+        "category": "drinks",
+        "price": "5000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Watermelon Cooler",
+        "description": "Watermelon juice with a splash of mint and lime.",
+        "category": "drinks",
+        "price": "4000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Oreo Caramel Shake",
+        "description": "Mix of crushed Oreos, caramel sauce, and vanilla ice cream topped with whipped cream.",
+        "category": "drinks",
+        "price": "6000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chips Mayai",
+        "description": "Classic Tanzanian French fry omelette.",
+        "category": "mains",
+        "price": "2500",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mishkaki",
+        "description": "Marinated grilled meat skewers.",
+        "category": "snacks",
+        "price": "1000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Makange Ya Kuku",
+        "description": "Grilled chicken wings with a spicy marinade.",
+        "category": "mains",
+        "price": "5000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Wali Samaki",
+        "description": "Traditional rice served with fresh fish.",
+        "category": "mains",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Ugali Kuku",
+        "description": "Stiff porridge served with seasoned chicken.",
+        "category": "mains",
+        "price": "6000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Ugali Maini",
+        "description": "Stiff porridge served with seasoned beef liver.",
+        "category": "mains",
+        "price": "5000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Makange Ya Nyama",
+        "description": "Grilled beef with a spicy marinade.",
+        "category": "mains",
+        "price": "4000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chips plain",
+        "description": "Fries without any seasoning.",
+        "category": "mains",
+        "price": "2000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chips Mayai",
+        "description": "Fries cooked with eggs to create a hearty omelette.",
+        "category": "mains",
+        "price": "2500",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Pilau Nyama",
+        "description": "Fragrant spiced rice with tender beef.",
+        "category": "mains",
+        "price": "3000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Pilau Kuku",
+        "description": "Fragrant spiced rice with tender chicken.",
+        "category": "mains",
+        "price": "6000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sausage",
+        "description": "Grilled sausage served with a side of chips.",
+        "category": "sides",
+        "price": "2000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chapati",
+        "description": "Soft and flaky flatbread.",
+        "category": "sides",
+        "price": "1000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Hot Dog",
+        "description": "Grilled sausage in a soft bun with toppings.",
+        "category": "mains",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Beef Biryani",
+        "description": "Fragrant spiced rice with tender beef.",
+        "category": "mains",
+        "price": "9000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Beef Fajita",
+        "description": "Grilled beef strips with sautéed peppers and onions, served with tortillas.",
+        "category": "mains",
+        "price": "8000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Fajita",
+        "description": "Grilled chicken strips with sautéed peppers and onions, served with tortillas.",
+        "category": "mains",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Burger",
+        "description": "Juicy chicken patty with fresh toppings.",
+        "category": "burgers",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Beef Pizza",
+        "description": "Freshly baked pizza topped with seasoned beef.",
+        "category": "pizza",
+        "price": "12000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Tropical Sunrise",
+        "description": "Mango, pineapple, coconut milk, and a splash of orange juice.",
+        "category": "drinks",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Choco Avocado Smoothie",
+        "description": "Avocado, cocoa powder, dates, and milk.",
+        "category": "drinks",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Dates Energy Shake",
+        "description": "Dates, Peanut butter, oats, milk, Banana, Cocoa Powder & a hint of cinnamon.",
+        "category": "drinks",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Piña Colada Smoothie",
+        "description": "Pineapple, coconut milk, banana, and a touch of honey.",
+        "category": "drinks",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Watermelon Cooler",
+        "description": "watermelon juice with a splash of mint and lime.",
+        "category": "drinks",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sunset Glow",
+        "description": "pineapple, and orange juice.",
+        "category": "drinks",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Green Detox",
+        "description": "Spinach, cucumber, green apple, and a hint of ginger.",
+        "category": "drinks",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Oreo Caramel Shake",
+        "description": "Mix of crushed Oreos, caramel sauce, and vanilla ice cream topped with whipped cream.",
+        "category": "drinks",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chocolate Shake",
+        "description": "Chocolate ice cream, milk, and chocolate syrup, topped with whipped cream.",
+        "category": "drinks",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Strawberry Shake",
+        "description": "fresh strawberries, vanilla ice cream, and milk, topped with whipped cream.",
+        "category": "drinks",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mango Madness",
+        "description": "Fresh mangoes blended with yogurt and a touch of honey.",
+        "category": "drinks",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Orange Creamsicle",
+        "description": "Orange juice, vanilla ice cream, and a hint of cream.",
+        "category": "drinks",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Papaya Mango Glow",
+        "description": "Papaya, mango, and a splash of orange juice.",
+        "category": "drinks",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Apple Pie Smoothie",
+        "description": "Apples, cinnamon, oats, and milk blended to perfection.",
+        "category": "drinks",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    }
+]
