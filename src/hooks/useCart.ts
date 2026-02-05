@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
-// import { getOrderSummaryHtml } from '../pages/explore/orderSummaryHtml';
 import { logEvent, analytics } from '../firebase';
 // import axios from 'axios';
 // import { getDeliveryFee } from '../services/deliveryFee';
 // import { toast } from './use-toast';
+// import { getOrderSummaryHtml } from '../pages/explore/orderSummaryHtml';
+
 
 emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID);
 
