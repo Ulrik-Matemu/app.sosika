@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { MapPin, ChevronLeft, Loader2, Star, Clock, ArrowRight } from "lucide-react";
+import { MapPin, ChevronLeft, Loader2, Clock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMood } from "../../hooks/useMood";
 import { useLocationStorage } from "../../hooks/useLocationStorage";
@@ -10,7 +10,7 @@ import Navbar from "../../components/my-components/navbar";
 
 // --- Helpers ---
 
-const isIconImage = (url: string) => url?.includes("/icons/menu/");
+// const isIconImage = (url: string) => url?.includes("/icons/menu/");
 
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const R = 6371; // Radius of the earth in km
@@ -30,7 +30,6 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
 
 const VendorCard = ({
   vendor,
-  items,
   userLocation,
 }: {
   vendor: Vendor;
