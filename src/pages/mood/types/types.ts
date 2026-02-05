@@ -6,6 +6,7 @@ export interface Vendor {
   geolocation: { lat: number; lng: number };
   is_open: boolean;
   address: string;
+  cover_image_url?: string;
   averageRating?: number;
   ratingCount?: number;
 }

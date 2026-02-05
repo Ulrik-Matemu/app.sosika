@@ -16,6 +16,7 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { analytics, logEvent } from "./firebase";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/cartContext";
+import { HelmetProvider } from "react-helmet-async";
 import PageWrapper from "./services/page-transition";
 // import { AuthRedirect } from "./pages/AuthRedirects";
 // import VendorPage from "./pages/vendor";
@@ -87,45 +88,47 @@ function App() {
   // }
 
   return (
-    <MapProvider>
-      <CartProvider>
-        <Router>
-          <TooltipProvider>
-            <PageWrapper>
-              <Routes>
-                {/* Public Routes */}
-                {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
-                {/* <Route path="/reset-password" element={<ResetPassword />} />
+    <HelmetProvider>
+      <MapProvider>
+        <CartProvider>
+          <Router>
+            <TooltipProvider>
+              <PageWrapper>
+                <Routes>
+                  {/* Public Routes */}
+                  {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
+                  {/* <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/waitlist" element={<Waitlist />} /> */}
-                <Route path="/" element={<MoodSelection />} />
-                {/* <Route path="/vendor/:vendorId" element={<VendorPage />} />
+                  <Route path="/" element={<MoodSelection />} />
+                  {/* <Route path="/vendor/:vendorId" element={<VendorPage />} />
                 <Route path="/menu-item/:id" element={<MenuItemScreen />} />
                 <Route path="/explore" element={<MenuExplorer />} /> */}
-                <Route path="/mood" element={<MoodSelection />} />
-                <Route path="/mood/location" element={<LocationSelection />} />
-                <Route path="/mood/results" element={<ResultsPage />} />
-                <Route path="/vendor/:vendorId/menu" element={<VendorMenuPage />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                {/* <Route path="/browse" element={<Browser />} /> */}
-                {/* Private Routes */}
-                <Route element={<PrivateRoutes />}>
+                  <Route path="/mood" element={<MoodSelection />} />
+                  <Route path="/mood/location" element={<LocationSelection />} />
+                  <Route path="/mood/results" element={<ResultsPage />} />
+                  <Route path="/vendor/:vendorId/menu" element={<VendorMenuPage />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  {/* <Route path="/browse" element={<Browser />} /> */}
+                  {/* Private Routes */}
+                  <Route element={<PrivateRoutes />}>
 
-                  {/* <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
+                    {/* <Route path="/order-tracking/:orderId" element={<OrderTrackingWithErrorBoundary />} />
                   <Route path="/orders" element={<OrdersPage />} />
                   <Route path="/profile" element={<ProfileManagement />} />
                   <Route path="/vendor-registration" element={<VendorRegistration />} />
                   <Route path="/vendor-profile" element={<VendorProfile />} />
                   <Route path="/vendor-catalog" element={<VendorCatalogPage />} />
                   <Route path="/vendor-orders" element={<VendorOrders />} /> */}
-                </Route>
-              </Routes>
-            </PageWrapper>
-          </TooltipProvider>
-        </Router>
-      </CartProvider>
-    </MapProvider>
+                  </Route>
+                </Routes>
+              </PageWrapper>
+            </TooltipProvider>
+          </Router>
+        </CartProvider>
+      </MapProvider>
+    </HelmetProvider>
   );
 }
 

@@ -50,14 +50,34 @@ const AddVendorForm = ({ onVendorAdded }: { onVendorAdded: () => void }) => {
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
   const [isOpen, setIsOpen] = useState(true);
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+  const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: 'POST', body: formData }
+    );
+
+    if (!response.ok) throw new Error('Cloudinary upload failed');
+    const data = await response.json();
+    return data.secure_url;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !ownerName || !collegeId || !lat || !lng) {
-      setError('Please fill all fields.');
+    if (!name || !ownerName || !collegeId || !lat || !lng || !coverImageFile) {
+      setError('Please fill all fields and select a cover image.');
       return;
     }
     setSubmitting(true);
@@ -65,6 +85,8 @@ const AddVendorForm = ({ onVendorAdded }: { onVendorAdded: () => void }) => {
     setSuccess('');
 
     try {
+      const coverImageUrl = await uploadImage(coverImageFile);
+
       await addDoc(collection(db, 'vendors'), {
         name,
         owner_name: ownerName,
@@ -74,6 +96,7 @@ const AddVendorForm = ({ onVendorAdded }: { onVendorAdded: () => void }) => {
           lng: parseFloat(lng),
         },
         is_open: isOpen,
+        cover_image_url: coverImageUrl,
       });
       setSuccess('Vendor added successfully!');
       setName('');
@@ -82,9 +105,13 @@ const AddVendorForm = ({ onVendorAdded }: { onVendorAdded: () => void }) => {
       setLat('');
       setLng('');
       setIsOpen(true);
+      setCoverImageFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       onVendorAdded();
     } catch (err) {
-      setError('Failed to add vendor. Check Firestore rules.');
+      setError('Failed to add vendor. Check Firestore rules and image upload.');
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -101,6 +128,16 @@ const AddVendorForm = ({ onVendorAdded }: { onVendorAdded: () => void }) => {
         <div className="flex gap-4">
           <input type="number" step="any" placeholder="Lat" value={lat} onChange={e => setLat(e.target.value)} className="w-full bg-zinc-700 rounded p-2" />
           <input type="number" step="any" placeholder="Lng" value={lng} onChange={e => setLng(e.target.value)} className="w-full bg-zinc-700 rounded p-2" />
+        </div>
+        <div className="space-y-1">
+            <label className="text-sm text-zinc-400">Vendor Cover Image</label>
+            <input 
+                type="file" 
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={e => setCoverImageFile(e.target.files ? e.target.files[0] : null)} 
+                className="w-full bg-zinc-700 rounded p-1 text-sm file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-zinc-600 file:text-white hover:file:bg-zinc-500" 
+            />
         </div>
         <div className="flex items-center gap-2">
           <input type="checkbox" id="is_open" checked={isOpen} onChange={e => setIsOpen(e.target.checked)} />
