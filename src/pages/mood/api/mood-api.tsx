@@ -61,7 +61,7 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
   const allVendors: Vendor[] = vendorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vendor));
 
   // 2. Filter vendors by location proximity
-  const nearbyVendors = allVendors.filter(v => calculateDistance(v.geolocation, req.location) < 10000000);
+  const nearbyVendors = allVendors.filter(v => calculateDistance(v.geolocation, req.location) < 50); // 50 km radius
   
 
   if (nearbyVendors.length === 0) {
@@ -70,7 +70,15 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
 
   // 3. Get valid categories for this mood
   const validCategories = mapMoodToCategories(req.mood);
-  
+
+  //3.5 Check names of menu items for keywords matching the mood (e.g., "burger" in name for burger mood)
+  // This is a simple keyword check and can be enhanced with more sophisticated NLP techniques if needed.
+  const keyword = req.mood.toLowerCase();
+  if (!validCategories.includes(keyword)) {
+    validCategories.push(keyword);
+  }
+
+ 
 
   // 4. Fetch menu items for nearby vendors
   const nearbyVendorIds = nearbyVendors.map(v => v.id);
@@ -98,7 +106,13 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
   // Now filter by category client-side
   const filteredItems = itemsFromVendors.filter(item => validCategories.includes(item.category));
 
-  
+   //3.6 Check name of menu items individually from menu items fetched from nearby vendors for keyword matching
+  const keywordItems = itemsFromVendors.filter(item => item.name.toLowerCase().includes(keyword));
+
+  // If we found items matching the keyword, add them to validCategories
+  if (keywordItems.length > 0) {
+    validCategories.push(keyword);
+  }
 
   return { vendors: nearbyVendors, menuItems: filteredItems };
 };
