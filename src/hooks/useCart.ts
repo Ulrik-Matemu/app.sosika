@@ -88,18 +88,18 @@ export function useCart() {
 
     const userId = localStorage.getItem('userId');
 
-    // 1️⃣ Check if user is logged in
-    if (!userId && userId) {
-      // Pause loading while we ask the user for a phone number (guest checkout only)
-      setLoading(false);
+    // Always require a phone number for checkout (logged in or guest)
+    // Pause loading while we ask the user for a phone number
+    setLoading(false);
 
-      const phoneResult = await Swal.fire({
+    const phoneResult = await Swal.fire({
       title: 'Let Us Reach Out',
       text: 'Please enter your phone number to continue with checkout.',
       icon: 'info',
       input: 'tel',
       inputLabel: 'Phone Number',
       inputPlaceholder: 'e.g. +1234567890',
+      inputValue: localStorage.getItem('guestPhone') || '',
       showCancelButton: true,
       confirmButtonText: 'Continue',
       cancelButtonText: 'Cancel',
@@ -109,25 +109,23 @@ export function useCart() {
         if (cleaned.length < 7) return 'Please enter a valid phone number';
         return null;
       }
-      });
+    });
 
-      // If the user cancelled the prompt, stop checkout
-      if (phoneResult.isDismissed) {
+    // If the user cancelled the prompt, stop checkout
+    if (!phoneResult.isConfirmed) {
+      setLoading(false);
       return;
-      }
-
-      const phone = phoneResult.value as string;
-      // Persist guest phone so other parts of the app can access it if needed
-      localStorage.setItem('guestPhone', phone);
-      (window as any).guestPhone = phone;
-
-      // Resume loading and continue checkout as guest
-      setLoading(true);
-      // Note: downstream code currently uses `userId`. Consider updating templateParams/logEvent
-      // to prefer guestPhone when userId is absent.
     }
 
-    logEvent(analytics, 'reached_checkout', { userId });
+    const phone = phoneResult.value as string;
+    // Persist phone so other parts of the app can access it if needed
+    localStorage.setItem('guestPhone', phone);
+    (window as any).guestPhone = phone;
+
+    // Resume loading and continue checkout
+    setLoading(true);
+
+    logEvent(analytics, 'reached_checkout', { userId, phone });
 
     // 2️⃣ Check if cart is empty
     if (cart.length === 0) {
@@ -142,12 +140,6 @@ export function useCart() {
 
     // --- BEGIN EmailJS Payload Generation ---
 
-    
-
-
-
-
-
     // 1. Calculate the total price
     const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const orderTotal = total.toFixed(2);
@@ -160,12 +152,12 @@ export function useCart() {
     // 3. Construct the full template parameters object
     const templateParams = {
       // These keys must match the variable names in your EmailJS template
-      customer_name: userId, // Assuming userId is the customer's name/ID
+      customer_name: userId || phone, // Prefer userId, fallback to phone if guest
       order_id: `ORD-${Date.now()}`, // Generate a temporary ID
       order_items: `<ul>${orderItemsHtml}</ul>`, // The HTML list of items
       total_amount: `$${orderTotal}`,
       admin_email: 'sosika.app@gmail.com', // The email address you want to send *to*
-      guest_phone: localStorage.getItem('guestPhone') || 'N/A',
+      guest_phone: phone,
       display_location: (() => {
         const s = localStorage.getItem('sosika_locations');
         if (!s) return 'N/A';
@@ -202,106 +194,32 @@ export function useCart() {
         }
       })(),
       // You can add any other details like delivery info here
-      // delivery_address: '123 Main St', 
+      // delivery_address: '123 Main St',
     };
 
     // --- END EmailJS Payload Generation ---
 
     try {
-
-      // const vendor_id = cart[0].vendorId;
-
-      // // Calculate delivery fee
-      // let delivery_fee = 0;
-      // try {
-      //   delivery_fee = await getDeliveryFee(vendor_id.toString());
-      // } catch (err) {
-      //   console.warn('Failed to calculate delivery fee:', err);
-      //   delivery_fee = 0;
-      // }
-
-      // let info = 'Delivery fee is calculated according to distance. If too high, try ordering from nearby vendors';
-      // if (delivery_fee > 50000) {
-      //   info = "Your delivery fee seems too high. Try checking your location or ordering from nearby vendors.";
-      // }
-
-      // let deliveryTime = "ASAP";
-      // let note = "Made Fresh Just for You!";
-      // let requested_asap = true;
-
-      // if (cart[0].id === 7) {
-      //   deliveryTime = "Tomorrow";
-      //   note = "This delightful treat takes a day to prepare with extra care and love. We'll deliver it fresh and fabulous by tomorrow!🍰";
-      //   await Swal.fire({
-      //     title: "Special Order!",
-      //     text: note,
-      //     icon: "info",
-      //   });
-      // }
-
-      // // Order summary
-      // const result = await Swal.fire({
-      //   title: 'Confirm Your Order',
-      //   html: getOrderSummaryHtml({ cart, deliveryTime, delivery_fee, info: { message: info }, note }),
-      //   showCancelButton: true,
-      //   confirmButtonColor: '#3085d6',
-      //   cancelButtonColor: '#d33',
-      //   confirmButtonText: 'Place Order',
-      //   cancelButtonText: 'Cancel'
-      // });
-
-      // if (!result.isConfirmed) {
-      //   setLoading(false);
-      //   return;
-      // }
-
-      // // Prepare order payload
-      // const orderData = {
-      //   user_id: userId,
-      //   vendor_id,
-      //   delivery_fee,
-      //   requested_asap,
-      //   payment_method: "Cash on Delivery",
-      //   order_items: cart.map(item => ({
-      //     menu_item_id: item.id,
-      //     quantity: item.quantity,
-      //     price: parseFloat(item.price)
-      //   }))
-      // };
-
-      // // Place order
-      // const response = await axios.post(`${import.meta.env.VITE_API_URL}/orders`, orderData);
-
-      // if (response.status === 201) {
-      //   await Swal.fire({
-      //     title: 'Order Placed',
-      //     text: `Order ID: ${response.data.order_id} placed successfully! 🚀`,
-      //     icon: "success"
-      //   });
-      //   setCart([]);
-      //   window.location.href = `/order-tracking/${response.data.order_id}`;
-      // }
-
       // ----------------------------------------------------------------
       // NEW EMAILJS INTEGRATION START
       // ----------------------------------------------------------------
 
       // 1. Define your IDs
-            const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID; // e.g., 'gmail_service'
-            const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID; // e.g., 'order_notification'
-      
-            // 2. Prepare the payload (reuse values computed above to avoid duplicate calculations)
-            const emailTemplateParams = {
-              ...templateParams,
-              admin_email: 'sosika.app@gmail.com', // Recipient email
-            };
-      
-            // 3. Send the email!
-            const emailResponse = await emailjs.send(
-              SERVICE_ID,
-              TEMPLATE_ID,
-              emailTemplateParams
-            );
+      const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID; // e.g., 'gmail_service'
+      const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID; // e.g., 'order_notification'
+
+      // 2. Prepare the payload (reuse values computed above to avoid duplicate calculations)
+      const emailTemplateParams = {
+        ...templateParams,
+        admin_email: 'sosika.app@gmail.com', // Recipient email
+      };
+
+      // 3. Send the email!
+      const emailResponse = await emailjs.send(
+        SERVICE_ID,
+        TEMPLATE_ID,
+        emailTemplateParams
+      );
 
       if (emailResponse.status === 200) {
         await Swal.fire({
