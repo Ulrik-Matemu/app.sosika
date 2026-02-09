@@ -101,13 +101,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/waitlist" element={<Waitlist />} /> */}
-                  <Route
-                    path="/"
-                    element={(() => {
-                      window.location.replace("https://chat.whatsapp.com/J3476SyyNlRCBwRulEUlfX");
-                      return null;
-                    })()}
-                  />
+                  <Route path="/" element={<MoodSelection />} />
                   {/* <Route path="/vendor/:vendorId" element={<VendorPage />} />
                 <Route path="/menu-item/:id" element={<MenuItemScreen />} />
                 <Route path="/explore" element={<MenuExplorer />} /> */}
