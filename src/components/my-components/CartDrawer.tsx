@@ -27,7 +27,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-      <div className="w-full max-w-md bg-[#ededed] dark:bg-[#121212] h-full flex flex-col animate-slide-in-right">
+      <div className="w-full max-w-md bg-[#121212] h-full flex flex-col animate-slide-in-right">
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
