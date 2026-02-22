@@ -68,16 +68,16 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       <div className="flex items-center">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="p-1 bg-gray-200 dark:bg-gray-700 rounded-l"
+                          className="p-1 bg-gray-900 rounded-l"
                         >
                           <Minus className="h-4 w-4" />
                         </button>
-                        <span className="px-3 py-1 bg-[#ededed] dark:bg-gray-600 text-center min-w-8">
+                        <span className="px-3 py-1 bg-gray-900 text-center min-w-8">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-1 bg-gray-200 dark:bg-gray-700 rounded-r"
+                          className="p-1 bg-gray-900 rounded-r"
                         >
                           <Plus className="h-4 w-4" />
                         </button>
