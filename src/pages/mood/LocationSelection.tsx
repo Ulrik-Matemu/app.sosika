@@ -4,8 +4,9 @@ import { useLocationStorage } from "../../hooks/useLocationStorage";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMapLoader } from "../../services/map-provider";
 import { MapPin, Clock, ChevronLeft, Search, ChevronDown, ChevronUp, LocateFixed, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "../../hooks/use-toast";
+import { useCart } from "../../hooks/useCart";
 
 const mapContainerStyle = { width: "100%", height: "100%", borderRadius: "1.5rem" };
 
@@ -19,10 +20,26 @@ export default function LocationSelection() {
   const [isLocating, setIsLocating] = useState(false);
 
   const navigate = useNavigate();
-  const toast = useToast();
+  const { toast } = useToast();
   const mapRef = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+
+  const location = useLocation();
+  const { checkout, loading: isCheckingOut } = useCart();
+  const isOfferFlow = location.state?.isOfferFlow;
+
+  const handleConfirmLocation = async (lat: number, lng: number, address: string) => {
+    saveLocation({ address, lat, lng });
+
+    if (isOfferFlow) {
+      await checkout();
+      // After checkout, the user sees a confirmation. Navigate them home.
+      navigate("/");
+    } else {
+      navigate("/mood/results");
+    }
+  };
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
@@ -93,7 +110,7 @@ export default function LocationSelection() {
       },
       (error) => {
         console.error("Geolocation failed:", error);
-        toast.toast({
+        toast({
           title: "Geolocation failed",
           description: "Could not get your location. Please enable location services.",
           variant: "destructive",
@@ -101,11 +118,6 @@ export default function LocationSelection() {
         setIsLocating(false);
       }
     );
-  };
-
-  const handleProceed = (lat: number, lng: number, address: string) => {
-    saveLocation({ address, lat, lng });
-    navigate("/mood/results");
   };
 
   if (loadError) return <div className="p-10 text-red-400">Error loading maps</div>;
@@ -140,7 +152,7 @@ export default function LocationSelection() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button 
               onClick={handleGeolocate}
-              disabled={isLocating}
+              disabled={isLocating || isCheckingOut}
               className="w-full flex items-center justify-center gap-2 bg-zinc-800/80 border border-zinc-700 rounded-xl py-3 px-4 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-wait transition-colors"
             >
               {isLocating ? (
@@ -154,7 +166,8 @@ export default function LocationSelection() {
             {locations.length > 0 && (
               <button 
                 onClick={() => setShowRecent(!showRecent)}
-                className="w-full flex items-center justify-center gap-2 bg-zinc-800/80 border border-zinc-700 rounded-xl py-3 px-4 hover:bg-zinc-700 transition-colors"
+                disabled={isCheckingOut}
+                className="w-full flex items-center justify-center gap-2 bg-zinc-800/80 border border-zinc-700 rounded-xl py-3 px-4 hover:bg-zinc-700 transition-colors disabled:opacity-50"
               >
                 <Clock className="w-5 h-5 text-[#00bfff]" />
                 <span className="font-semibold text-sm">Recent Places</span>
@@ -174,8 +187,9 @@ export default function LocationSelection() {
                 {locations.slice(0, 3).map((loc, i) => (
                   <button
                     key={i}
-                    onClick={() => handleProceed(loc.lat, loc.lng, loc.address)}
-                    className="w-full text-left p-3 hover:bg-[#00bfff]/10 rounded-lg flex items-center gap-3 group transition-all"
+                    onClick={() => handleConfirmLocation(loc.lat, loc.lng, loc.address)}
+                    disabled={isCheckingOut}
+                    className="w-full text-left p-3 hover:bg-[#00bfff]/10 rounded-lg flex items-center gap-3 group transition-all disabled:opacity-50 disabled:cursor-wait"
                   >
                     <MapPin className="text-zinc-500 group-hover:text-orange-400 w-4 h-4 transition-colors flex-shrink-0" />
                     <span className="text-sm truncate text-zinc-300 group-hover:text-white">{loc.address}</span>
@@ -225,10 +239,18 @@ export default function LocationSelection() {
                 </div>
               </div>
               <button
-                onClick={() => handleProceed(selected.lat, selected.lng, locationName)}
-                className="w-full bg-[#00bfff] hover:bg-blue-400 text-black font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all text-lg"
+                onClick={() => handleConfirmLocation(selected.lat, selected.lng, locationName)}
+                disabled={isCheckingOut}
+                className="w-full bg-[#00bfff] hover:bg-blue-400 text-black font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all text-lg flex items-center justify-center disabled:opacity-70 disabled:cursor-wait"
               >
-                Confirm & Continue
+                {isCheckingOut ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  isOfferFlow ? "Proceed to Checkout" : "Confirm & Continue"
+                )}
               </button>
             </motion.div>
           )}
