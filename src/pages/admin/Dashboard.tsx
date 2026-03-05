@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../../firebase';
 import { collection, addDoc, getDocs, writeBatch, doc } from 'firebase/firestore';
 import { Vendor } from '../mood/types/types';
+import AdminLogin from '../../components/my-components/AdminLogin';
 
 const AdminDashboard = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loadingVendors, setLoadingVendors] = useState(true);
 
@@ -22,8 +24,14 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    fetchVendors();
-  }, []);
+    if (isAuthenticated) {
+      fetchVendors();
+    }
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-zinc-900 text-white p-4 sm:p-6 lg:p-8">
