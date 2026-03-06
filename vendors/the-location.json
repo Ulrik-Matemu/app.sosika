@@ -1,0 +1,314 @@
+[
+    {
+        "name": "English Breakfast",
+        "description": "2 eggs, sausage, beef bacon, toast, baked beans, mushrooms & tomato",
+        "category": "Breakfast",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Location Breakfast",
+        "description": "2 eggs, avocado, home fries, toast, grilled veggies, 1pc chicken breast",
+        "category": "Breakfast",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Make you own breakfast",
+        "description": "Choose items",
+        "category": "Breakfast",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Soup of the day",
+        "description": "Ask your server for details",
+        "category": "Soups",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fish Fingers",
+        "description": "Breaded fish fingers",
+        "category": "Starters",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Location Thai Chicken Wings",
+        "description": "Delicious Thai Chicken Wings from The Location",
+        "category": "Starters",
+        "price": "20000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Satay",
+        "description": "Delicious chicken satay from The Location",
+        "category": "Starters",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "French Fries",
+        "description": "Delicious French Fries from The Location",
+        "category": "Sides",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Veg Samosas(2 pcs)",
+        "description": "Delicious Veg Samosas from The Location",
+        "category": "vegetarian",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Vegetable Tempura",
+        "description": "Delicious Vegetable Tempura from The Location",
+        "category": "vegetarian",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Thai Beef Salad",
+        "description": "Delicious Thai Beef Salad from The Location",
+        "category": "Salads",
+        "price": "20000",
+        "image_url": "/",
+        "is_available": true
+    }, 
+    {
+        "name": "Avocado Corn Chicken Salad",
+        "description": "Delicious Avocado Corn Chicken Salad from The Location",
+        "category": "Salads",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Location Salad-Veggie",
+        "description": "Delicious Location Salad-Veggie from The Location",
+        "category": "Salads",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Guacamole Cheese & Tomato Sandwich",
+        "description": "Delicious Guacamole Cheese & Tomato Sandwich from The Location",
+        "category": "Sandwiches",
+        "price": "12000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Location Chicken Sandwich",
+        "description": "Delicious Location Chicken Sandwich from The Location",
+        "category": "Sandwiches",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Location Beef Sandwich",
+        "description": "Delicious Location Beef Sandwich from The Location",
+        "category": "Sandwiches",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Spicy Chicken Wrap",
+        "description": "Delicious Spicy Chicken Wrap from The Location",
+        "category": "Wraps",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Veggie Wrap",
+        "description": "Delicious Veggie Wrap from The Location",
+        "category": "Wraps",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Burger",
+        "description": "Delicious Chicken Burger from The Location",
+        "category": "Burgers",
+        "price": "20000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Beef Burger",
+        "description": "Delicious Beef Burger from The Location",
+        "category": "Burgers",
+        "price": "20000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Veggie Burger",
+        "description": "Delicious Veggie Burger from The Location",
+        "category": "Burgers",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Grilled King Fish",
+        "description": "Delicious Grilled King Fish from The Location",
+        "category": "Mains",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Grilled Fish Fillet",
+        "description": "Delicious Grilled Fish Fillet from The Location",
+        "category": "Mains",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fish in Coconut Sauce",
+        "description": "Delicious Fish in Coconut Sauce from The Location",
+        "category": "Mains",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Stir Fried Chicken",
+        "description": "Delicious Stir Fried Chicken from The Location",
+        "category": "Mains",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Stir Fried Beef",
+        "description": "Delicious Stir Fried Beef from The Location",
+        "category": "Mains",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mushroom Chicken Breast",
+        "description": "Delicious Mushroom Chicken Breast from The Location",
+        "category": "Mains",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Pork Chops with Balsamic Maple Glaze",
+        "description": "Delicious Pork Chops with Balsamic Maple Glaze from The Location",
+        "category": "Mains",
+        "price": "30000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Beef Steak - Pepper/Mushroom",
+        "description": "Delicious Beef Steak - Pepper/Mushroom from The Location",
+        "category": "Mains",
+        "price": "30000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Grilled Chicken Breast",
+        "description": "Delicious Grilled Chicken Breast from The Location",
+        "category": "Mains",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    }, 
+    {
+        "name": "Vegatable Curry",
+        "description": "Delicious Vegatable Curry from The Location",
+        "category": "vegetarian",
+        "price": "20000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Paneer Curry",
+        "description": "Delicious Paneer Curry from The Location",
+        "category": "vegetarian",
+        "price": "20000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "T-bone Steak",
+        "description": "Delicious T-bone Steak from The Location",
+        "category": "Mains",
+        "price": "42000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Ribeye Steak",
+        "description": "Delicious Ribeye Steak from The Location",
+        "category": "Mains",
+        "price": "42000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Rump Steak",
+        "description": "Delicious Rump Steak from The Location",
+        "category": "Mains",
+        "price": "42000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Plain Rice",
+        "description": "Delicious Plain Rice from The Location",
+        "category": "Sides",
+        "price": "8000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Vegetable Fried Rice",
+        "description": "Delicious Vegetable Fried Rice from The Location",
+        "category": "Sides",
+        "price": "12000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Egg fried Rice",
+        "description": "Delicious Egg fried Rice from The Location",
+        "category": "Sides",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    }, 
+    {
+        "name": "Chicken fried Rice",
+        "description": "Delicious chicken friend Rice from The Location",
+        "category": "Sides",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    }
+]
