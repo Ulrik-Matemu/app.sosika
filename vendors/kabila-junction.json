@@ -1,0 +1,186 @@
+[
+  {
+    "name": "French Toast",
+    "description": "Delicious French Toast from Kabila Junction",
+    "category": "Breakfast",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Banana Stuffed French Toast",
+    "description": "Delicious Banana Stuffed French Toast from Kabila Junction",
+    "category": "Breakfast",
+    "price": "13500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Homemade Fluffy Pancake (2 pc)",
+    "description": "Delicious Homemade Fluffy Pancake (2 pc) from Kabila Junction",
+    "category": "Breakfast",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Avocado Toast",
+    "description": "Delicious Avocado Toast from Kabila Junction",
+    "category": "Breakfast",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "BBQ Buffalo Wings",
+    "description": "Delicious BBQ Buffalo Wings from Kabila Junction",
+    "category": "Bites",
+    "price": "13500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Samosas (3pcs)",
+    "description": "Delicious Samosas (3pcs) from Kabila Junction",
+    "category": "Bites",
+    "price": "13500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Hawaiian Pizza",
+    "description": "Delicious Hawaiian Pizza from Kabila Junction",
+    "category": "Pizza",
+    "price": "24000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kabila Club Sandwich",
+    "description": "Delicious Kabila Club Sandwich from Kabila Junction",
+    "category": "Sandwiches",
+    "price": "22000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Butter Chicken",
+    "description": "Delicious Butter Chicken from Kabila Junction",
+    "category": "Chicken",
+    "price": "27000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mbuzi Choma",
+    "description": "Delicious Mbuzi Choma from Kabila Junction",
+    "category": "Swahili",
+    "price": "33000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Frozen Cheesecake",
+    "description": "Delicious Frozen Cheesecake from Kabila Junction",
+    "category": "Dessert",
+    "price": "13500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Pepsi / Coke / Coke Zero",
+    "description": "Delicious Pepsi / Coke / Coke Zero from Kabila Junction",
+    "category": "Soft Drinks",
+    "price": "2500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Redbull",
+    "description": "Delicious Redbull from Kabila Junction",
+    "category": "Soft Drinks",
+    "price": "9500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Cappuccino",
+    "description": "Delicious Cappuccino from Kabila Junction",
+    "category": "Coffee",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fresh Orange Juice",
+    "description": "Delicious Fresh Orange Juice from Kabila Junction",
+    "category": "Drinks",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chocolate Milkshake",
+    "description": "Delicious Chocolate Milkshake from Kabila Junction",
+    "category": "Milkshakes",
+    "price": "13500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Virgin Mojito",
+    "description": "Delicious Virgin Mojito from Kabila Junction",
+    "category": "Mocktails",
+    "price": "13500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kabila No 1 Cocktail",
+    "description": "Delicious Kabila No 1 Cocktail from Kabila Junction",
+    "category": "Signature Cocktails",
+    "price": "17000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kilimanjaro Lager",
+    "description": "Delicious Kilimanjaro Lager from Kabila Junction",
+    "category": "Beers",
+    "price": "5000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Heineken",
+    "description": "Delicious Heineken from Kabila Junction",
+    "category": "Beers",
+    "price": "8500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Hennessy VS (30ml)",
+    "description": "Delicious Hennessy VS (30ml) from Kabila Junction",
+    "category": "Cognac/Brandy",
+    "price": "9500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Jack Daniel Old 7 (30ml)",
+    "description": "Delicious Jack Daniel Old 7 (30ml) from Kabila Junction",
+    "category": "Whiskey",
+    "price": "6500",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Serengeti Sauvignon Blanc (Bottle)",
+    "description": "Delicious Serengeti Sauvignon Blanc (Bottle) from Kabila Junction",
+    "category": "White Wines",
+    "price": "65000",
+    "image_url": "/",
+    "is_available": true
+  }
+]

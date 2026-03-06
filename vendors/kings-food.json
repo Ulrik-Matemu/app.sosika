@@ -1,0 +1,170 @@
+[
+    {
+        "name": "Foil Ng'ombe",
+        "description": "A traditional swahili dish made with grilled meat served with vegetables.",
+        "category": "mains",
+        "price": "12500",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Maini",
+        "description": "A traditional swahili dish made with liver",
+        "category": "mains",
+        "price": "8500",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sausage",
+        "description": "Delicious sausage from Kings Food",
+        "category": "sides",
+        "price": "1500",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chips Kavu",
+        "description": "Delicious chips from Kings Food",
+        "category": "sides",
+        "price": "3000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chips Yai Ndogo",
+        "description": "Delicious potato omellete from Kings Food",
+        "category": "sides",
+        "price": "4000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chips Yai Kubwa",
+        "description": "Delicious potato omellete from Kings Food",
+        "category": "sides",
+        "price": "6000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Rosti Ng'ombe",
+        "description": "Roased beef from Kings Food",
+        "category": "mains",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Makange ya kuku Robo",
+        "description": "Delicious grilled chicken from Kings Food",
+        "category": "mains",
+        "price": "9000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Kitungu Kuku Robo",
+        "description": "Delicious grilled chicken from Kings Food",
+        "category": "mains",
+        "price": "9000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mbuzi Kitunguu",
+        "description": "Delicious grilled goat from Kings Food",
+        "category": "mains",
+        "price": "12000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mbuzi Choma",
+        "description": "Delicious grilled goat from Kings Food",
+        "category": "mains",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chapati (2 Portion)",
+        "description": "Delicious chapati from Kings Food",
+        "category": "sides",
+        "price": "3000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Makange ya kuku Nusu",
+        "description": "Delicious grilled chicken from Kings Food",
+        "category": "mains",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Kitungu Kuku Nusu",
+        "description": "Delicious grilled chicken from Kings Food",
+        "category": "mains",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Samaki (Sato) Makange",
+        "description": "Delicious grilled fish from Kings Food",
+        "category": "mains",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Samaki (Sato) Kitungu",
+        "description": "Delicious grilled fish from Kings Food",
+        "category": "mains",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Samaki (Sato) Mchemsho",
+        "description": "Delicious boiled fish from Kings Food",
+        "category": "mains",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Samaki (Sato) Nazi",
+        "description":"A traditional swahili dish made with grilled meat served with vegetables.",
+        "category": "mains",
+        "price": "20000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Biryan Ng'ombe (Only Friday)",
+        "description": "A traditional swahili dish made with grilled meat served with vegetables.",
+        "category": "mains",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Biryan Kuku Kisasa (Only Friday)",
+        "description": "A traditional swahili dish made with grilled meat served with vegetables.",
+        "category": "mains",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Biryan Mbuzi (Only Friday)",
+        "description": "A traditional swahili dish made with grilled meat served with vegetables.",
+        "category": "mains",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    }
+]

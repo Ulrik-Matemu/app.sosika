@@ -48,6 +48,23 @@ const mapMoodToCategories = (mood: string): string[] => {
     sides: ["sides"],
     nearby: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches"], // Show all
     any: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches"], // Show all
+    bites: ["snacks", "starters", "bites"],
+    softdrink: ["drinks", "soft drinks"],
+    chicken: ["chicken"],
+    swahili: ["swahili"],
+    dessert: ["dessert"],
+    coffee: ["coffee"],
+    milkshakes: ["milkshakes"],
+    mocktail: ["mocktails"],
+    signaturecocktail: ["cocktails"],
+    beers: ["beers"],
+    cognac: ["cognac/brandy"],
+    whiskey: ["whiskey"],
+    whitewine: ["white wine"],
+    soups: ["soups"],
+    starters: ["starters"],
+    vegeterian: ["vegetarian"],
+    wraps: ["wraps"],
   };
   
   return moodMap[moodLower] || [moodLower];
@@ -61,7 +78,7 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
   const allVendors: Vendor[] = vendorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vendor));
 
   // 2. Filter vendors by location proximity
-  const nearbyVendors = allVendors.filter(v => calculateDistance(v.geolocation, req.location) < 50); // 50 km radius
+  const nearbyVendors = allVendors.filter(v => calculateDistance(v.geolocation, req.location) < 100); // 100 km radius
   
 
   if (nearbyVendors.length === 0) {
