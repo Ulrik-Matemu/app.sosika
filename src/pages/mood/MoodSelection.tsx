@@ -55,6 +55,15 @@ const offers: Offer[] = [
     vendorId: 99,
     imageUrl: "/images/beef-tacos.jpg",
   },
+  {
+    id: 1004,
+    name: "Bluberry & Lemon Cake (Wednesday Special)",
+    description: "Indulge in our delectable Blueberry & Lemon Cake every Wednesday at a special price. A perfect treat to brighten your midweek!",
+    price: "15000",
+    category: "Special",
+    vendorId: 99,
+    imageUrl: "/images/blueberry-lemon-cake.jpeg",
+  }
 ];
 
 const allMealTypes = [
