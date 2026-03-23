@@ -22,7 +22,7 @@ export default function Navbar() {
     cart,
     cartTotal,
     deliveryFee,
-    updateQuantity,
+    updateQuantity: updateQuantityString,
     removeFromCart,
     clearCart,
     checkout,
@@ -30,10 +30,19 @@ export default function Navbar() {
   } = useCartContext();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // wrapper to adapt CartDrawer's expected (id: number, qty: number) signature
+  const handleUpdateQuantity = (id: number, qty: number) => {
+    updateQuantityString(String(id), qty);
+  };
+
   const triggerHapticFeedback = () => {
     if (navigator.vibrate) {
       navigator.vibrate(20); // 30ms vibration
     }
+  };
+
+  const handleRemoveFromCart = (id: number) => {
+    removeFromCart(String(id));
   };
 
 
@@ -87,29 +96,29 @@ export default function Navbar() {
                 )
               }
               aria-label={`Go to ${name} page`}
-              children={({ isActive }) => (
-                <>
-                  <div
-                    className={clsx(
-                      "p-1 mb-1 rounded-full",
-                      isActive && "bg-blue-100 dark:bg-blue-900/30"
-                    )}
-                  >
-                    <Icon size={30} className={isActive ? "animate-pulse" : ""} />
-                  </div>
-                </>
+            >
+              {({ isActive }) => (
+                <div
+                  className={clsx(
+                    "p-1 mb-1 rounded-full",
+                    isActive && "bg-blue-100 dark:bg-blue-900/30"
+                  )}
+                >
+                  <Icon size={30} className={isActive ? "animate-pulse" : ""} />
+                </div>
               )}
-            />
+            </NavLink>
           )
         )}
       </nav>
+
       <CartDrawer
+        updateQuantity={handleUpdateQuantity}
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cart={cart}
         cartTotal={cartTotal}
-        updateQuantity={updateQuantity}
-        removeFromCart={removeFromCart}
+        removeFromCart={handleRemoveFromCart}
         clearCart={clearCart}
         checkout={checkout}
         loading={loading}
