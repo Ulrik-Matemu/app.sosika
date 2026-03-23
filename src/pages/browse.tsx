@@ -26,13 +26,13 @@ console.log("standalone", isInStandaloneMode());  // should be false if not inst
 
 // Define interfaces for menu items and vendor data
 interface MenuItem {
-    id: number;
+    id: string;
     name: string;
     description?: string;
     price: string;
     category: string;
     is_available: boolean;
-    vendor_id: number;
+    vendor_id: string;
     image_url?: string;
 }
 

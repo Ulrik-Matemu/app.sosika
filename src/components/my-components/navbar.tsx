@@ -21,6 +21,7 @@ export default function Navbar() {
   const {
     cart,
     cartTotal,
+    deliveryFee,
     updateQuantity,
     removeFromCart,
     clearCart,
@@ -112,6 +113,7 @@ export default function Navbar() {
         clearCart={clearCart}
         checkout={checkout}
         loading={loading}
+        deliveryFee={deliveryFee}
       />
     </>
   );

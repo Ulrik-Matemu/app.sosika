@@ -2,69 +2,51 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMood } from "../../hooks/useMood";
-import { Gift } from "lucide-react";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerTrigger,
-  DrawerFooter,
-  DrawerClose,
-} from "../../components/ui/drawer";
-import { Button } from "../../components/ui/button";
-import { Card, CardTitle, CardDescription } from "../../components/ui/card";
-import { useCart } from "../../hooks/useCart";
+// import { Gift } from "lucide-react";
+// import {
+//   Drawer,
+//   DrawerContent,
+//   DrawerHeader,
+//   DrawerTitle,
+//   DrawerDescription,
+//   DrawerTrigger,
+//   DrawerFooter,
+//   DrawerClose,
+// } from "../../components/ui/drawer";
+// import { Button } from "../../components/ui/button";
+// import { Card, CardTitle, CardDescription } from "../../components/ui/card";
+// import { useCart } from "../../hooks/useCart";
 
-type Offer = {
-  id: number;
-  name: string;
-  price: string;
-  vendorId: number;
-  description: string;
-  category: 'Discount' | 'Free Delivery' | 'Special' | 'Friday Offer';
-  imageUrl?: string;
-};
+// type Offer = {
+//   id: string;
+//   name: string;
+//   price: string;
+//   vendor_id: string;
+//   description: string;
+//   category: 'Discount' | 'Free Delivery' | 'Special' | 'Friday Offer';
+//   imageUrl?: string;
+// };
 
-const offers: Offer[] = [
-  {
-    id: 1001,
-    name: "Biryani Kuku: Friday",
-    description: "Get a delicious Biryani Kuku at a discounted price every Friday. Perfect for your weekend cravings!",
-    price: "12000",
-    category: "Friday Offer",
-    vendorId: 1, // A placeholder vendorId for offers
-    imageUrl: "/images/biryan-kuku.jpeg",
-  },
-  {
-    id: 1002,
-    name: "Biryani Ngombe: Friday",
-    description: "Enjoy our mouth-watering Biryani Ngombe with free delivery every Friday. A feast for your taste buds without leaving your home!",
-    price: "10000",
-    category: "Friday Offer",
-    vendorId: 99,
-    imageUrl: "/images/biryan-ngombe.jpg",
-  },
-  {
-    id: 1003,
-    name: "Daily Iftar",
-    description: "",
-    price: "8500",
-    category: "Special",
-    vendorId: 99,
-    imageUrl: "/images/beef-tacos.jpg",
-  },
-  {
-    id: 1004,
-    name: "Bluberry & Lemon Cake (Wednesday Special)",
-    description: "Indulge in our delectable Blueberry & Lemon Cake every Wednesday at a special price. A perfect treat to brighten your midweek!",
-    price: "15000",
-    category: "Special",
-    vendorId: 99,
-    imageUrl: "/images/blueberry-lemon-cake.jpeg",
-  }
-];
+// const offers: Offer[] = [
+//   {
+//     id: "1001",
+//     name: "Biryani Kuku: Friday",
+//     description: "Get a delicious Biryani Kuku at a discounted price every Friday. Perfect for your weekend cravings!",
+//     price: "12000",
+//     category: "Friday Offer",
+//     vendorId: "kabila-junction", // A placeholder vendorId for offers
+//     imageUrl: "/images/biryan-kuku.jpeg",
+//   },
+//   {
+//     id: "1002",
+//     name: "Biryani Ngombe: Friday",
+//     description: "Enjoy our mouth-watering Biryani Ngombe with free delivery every Friday. A feast for your taste buds without leaving your home!",
+//     price: "10000",
+//     category: "Friday Offer",
+//     vendorId: "kings-food",
+//     imageUrl: "/images/biryan-ngombe.jpg",
+//   },
+// ];
 
 const allMealTypes = [
   { name: "Breakfast", icon: "/icons/categories/breakfast.png", timeRange: [5, 11] as const },
@@ -88,15 +70,15 @@ export default function MoodSelection() {
   const [selectedMood, setSelectedMood] = useState<string>("");
   const { setMood } = useMood();
   const navigate = useNavigate();
-  const { addToCart, clearCart } = useCart();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+ // const { addToCart, clearCart } = useCart();
+ //  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const handleSelectOffer = (offer: Offer) => {
-    clearCart();
-    addToCart(offer);
-    setIsDrawerOpen(false);
-    navigate("/mood/location", { state: { isOfferFlow: true } });
-  };
+  // const handleSelectOffer = (offer: Offer) => {
+  //   clearCart();
+  //   addToCart(offer);
+  //   setIsDrawerOpen(false);
+  //   navigate("/mood/location", { state: { isOfferFlow: true } });
+  // };
 
   const smartMoods = useMemo(() => {
     const currentMealType = getMealTypeByTime();
@@ -136,8 +118,8 @@ export default function MoodSelection() {
       {/* Background Glow */}
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-900 to-blue-900/20" />
 
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent className="bg-zinc-900 border-zinc-800 text-white outline-none">
+      
+        {/* <DrawerContent className="bg-zinc-900 border-zinc-800 text-white outline-none">
           <div className="mx-auto w-full max-w-2xl">
             <DrawerHeader>
               <DrawerTitle className="text-2xl font-bold text-center text-orange-400">Today's Special Offers</DrawerTitle>
@@ -177,11 +159,11 @@ export default function MoodSelection() {
             </div>
             <DrawerFooter>
               <DrawerClose asChild>
-                <Button variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">Close</Button>
+                <Button variant="outline" className="border-zinc-700 text-zinc-300 bg-black hover:bg-zinc-800 hover:text-white">Close</Button>
               </DrawerClose>
             </DrawerFooter>
           </div>
-        </DrawerContent>
+        </DrawerContent> */}
 
         <motion.div
           className="w-full max-w-2xl z-10"
@@ -282,7 +264,7 @@ export default function MoodSelection() {
             </motion.div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="mt-8 w-full">
+          {/* <motion.div variants={itemVariants} className="mt-8 w-full">
             <DrawerTrigger asChild>
                 <motion.button
                     className="group relative w-full rounded-2xl bg-zinc-800/70 border border-zinc-700 px-6 py-4 text-center transition-all hover:border-orange-500/50 hover:bg-zinc-800"
@@ -296,7 +278,7 @@ export default function MoodSelection() {
                     <div className="absolute -inset-px rounded-2xl border-2 border-transparent opacity-0 transition-opacity group-hover:opacity-100 group-hover:border-orange-500/50" aria-hidden="true" />
                 </motion.button>
             </DrawerTrigger>
-          </motion.div>
+          </motion.div> */}
 
           <motion.p
             variants={itemVariants}
@@ -305,7 +287,7 @@ export default function MoodSelection() {
             Your next favorite meal is just a tap away.
           </motion.p>
         </motion.div>
-      </Drawer>
+      
     </div>
   );
 }

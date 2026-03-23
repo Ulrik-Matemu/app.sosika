@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom'
 
 type MenuItem = {
-    id: number;
+    id: string;
     name: string;
     price: string;
     image_url: string;
-    vendor_id: number;
+    vendor_id: string;
     is_available: boolean;
     vendor_name?: string;
 };
@@ -133,7 +133,7 @@ const NearbyMenus: React.FC<NearbyMenusProps> = ({ radius = 1500 }) => {
                                     </Link>
                                     <div className="flex items-center justify-between mt-2">
                                         <span className="text-base font-semibold text-gray-800 dark:text-gray-200">TSH{item.price}</span>
-                                        <button className="bg-[#00bfff] text-white p-2 rounded-full shadow-md hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400" onClick={() => addToCart({ ...item, vendorId: item.vendor_id, imageUrl: item.image_url, isAvailable: true })} aria-label={`Add ${item.name} to cart`} title={`Add ${item.name} to cart`} type="button">
+                                        <button className="bg-[#00bfff] text-white p-2 rounded-full shadow-md hover:bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400" onClick={() => addToCart({ ...item, vendor_id: item.vendor_id, imageUrl: item.image_url, isAvailable: true })} aria-label={`Add ${item.name} to cart`} title={`Add ${item.name} to cart`} type="button">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                                             </svg>

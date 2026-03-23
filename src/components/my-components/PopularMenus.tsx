@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 
 type MenuItem = {
-    id: number;
+    id: string;
     name: string;
     price: string;
     image_url: string;
-    vendor_id: number;
+    vendor_id: string;
     total_sold: number;
     is_available: boolean;
     avg_rating?: number;
@@ -150,7 +150,7 @@ const PopularMenus: React.FC = () => {
                                                 e.stopPropagation(); // prevents triggering the card click
                                                 addToCart({
                                                     ...item,
-                                                    vendorId: item.vendor_id,
+                                                    vendor_id: item.vendor_id,
                                                     imageUrl: item.image_url,
                                                     isAvailable: true,
                                                 });
