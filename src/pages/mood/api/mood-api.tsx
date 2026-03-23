@@ -12,7 +12,7 @@ export interface MoodResults {
   menuItems: MenuItem[];
 }
 
-const calculateDistance = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+export const calculateDistance = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
   const R = 6371; // km
   const dLat = (b.lat - a.lat) * (Math.PI / 180);
   const dLng = (b.lng - a.lng) * (Math.PI / 180);
@@ -24,6 +24,19 @@ const calculateDistance = (a: { lat: number; lng: number }, b: { lat: number; ln
       Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
   return R * c;
+};
+
+export const fetchVendorGeolocation = async (vendorId: string): Promise<{ lat: number; lng: number } | null> => {
+  const vendorRef = doc(db, "vendors", vendorId);
+  const vendorSnap = await getDoc(vendorRef);
+
+  if (!vendorSnap.exists()) {
+    console.warn(`Vendor with ID ${vendorId} not found.`);
+    return null;
+  }
+
+  const vendorData = vendorSnap.data() as Vendor;
+  return vendorData.geolocation || null;
 };
 
 // Map user mood to menu item categories

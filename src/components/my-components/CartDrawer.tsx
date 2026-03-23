@@ -6,6 +6,7 @@ interface CartDrawerProps {
   onClose: () => void;
   cart: any[];
   cartTotal: number;
+  deliveryFee: number; // Added deliveryFee
   updateQuantity: (id: number, qty: number) => void;
   removeFromCart: (id: number) => void;
   clearCart: () => void;
@@ -18,6 +19,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   onClose,
   cart,
   cartTotal,
+  deliveryFee, // Destructure deliveryFee
   updateQuantity,
   removeFromCart,
   clearCart,
@@ -102,12 +104,20 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           <div className="relative p-4 border-t mt-auto bottom-20">
             <div className="flex justify-between mb-2">
               <span className="font-medium dark:text-white">Subtotal:</span>
-              <span className="font-semibold text-[#00bfff]">TZS {cartTotal.toFixed(2)}</span>
+              <span className="font-semibold text-[#00bfff]">TZS {(cartTotal - deliveryFee).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between mb-2">
+              <span className="font-medium dark:text-white">Delivery Fee:</span>
+              <span className="font-semibold text-[#00bfff]">TZS {deliveryFee.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between mb-4">
+              <span className="font-bold text-lg dark:text-white">Total:</span>
+              <span className="font-bold text-lg text-[#00bfff]">TZS {cartTotal.toFixed(2)}</span>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={clearCart}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-white flex-1"
+                className="px-4 py-2 border border-gray-300  bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-white flex-1"
               >
                 Clear Cart
               </button>

@@ -1,20 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
-import { logEvent, analytics } from '../firebase';
-// import axios from 'axios';
-// import { getDeliveryFee } from '../services/deliveryFee';
-// import { toast } from './use-toast';
-// import { getOrderSummaryHtml } from '../pages/explore/orderSummaryHtml';
-
+import { logEvent, analytics, db } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useLocationStorage } from './useLocationStorage';
+import { calculateDistance, fetchVendorGeolocation } from '../pages/mood/api/mood-api';
 
 emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID);
 
 export type MenuItem = {
-  id: number;
+  id: string;
   name: string;
   price: string;
-  vendorId: number;
+  vendor_id: string; // Changed to match types/types.ts
   description?: string;
   imageUrl?: string;
   category?: string;
@@ -25,23 +23,53 @@ export type MenuItem = {
 
 type CartItem = MenuItem & {
   quantity: number;
-  vendorId: number;
+  vendor_id: string;
 };
+
 export function useCart() {
+  const { locations } = useLocationStorage();
+  const userLocation = locations[0]; // Assuming the first location is the user's current location
+
   // Load cart from localStorage if available
   const [cart, setCart] = useState<CartItem[]>(() => {
     const stored = localStorage.getItem('cart');
     return stored ? JSON.parse(stored) : [];
   });
   const [cartTotal, setCartTotal] = useState<number>(0);
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Persist cart to localStorage on change
+  // Persist cart to localStorage on change and calculate total and delivery fee
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
-    const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-    setCartTotal(total);
-  }, [cart]);
+
+    const calculateTotals = async () => {
+      let subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+      let currentDeliveryFee = 0;
+
+      if (cart.length > 0 && userLocation) {
+        const firstItemVendorId = cart[0].vendor_id;
+        const vendorGeolocation = await fetchVendorGeolocation(firstItemVendorId);
+
+        if (vendorGeolocation) {
+          const distance = calculateDistance(
+            userLocation,
+            vendorGeolocation
+          );
+          console.log(distance);
+          // Delivery fee: 1200 TSH per kilometer
+          // Calculate base fee (TZS 1200 per km) then round up to nearest 100 TZS for cash-friendly payment
+          const baseFee = Math.ceil(distance * 1200); // base in whole TZS
+          const ROUND_TO = 100; // round up to nearest 100 TZS to keep cash payments easy and add small profit
+          currentDeliveryFee = Math.ceil(baseFee / ROUND_TO) * ROUND_TO;
+        }
+      }
+      setDeliveryFee(currentDeliveryFee);
+      setCartTotal(subtotal + currentDeliveryFee);
+    };
+
+    calculateTotals();
+  }, [cart, userLocation]);
 
   const addToCart = useCallback((item: MenuItem) => {
     if (!item.id || !item.price) {
@@ -60,11 +88,11 @@ export function useCart() {
     });
   }, []);
 
-  const removeFromCart = useCallback((itemId: number) => {
+  const removeFromCart = useCallback((itemId: string) => {
     setCart(prevCart => prevCart.filter(item => item.id !== itemId));
   }, []);
 
-  const updateQuantity = useCallback((itemId: number, newQuantity: number) => {
+  const updateQuantity = useCallback((itemId: string, newQuantity: number) => {
     if (newQuantity < 1) {
       removeFromCart(itemId);
       return;
@@ -142,11 +170,11 @@ export function useCart() {
 
     // 1. Calculate the total price
     const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-    const orderTotal = total.toFixed(2);
+    const orderTotal = (total + deliveryFee).toFixed(2);
 
     // 2. Format the line items into a readable string (for the email body)
     const orderItemsHtml = cart.map(item =>
-      `<li>${item.quantity} x ${item.name} @ $${parseFloat(item.price).toFixed(2)}</li>`
+      `<li>${item.quantity} x ${item.name} @ TZS ${parseFloat(item.price).toFixed(2)}</li>`
     ).join(''); // This creates a single HTML string of <li> elements
 
     // 3. Construct the full template parameters object
@@ -155,7 +183,9 @@ export function useCart() {
       customer_name: userId || phone, // Prefer userId, fallback to phone if guest
       order_id: `ORD-${Date.now()}`, // Generate a temporary ID
       order_items: `<ul>${orderItemsHtml}</ul>`, // The HTML list of items
-      total_amount: `$${orderTotal}`,
+      subtotal_amount: `TZS ${total.toFixed(2)}`,
+      delivery_fee: `TZS ${deliveryFee.toFixed(2)}`,
+      total_amount: `TZS ${orderTotal}`,
       admin_email: 'sosika.app@gmail.com', // The email address you want to send *to*
       guest_phone: phone,
       display_location: (() => {
@@ -200,6 +230,22 @@ export function useCart() {
     // --- END EmailJS Payload Generation ---
 
     try {
+      // Save order to Firestore
+      const orderData = {
+        userId: userId || 'guest',
+        phone,
+        cart,
+        subtotal: total,
+        deliveryFee,
+        totalAmount: parseFloat(orderTotal),
+        orderId: templateParams.order_id,
+        displayLocation: templateParams.display_location,
+        locationCoords: templateParams.location_coords,
+        rawCoordinates: templateParams.raw_coordinates,
+        timestamp: serverTimestamp(),
+      };
+      await addDoc(collection(db, 'orders'), orderData);
+
       // ----------------------------------------------------------------
       // NEW EMAILJS INTEGRATION START
       // ----------------------------------------------------------------
@@ -262,5 +308,6 @@ export function useCart() {
     clearCart,
     checkout,
     loading,
+    deliveryFee,
   };
 }
