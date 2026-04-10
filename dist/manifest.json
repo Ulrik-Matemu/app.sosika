@@ -2,8 +2,8 @@
     "name": "Sosika",
     "short_name": "Sosika",
     "description": "An Aggregator for food delivery services in campuses",
-    "theme_color": "#121212",
-    "background_color": "#e7e7e7",
+    "theme_color": "#202020",
+    "background_color": "#202020",
     "display": "standalone",
     "start_url": "/",
     "icons": [
@@ -16,6 +16,12 @@
         "src": "icons/icon-512x512.png",
         "sizes": "512x512",
         "type": "image/png"
+      },
+      {
+        "src": "icons/icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
       },
       {
         "src": "icons/icons-144x144.png",
