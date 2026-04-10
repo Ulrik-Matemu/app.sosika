@@ -13,7 +13,7 @@ export default defineConfig({
       filename: 'dist/stats.html',
       gzipSize: true,
       brotliSize: true,
-    }),
+    }) as any,
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "script",
