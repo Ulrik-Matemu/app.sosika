@@ -8,6 +8,7 @@ import { fetchMoodResults } from "./api/mood-api";
 import { Vendor, MenuItem } from "../mood/types/types";
 import Navbar from "../../components/my-components/navbar";
 import { getDistance } from "../../lib/utils";
+import posthog from "posthog-js";
 
 // --- VendorCard ---
 
@@ -41,7 +42,10 @@ const VendorCard = ({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: index * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
-      onClick={() => navigate(`/vendor/${vendor.id}/menu`)}
+      onClick={() => {
+        posthog.capture("vendor_clicked", { vendor_id: vendor.id, vendor_name: vendor.name, platform:'app' });
+        navigate(`/vendor/${vendor.id}/menu`)
+      }}
       className="group cursor-pointer mb-5"
     >
       <div className="relative rounded-2xl overflow-hidden bg-zinc-900 border border-white/[0.06] transition-all duration-500 hover:border-white/[0.12] hover:shadow-2xl hover:shadow-black/60">

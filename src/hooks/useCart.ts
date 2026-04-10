@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
 import { logEvent, analytics, db } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, DocumentData, DocumentReference, updateDoc as firestoreUpdateDoc } from 'firebase/firestore';
 import { useLocationStorage } from './useLocationStorage';
 import { calculateDistance, fetchVendorGeolocation } from '../pages/mood/api/mood-api';
+import posthog from './../lib/posthog';
 
 emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID);
 
@@ -64,6 +65,7 @@ export function useCart() {
           currentDeliveryFee = Math.ceil(baseFee / ROUND_TO) * ROUND_TO;
         }
       }
+      console.log(currentDeliveryFee);
       setDeliveryFee(currentDeliveryFee);
       setCartTotal(subtotal + currentDeliveryFee);
     };
@@ -115,6 +117,8 @@ export function useCart() {
     setLoading(true);
 
     const userId = localStorage.getItem('userId');
+
+    
 
     // Always require a phone number for checkout (logged in or guest)
     // Pause loading while we ask the user for a phone number
@@ -172,6 +176,12 @@ export function useCart() {
     const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const orderTotal = (total + deliveryFee).toFixed(2);
 
+    posthog.capture('checkout_started', {
+      delivery_fee: deliveryFee,
+      platform: 'app',
+      total_amount: total
+    });
+
     // 2. Format the line items into a readable string (for the email body)
     const orderItemsHtml = cart.map(item =>
       `<li>${item.quantity} x ${item.name} @ TZS ${parseFloat(item.price).toFixed(2)}</li>`
@@ -206,8 +216,8 @@ export function useCart() {
           const parsed = JSON.parse(s);
           const first = Array.isArray(parsed) ? parsed[0] : parsed;
           return (first && typeof first.lat !== 'undefined' && typeof first.lng !== 'undefined')
-        ? `${first.lat},${first.lng}`
-        : 'N/A';
+            ? `${first.lat},${first.lng}`
+            : 'N/A';
         } catch {
           return 'N/A';
         }
@@ -243,8 +253,16 @@ export function useCart() {
         locationCoords: templateParams.location_coords,
         rawCoordinates: templateParams.raw_coordinates,
         timestamp: serverTimestamp(),
+        status: 'pending',
+        riderId: null,
+        assignedAt: null,
+        pickedUpAt: null,
+        deliveredAt: null,
+        paymentStatus: 'unpaid',
       };
-      await addDoc(collection(db, 'orders'), orderData);
+
+      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      await updateDoc(docRef, { orderId: docRef.id });
 
       // ----------------------------------------------------------------
       // NEW EMAILJS INTEGRATION START
@@ -255,30 +273,24 @@ export function useCart() {
       const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID; // e.g., 'order_notification'
 
       // 2. Prepare the payload (reuse values computed above to avoid duplicate calculations)
-      const emailTemplateParams = {
+      emailjs.send(SERVICE_ID, TEMPLATE_ID, {
         ...templateParams,
-        admin_email: 'sosika.app@gmail.com', // Recipient email
-      };
+        order_id: docRef.id,   // use the real ID in the email too
+        admin_email: 'sosika.app@gmail.com',
+      }).catch(err => console.warn('Email failed silently:', err));
 
-      // 3. Send the email!
-      const emailResponse = await emailjs.send(
-        SERVICE_ID,
-        TEMPLATE_ID,
-        emailTemplateParams
-      );
-
-      if (emailResponse.status === 200) {
-        await Swal.fire({
-          title: 'Order Submitted',
-          text: `Order ID: ${templateParams.order_id} has been sent successfully! We will contact you shortly.`,
-          icon: "success"
-        });
-        setCart([]); // Clear the cart on success
-        // window.location.href = `/order-tracking/${templateParams.order_id}`; // Redirect if desired
-      } else {
-        // Handle non-200 EmailJS response
-        throw new Error(`EmailJS failed with status: ${emailResponse.status}`);
-      }
+      await Swal.fire({
+        title: 'Order Placed!',
+        text: `Your order has been received. We'll notify you once it's confirmed.`,
+        icon: 'success'
+      });
+      posthog.capture('order_placed', {
+        orderId: docRef.id,
+        total: parseFloat(orderTotal),
+        itemCount: cart.length,
+        deliveryFee,
+      });
+      setCart([]);
 
       // ----------------------------------------------------------------
       // NEW EMAILJS INTEGRATION END
@@ -311,3 +323,13 @@ export function useCart() {
     deliveryFee,
   };
 }
+async function updateDoc(docRef: DocumentReference<DocumentData, DocumentData>, data: { orderId: string }): Promise<void> {
+  try {
+    // defer to the Firestore SDK's updateDoc (imported as firestoreUpdateDoc)
+    await firestoreUpdateDoc(docRef as DocumentReference<DocumentData>, data);
+  } catch (err) {
+    console.error('Failed to update order document:', err);
+    throw err;
+  }
+}
+
