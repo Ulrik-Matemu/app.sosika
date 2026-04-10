@@ -15,6 +15,7 @@ export function initPostHog() {
     capture_pageview: false,
     autocapture: true,
     persistence: 'localStorage+cookie',
+    debug: true
   })
 
   initialized = true
