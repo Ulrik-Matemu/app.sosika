@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMood } from "../../hooks/useMood";
+import posthog from "./../../lib/posthog";
 // import { Gift } from "lucide-react";
 // import {
 //   Drawer,
@@ -93,6 +94,7 @@ export default function MoodSelection() {
   const handleSelect = (mood: string) => {
     setMood(mood);
     setSelectedMood(mood);
+    posthog.capture("mood_selected", { mood: mood });
     setTimeout(() => {
       navigate("/mood/location");
     }, 300);

@@ -12,6 +12,7 @@ import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { Textarea } from "../../components/ui/textarea";
 import { Helmet } from "react-helmet-async";
+import posthog from "./../../lib/posthog";
 
 // --- Sub-Components ---
 
@@ -49,7 +50,14 @@ const MenuItemRow = React.memo(({ item }: { item: MenuItem }) => {
         ) : null}
       </div>
       <button
-        onClick={handleAddToCart}
+        onClick={() => {
+          posthog.capture("order_started", {
+            platform: 'app',
+            item_id: item.id,
+            item_name: item.name,
+          })
+          handleAddToCart();
+        }}
         disabled={isAdding}
         className="p-3 rounded-full bg-zinc-800 hover:bg-zinc-700 active:scale-95 transition-all flex-shrink-0 disabled:opacity-50"
         aria-label={`Add ${item.name} to cart`}

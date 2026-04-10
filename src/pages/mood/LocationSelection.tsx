@@ -7,6 +7,7 @@ import { MapPin, Clock, ChevronLeft, Search, ChevronDown, ChevronUp, LocateFixed
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "../../hooks/use-toast";
 import { useCart } from "../../hooks/useCart";
+import posthog from "./../../lib/posthog";
 
 const mapContainerStyle = { width: "100%", height: "100%", borderRadius: "1.5rem" };
 
@@ -31,6 +32,7 @@ export default function LocationSelection() {
 
   const handleConfirmLocation = async (lat: number, lng: number, address: string) => {
     saveLocation({ address, lat, lng });
+    posthog.capture("location_selected", { address: address, lat: lat, lng: lng });
 
     if (isOfferFlow) {
       await checkout();
