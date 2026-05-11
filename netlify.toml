@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/.well-known/assetlinks.json"
+  to = "/well-known/assetlinks.json"
+  status = 200
