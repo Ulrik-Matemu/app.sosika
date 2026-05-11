@@ -17,7 +17,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "script",
-      strategies: "generateSW", // Changed back to generateSW
+      strategies: "generateSW", // Changed back to generateSW ok
       manifest: false,
       workbox: {
         runtimeCaching: [
