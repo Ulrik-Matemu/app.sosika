@@ -71,8 +71,8 @@ export default function MoodSelection() {
   const [selectedMood, setSelectedMood] = useState<string>("");
   const { setMood } = useMood();
   const navigate = useNavigate();
- // const { addToCart, clearCart } = useCart();
- //  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  // const { addToCart, clearCart } = useCart();
+  //  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // const handleSelectOffer = (offer: Offer) => {
   //   clearCart();
@@ -120,8 +120,8 @@ export default function MoodSelection() {
       {/* Background Glow */}
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-900 to-blue-900/20" />
 
-      
-        {/* <DrawerContent className="bg-zinc-900 border-zinc-800 text-white outline-none">
+
+      {/* <DrawerContent className="bg-zinc-900 border-zinc-800 text-white outline-none">
           <div className="mx-auto w-full max-w-2xl">
             <DrawerHeader>
               <DrawerTitle className="text-2xl font-bold text-center text-orange-400">Today's Special Offers</DrawerTitle>
@@ -167,47 +167,69 @@ export default function MoodSelection() {
           </div>
         </DrawerContent> */}
 
+      <motion.div
+        className="w-full max-w-2xl z-10"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h1 variants={itemVariants} className="text-center bg-transparent py-6 text-[#00bfff] font-extrabold text-3xl tracking-tight">
+          Sosika
+        </motion.h1>
+
+        <motion.div variants={itemVariants} className="text-center mb-10">
+          <h2 className="text-xl md:text-4xl font-medium mb-2 text-white">
+            What are you in the mood for?
+          </h2>
+          <p className="text-zinc-400 text-sm sm:text-lg">
+            Select a vibe, and we'll find the perfect meal for you.
+          </p>
+        </motion.div>
+
         <motion.div
-          className="w-full max-w-2xl z-10"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+          variants={itemVariants}
+          className="bg-zinc-800/50 backdrop-blur-lg border border-zinc-700/50 rounded-3xl p-6 space-y-6"
         >
-          <motion.h1 variants={itemVariants} className="text-center bg-transparent py-6 text-[#00bfff] font-extrabold text-3xl tracking-tight">
-            Sosika
-          </motion.h1>
-
-          <motion.div variants={itemVariants} className="text-center mb-10">
-            <h2 className="text-xl md:text-4xl font-medium mb-2 text-white">
-              What are you in the mood for?
-            </h2>
-            <p className="text-zinc-400 text-sm sm:text-lg">
-              Select a vibe, and we'll find the perfect meal for you.
-            </p>
-          </motion.div>
-
           <motion.div
-            variants={itemVariants}
-            className="bg-zinc-800/50 backdrop-blur-lg border border-zinc-700/50 rounded-3xl p-6 space-y-6"
+            className="grid grid-cols-2 gap-4"
+            variants={containerVariants}
           >
-            <motion.div
-              className="grid grid-cols-2 gap-4"
-              variants={containerVariants}
-            >
-              {smartMoods.map((mood) => {
-                const isSelected = selectedMood === mood.name.toLowerCase();
+            {smartMoods.map((mood) => {
+              const isSelected = selectedMood === mood.name.toLowerCase();
 
-                return (
-                  <motion.button
-                    key={mood.name}
-                    onClick={() => handleSelect(mood.name.toLowerCase())}
-                    whileHover={{ scale: 1.05, backgroundColor: '#27272a' }}
-                    whileTap={{ scale: 0.95 }}
-                    variants={itemVariants}
-                    className={`relative rounded-2xl p-5 transition-colors duration-300 ${isSelected
-                        ? "bg-blue-500/20 border-blue-400"
-                        : "bg-zinc-800 border-zinc-700"
-                      } border`}
+              return (
+                <motion.button
+                  key={mood.name}
+                  onClick={() => handleSelect(mood.name.toLowerCase())}
+                  whileTap={{ scale: 0.95 }}
+                  variants={itemVariants}
+                  className={`
+    group relative rounded-2xl p-[1px]
+    overflow-hidden
+    transition-all duration-300
+    ${isSelected ? "bg-blue-400" : "bg-zinc-700"}
+  `}
+                >
+                  {/* Border-only fluid effect */}
+                  <span
+  className={`
+    pointer-events-none absolute inset-[-140%]
+    transition-opacity duration-700 ease-out
+    bg-[conic-gradient(from_0deg,transparent_0deg,#00bfff_70deg,transparent_130deg,#38bdf8_210deg,transparent_290deg)]
+    opacity-0 blur-[6px]
+    group-hover:opacity-100
+    animate-liquid-border
+    ${isSelected ? "opacity-100" : ""}
+  `}
+/>
+
+                  {/* Real card content/background */}
+                  <div
+                    className={`
+      relative z-10 rounded-[15px] p-5
+      transition-colors duration-300
+      ${isSelected ? "bg-zinc-800" : "bg-zinc-800"}
+    `}
                   >
                     <div className="flex flex-col items-center gap-3">
                       <img
@@ -215,18 +237,20 @@ export default function MoodSelection() {
                         alt={mood.name}
                         className={`w-8 h-8 transition-opacity duration-300 ${isSelected ? "opacity-100" : "opacity-70"
                           }`}
-                      // If you want to change the color of SVGs via CSS, 
-                      // use filter: invert() or mask-image.
                       />
-                      <span className={`font-semibold text-md transition-colors duration-300 ${isSelected ? "text-white" : "text-zinc-200"
-                        }`}>
+
+                      <span
+                        className={`font-semibold text-md transition-colors duration-300 ${isSelected ? "text-white" : "text-zinc-200"
+                          }`}
+                      >
                         {mood.name}
                       </span>
                     </div>
+
                     <AnimatePresence>
                       {isSelected && (
                         <motion.div
-                          className="absolute inset-0 rounded-2xl border-2 border-blue-400"
+                          className="pointer-events-none absolute inset-0 rounded-[15px] border-2 border-blue-400"
                           initial={{ scale: 0.9, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -234,39 +258,76 @@ export default function MoodSelection() {
                         />
                       )}
                     </AnimatePresence>
-                  </motion.button>
-                );
-              })}
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="flex items-center gap-4">
-              <div className="flex-1 h-px bg-zinc-700" />
-              <span className="text-zinc-500 text-xs uppercase font-semibold tracking-wider">or</span>
-              <div className="flex-1 h-px bg-zinc-700" />
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="text"
-                placeholder="I'm feeling like..."
-                value={customMood}
-                onChange={(e) => setCustomMood(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSelect(customMood || "any")}
-                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-5 py-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
-
-              <motion.button
-                onClick={() => handleSelect(customMood || "any")}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="bg-[#00bfff] hover:bg-blue-400 text-black px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg shadow-blue-500/20"
-              >
-                {customMood.trim() ? "Find My Vibe" : "Surprise Me"}
-              </motion.button>
-            </motion.div>
+                  </div>
+                </motion.button>
+              );
+            })}
           </motion.div>
 
-          {/* <motion.div variants={itemVariants} className="mt-8 w-full">
+          <motion.div variants={itemVariants} className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-zinc-700" />
+            <span className="text-zinc-500 text-xs uppercase font-semibold tracking-wider">or</span>
+            <div className="flex-1 h-px bg-zinc-700" />
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
+            <input
+              type="text"
+              placeholder="I'm feeling like..."
+              value={customMood}
+              onChange={(e) => setCustomMood(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleSelect(customMood || "any")}
+              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-5 py-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+
+            <motion.button
+              onClick={() => handleSelect(customMood || "any")}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="
+    group relative overflow-hidden
+    bg-[#00bfff] text-black
+    px-8 py-4 rounded-xl
+    font-bold text-lg
+    transition-all duration-300
+    shadow-lg shadow-blue-500/20
+  "
+            >
+              {/* Fluid splash */}
+              <span
+                className="
+      absolute inset-0
+      bg-white/30
+      scale-0 group-hover:scale-[2.5]
+      rounded-full
+      transition-transform duration-700 ease-out
+      origin-bottom-left
+    "
+              />
+
+              {/* Soft moving liquid layer */}
+              <span
+                className="
+      absolute -left-10 -top-10
+      h-24 w-24
+      rounded-full
+      bg-blue-300/50
+      blur-xl
+      translate-x-0 translate-y-0
+      group-hover:translate-x-32 group-hover:translate-y-10
+      transition-transform duration-700 ease-out
+    "
+              />
+
+              {/* Text */}
+              <span className="relative z-10">
+                {customMood.trim() ? "Find My Vibe" : "Surprise Me"}
+              </span>
+            </motion.button>
+          </motion.div>
+        </motion.div>
+
+        {/* <motion.div variants={itemVariants} className="mt-8 w-full">
             <DrawerTrigger asChild>
                 <motion.button
                     className="group relative w-full rounded-2xl bg-zinc-800/70 border border-zinc-700 px-6 py-4 text-center transition-all hover:border-orange-500/50 hover:bg-zinc-800"
@@ -282,14 +343,14 @@ export default function MoodSelection() {
             </DrawerTrigger>
           </motion.div> */}
 
-          <motion.p
-            variants={itemVariants}
-            className="text-center text-zinc-500 text-sm mt-8"
-          >
-            Your next favorite meal is just a tap away.
-          </motion.p>
-        </motion.div>
-      
+        <motion.p
+          variants={itemVariants}
+          className="text-center text-zinc-500 text-sm mt-8"
+        >
+          Your next favorite meal is just a tap away.
+        </motion.p>
+      </motion.div>
+
     </div>
   );
 }
