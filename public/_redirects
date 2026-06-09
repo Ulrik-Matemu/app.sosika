@@ -1,8 +1,2 @@
-# 1. Global Domain Migration Redirect (Must be at the very top)
-https://sosika.app/* https://app.sosika.co.tz/:splat    301!
-
-# 2. Safe-routing for TWA Asset Links (Optional but safe)
-/.well-known/assetlinks.json    /.well-known/assetlinks.json    200
-
-# 3. SPA Single Page Application Routing Fallback (Must be at the absolute bottom)
-/* /index.html    200
+/.well-known/assetlinks.json  /.well-known/assetlinks.json  200
+/* /index.html 200
