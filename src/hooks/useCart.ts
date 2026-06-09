@@ -118,8 +118,6 @@ export function useCart() {
 
     const userId = localStorage.getItem('userId');
 
-    
-
     // Always require a phone number for checkout (logged in or guest)
     // Pause loading while we ask the user for a phone number
     setLoading(false);
@@ -189,14 +187,13 @@ export function useCart() {
 
     // 3. Construct the full template parameters object
     const templateParams = {
-      // These keys must match the variable names in your EmailJS template
       customer_name: userId || phone, // Prefer userId, fallback to phone if guest
       order_id: `ORD-${Date.now()}`, // Generate a temporary ID
       order_items: `<ul>${orderItemsHtml}</ul>`, // The HTML list of items
       subtotal_amount: `TZS ${total.toFixed(2)}`,
       delivery_fee: `TZS ${deliveryFee.toFixed(2)}`,
       total_amount: `TZS ${orderTotal}`,
-      admin_email: 'sosika.app@gmail.com', // The email address you want to send *to*
+      admin_email: 'sosika.app@gmail.com', 
       guest_phone: phone,
       display_location: (() => {
         const s = localStorage.getItem('sosika_locations');
@@ -233,8 +230,6 @@ export function useCart() {
           return 'N/A';
         }
       })(),
-      // You can add any other details like delivery info here
-      // delivery_address: '123 Main St',
     };
 
     // --- END EmailJS Payload Generation ---
@@ -264,37 +259,49 @@ export function useCart() {
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       await updateDoc(docRef, { orderId: docRef.id });
 
-      // ----------------------------------------------------------------
-      // NEW EMAILJS INTEGRATION START
-      // ----------------------------------------------------------------
+      // 1. EmailJS Notification Dispatch
+      const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+      const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 
-      // 1. Define your IDs
-      const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID; // e.g., 'gmail_service'
-      const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID; // e.g., 'order_notification'
-
-      // 2. Prepare the payload (reuse values computed above to avoid duplicate calculations)
       emailjs.send(SERVICE_ID, TEMPLATE_ID, {
         ...templateParams,
         order_id: docRef.id,   // use the real ID in the email too
         admin_email: 'sosika.app@gmail.com',
       }).catch(err => console.warn('Email failed silently:', err));
 
+      // ----------------------------------------------------------------
+      // NEW BACKGROUND SMS NOTIFICATION DISPATCH
+      // ----------------------------------------------------------------
+      // fetch(import.meta.env.VITE_SMS_BACKEND_URL, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'x-sosika-secret': import.meta.env.VITE_SOSIKA_INTERNAL_SECRET
+      //   },
+      //   body: JSON.stringify({
+      //     orderId: docRef.id, // Passing the true Firestore Document AutoID
+      //     customerNumber: phone,
+      //     location: templateParams.display_location,
+      //     totalAmount: total,
+      //     deliveryFee: deliveryFee
+      //   })
+      // }).catch(err => console.warn('SMS dispatch failed silently on client window:', err));
+      // ----------------------------------------------------------------
+
       await Swal.fire({
         title: 'Order Placed!',
         text: `Your order has been received. We'll notify you once it's confirmed.`,
         icon: 'success'
       });
+
       posthog.capture('order_placed', {
         orderId: docRef.id,
         total: parseFloat(orderTotal),
         itemCount: cart.length,
         deliveryFee,
       });
-      setCart([]);
 
-      // ----------------------------------------------------------------
-      // NEW EMAILJS INTEGRATION END
-      // ----------------------------------------------------------------
+      setCart([]);
 
     } catch (error) {
       console.error("Checkout error:", error);
@@ -306,7 +313,7 @@ export function useCart() {
     } finally {
       setLoading(false);
     }
-  };
+};
 
 
 
