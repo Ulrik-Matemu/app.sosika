@@ -36,24 +36,3 @@ body {
   animation: flameFlicker 1s infinite alternate ease-in-out; /* Adjust timing as needed */
   transform-origin: bottom center; /* Important for scaling from base */
 }
-
-@keyframes liquid-border {
-  0% {
-    transform: rotate(0deg) scale(1);
-    filter: blur(6px);
-  }
-
-  50% {
-    transform: rotate(180deg) scale(1.08);
-    filter: blur(9px);
-  }
-
-  100% {
-    transform: rotate(360deg) scale(1);
-    filter: blur(6px);
-  }
-}
-
-.animate-liquid-border {
-  animation: liquid-border 4s ease-in-out infinite;
-}
