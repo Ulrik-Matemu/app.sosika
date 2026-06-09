@@ -83,9 +83,6 @@ importers:
       mapbox-gl:
         specifier: ^3.12.0
         version: 3.21.0
-      notify-africa:
-        specifier: ^0.1.1
-        version: 0.1.1
       posthog-js:
         specifier: ^1.364.7
         version: 1.364.7
@@ -3808,10 +3805,6 @@ packages:
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
     engines: {node: '>=0.10.0'}
-
-  notify-africa@0.1.1:
-    resolution: {integrity: sha512-icTN4Yw4CX83eFzysEIiSu2CsLrXTc3clgeeBbKNOjg6XbUOvTVkCSNYLv/5cqZY18vokjei62qBR9ZXg5hP/w==}
-    engines: {node: '>=18.0.0'}
 
   npm-run-path@5.3.0:
     resolution: {integrity: sha512-ppwTtiJZq0O/ai0z7yfudtBpWIoxM8yE6nHi1X47eFR2EWORqfbu6CnPlNsjeN683eT0qG6H/Pyf9fCcvjnnnQ==}
@@ -8865,8 +8858,6 @@ snapshots:
       remove-trailing-separator: 1.1.0
 
   normalize-path@3.0.0: {}
-
-  notify-africa@0.1.1: {}
 
   npm-run-path@5.3.0:
     dependencies:
