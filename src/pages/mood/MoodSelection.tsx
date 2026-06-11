@@ -66,7 +66,7 @@ export default function MoodSelection() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.4, ease: "easeOut" }
+      transition: ({ duration: 0.4, ease: 'easeOut' } as unknown) as any
     },
   };
 
