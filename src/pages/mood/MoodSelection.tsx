@@ -63,7 +63,11 @@ export default function MoodSelection() {
 
   const itemVariants = {
     hidden: { y: 24, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.4, ease: "easeOut" }
+    },
   };
 
   return (
@@ -111,27 +115,23 @@ export default function MoodSelection() {
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.96 }}
                     variants={itemVariants}
-                    className={`relative rounded-xl p-4 sm:p-5 transition-all duration-300 border ${
-                      isSelected
-                        ? "bg-[#00bfff]/[0.12] border-[#00bfff]/40 shadow-lg shadow-[#00bfff]/[0.08]"
-                        : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.1]"
-                    }`}
+                    className={`relative rounded-xl p-4 sm:p-5 transition-all duration-300 border ${isSelected
+                      ? "bg-[#00bfff]/[0.12] border-[#00bfff]/40 shadow-lg shadow-[#00bfff]/[0.08]"
+                      : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.1]"
+                      }`}
                   >
                     <div className="flex flex-col items-center gap-2.5">
-                      <div className={`w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-lg transition-all duration-300 ${
-                        isSelected ? "bg-[#00bfff]/[0.15]" : "bg-white/[0.04]"
-                      }`}>
+                      <div className={`w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-lg transition-all duration-300 ${isSelected ? "bg-[#00bfff]/[0.15]" : "bg-white/[0.04]"
+                        }`}>
                         <img
                           src={mood.icon}
                           alt={mood.name}
-                          className={`w-6 h-6 sm:w-7 sm:h-7 transition-all duration-300 ${
-                            isSelected ? "opacity-100 scale-110" : "opacity-60"
-                          }`}
+                          className={`w-6 h-6 sm:w-7 sm:h-7 transition-all duration-300 ${isSelected ? "opacity-100 scale-110" : "opacity-60"
+                            }`}
                         />
                       </div>
-                      <span className={`font-semibold text-sm transition-colors duration-300 ${
-                        isSelected ? "text-white" : "text-zinc-400"
-                      }`}>
+                      <span className={`font-semibold text-sm transition-colors duration-300 ${isSelected ? "text-white" : "text-zinc-400"
+                        }`}>
                         {mood.name}
                       </span>
                     </div>
