@@ -1,0 +1,354 @@
+[
+    {
+        "name": "Supu ya Kuku",
+        "description": "Well Prepared",
+        "category": "Breakfast",
+        "price": "8000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Supu ya Samaki",
+        "description": "Well Prepared",
+        "category": "Breakfast",
+        "price": "8000",
+        "image_url":"/",
+        "is_available": true
+    },
+    {
+        "name": "Supu ya Mbuzi",
+        "category": "Breakfast",
+        "description":"Well Prepared",
+        "price": "6000",
+        "image_url": "/",
+        "is_available":true
+    },
+    {
+        "name": "Mtori",
+        "category": "Breakfast",
+        "description": "Well Prepared",
+        "price": "4000",
+        "image_url": "/",
+        "is_available":true
+    },
+    {
+        "name": "Chapati",
+        "category": "Breakfast",
+        "description":"Well Prepared",
+        "price": "1000",
+        "image_url": "/",
+        "is_available": true
+    }, 
+    {
+        "name": "Ndizi",
+        "category": "Breakfast",
+        "price":"1000",
+        "description":"Well Prepared",
+        "image_url":"/",
+        "is_available":true
+    },
+    {
+        "name": "Hot Lemon",
+        "category":"Breakfast",
+        "price":"4000",
+        "description":"Well Prepared",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sausage",
+        "category":"Breakfast",
+        "price":"2000",
+        "description":"Well Prepared",
+        "image_url":"/",
+        "is_available":true
+    },
+    {
+        "name": "Omeletes egg",
+        "category": "Breakfast",
+        "description":"Well Prepared",
+        "price": "3000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Kuku Mnafu",
+        "category": "Lunch",
+        "description": "Well Prepared",
+        "price": "10000",
+        "image_url": "/",
+        "is_available": true
+    }, 
+    {
+        "name": "Kuku Cabege",
+        "category":"Lunch",
+        "description":"Well Prepared",
+        "price": "10000",
+        "image_url":"/",
+        "is_available":true
+    },
+    {
+        "name": "Kuku Njegere",
+        "category":"Lunch",
+        "description":"Well Prepared",
+        "price": "10000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Ng'ombe Mnafu",
+        "category":"Lunch",
+        "description":"Well Prepared",
+        "price": "9000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mbuzi Mnafu",
+        "category":"Lunch",
+        "description":"Well Prepared",
+        "price": "9000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Samaki Mbuzi",
+        "category":"Lunch",
+        "description":"Well Prepared",
+        "price": "10000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mboga Mboga",
+        "category":"Lunch",
+        "description":"Well Prepared",
+        "price": "4000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Chips Mayai",
+        "category":"Lunch",
+        "description":"Well Prepared",
+        "price": "5000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Chips Kavu",
+        "category":"Lunch",
+        "description":"Well Prepared",
+        "price": "3000",
+        "image_url":"/",
+        "is_available":true
+    },
+    {
+        "name": "Kuku Kienyeji",
+        "category":"BBQ",
+        "description":"Well Prepared",
+        "price": "25000",
+        "image_url":"/",
+        "is_available":true
+    },
+    {
+        "name": "Kuku Kisasa",
+        "category":"BBQ",
+        "description":"Well Prepared",
+        "price": "18000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Nyama Choma",
+        "category":"BBQ",
+        "description":"Well Prepared",
+        "price": "18000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Samaki Choma",
+        "category":"BBQ",
+        "description":"Well Prepared",
+        "price": "22000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mbuzi Mguu",
+        "category":"BBQ",
+        "description":"Well Prepared",
+        "price": "25000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mbuzi Mbavu",
+        "category":"BBQ",
+        "description":"Well Prepared",
+        "price": "15000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mbuzi Mkono",
+        "category":"BBQ",
+        "description":"Well Prepared",
+        "price": "15000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Samaki Foil",
+        "category":"BBQ",
+        "description":"Well Prepared",
+        "price": "25000",
+        "image_url":"/",
+        "is_available":true
+    },
+    {
+        "name": "Samaki Makange",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "28000",
+        "image_url":"/",
+        "is_available":true
+    },
+    {
+        "name": "Makange Kienyeji",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "35000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Makange Kisasa",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "28000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mchemsho Kienyeji",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "35000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mkono Kitunguu",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "20000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mguu Kitunguu",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "32000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mchemsho Nyama",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "30000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mchemsho Samaki",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "28000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Salad",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "4000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Samaki Kaanga",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "22000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Nyama Makange",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "28000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Samaki Mnafu",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "10000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Samaki Cabage",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "10000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Vuruga Kisasa",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "30000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Vuruga Kienyeji",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "38000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Vuruga Nyama",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "30000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mkono Makange",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "Mguu Makange",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Mguu Makange",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "32000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Wali Maharage",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "4000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Wali Plain",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "2000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Ugali Plain",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "2000",
+        "image_url":"/",
+        "is_available":true
+    },{
+        "name": "Supu Plain",
+        "category":"Special Order",
+        "description":"Well Prepared",
+        "price": "2000",
+        "image_url":"/",
+        "is_available":true
+    }
+]
