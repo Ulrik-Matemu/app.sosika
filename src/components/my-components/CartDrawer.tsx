@@ -1,12 +1,13 @@
 import React from 'react';
-import { ShoppingCart, X, Image as ImageIcon, Minus, Plus, Trash2 } from 'lucide-react';
+import { ShoppingCart, X, Image as ImageIcon, Minus, Plus, Trash2, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   cart: any[];
   cartTotal: number;
-  deliveryFee: number; // Added deliveryFee
+  deliveryFee: number;
   updateQuantity: (id: number, qty: number) => void;
   removeFromCart: (id: number) => void;
   clearCart: () => void;
@@ -19,126 +20,156 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   onClose,
   cart,
   cartTotal,
-  deliveryFee, // Destructure deliveryFee
+  deliveryFee,
   updateQuantity,
   removeFromCart,
   clearCart,
   checkout,
   loading,
 }) => {
-  if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-      <div className="w-full max-w-md bg-[#121212] h-full flex flex-col animate-slide-in-right">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Your Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)
-          </h2>
-          <button
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+
+          {/* Drawer Content */}
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 220 }}
+            className="relative w-full max-w-md bg-[#0a0a0b] border-l border-white/[0.08] h-full flex flex-col shadow-2xl"
           >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-        <div className="flex-grow overflow-auto p-4">
-          {cart.length === 0 ? (
-            <div className="text-center py-8">
-              <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Your cart is empty</p>
+            {/* Header */}
+            <div className="p-4 border-b border-white/[0.06] flex justify-between items-center bg-white/[0.01]">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <ShoppingCart className="h-4.5 w-4.5 text-[#00bfff]" />
+                Your Cart
+                <span className="text-xs font-semibold bg-white/[0.06] px-2 py-0.5 rounded-full text-zinc-400">
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)} items
+                </span>
+              </h2>
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {cart.map(item => (
-                <div key={item.id} className="bg-black p-4 rounded-lg flex gap-4">
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                    {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon className="h-6 w-6 text-gray-400" />
-                      </div>
-                    )}
+
+            {/* Cart Items List */}
+            <div className="flex-grow overflow-y-auto p-4 space-y-3">
+              {cart.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
+                    <ShoppingCart className="h-5 w-5 text-zinc-600" />
                   </div>
-                  <div className="flex-grow">
-                    <h3 className="font-medium text-white">{item.name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      TZS {parseFloat(item.price).toFixed(2)} each
-                    </p>
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center">
+                  <p className="text-zinc-500 text-sm font-medium">Your cart is empty</p>
+                </div>
+              ) : (
+                cart.map(item => (
+                  <div key={item.id} className="bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl flex gap-3.5 items-start">
+                    <div className="w-14 h-14 bg-white/[0.04] rounded-lg overflow-hidden flex-shrink-0 border border-white/[0.06]">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ImageIcon className="h-5 w-5 text-zinc-600" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      <h3 className="font-semibold text-white text-sm truncate leading-snug">{item.name}</h3>
+                      <p className="text-xs text-zinc-500 mt-0.5">
+                        {Number(item.price).toLocaleString()} TZS each
+                      </p>
+
+                      {/* Controls */}
+                      <div className="flex items-center justify-between mt-2.5">
+                        <div className="flex items-center bg-white/[0.04] border border-white/[0.06] rounded-lg p-0.5">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="p-1 text-zinc-400 hover:text-white hover:bg-white/[0.04] rounded transition-all"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <span className="px-2.5 text-xs font-semibold text-white text-center min-w-6">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="p-1 text-zinc-400 hover:text-white hover:bg-white/[0.04] rounded transition-all"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="p-1 bg-gray-900 rounded-l"
+                          onClick={() => removeFromCart(item.id)}
+                          className="p-1.5 text-zinc-500 hover:text-red-400 rounded-lg hover:bg-red-500/[0.08] transition-all"
                         >
-                          <Minus className="h-4 w-4" />
-                        </button>
-                        <span className="px-3 py-1 bg-gray-900 text-center min-w-8">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-1 bg-gray-900 rounded-r"
-                        >
-                          <Plus className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        className="p-1 text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                    </div>
+                    <div className="font-bold text-sm text-[#00bfff] text-right flex-shrink-0 pl-1">
+                      {(parseFloat(item.price) * item.quantity).toLocaleString()} TZS
                     </div>
                   </div>
-                  <div className="font-semibold text-[#00bfff]">
-                    TZS {(parseFloat(item.price) * item.quantity).toFixed(2)}
+                ))
+              )}
+            </div>
+
+            {/* Footer Summary */}
+            {cart.length > 0 && (
+              <div className="p-4 border-t border-white/[0.06] bg-white/[0.01] space-y-3.5">
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between text-zinc-400">
+                    <span>Subtotal</span>
+                    <span className="font-medium text-white">{(cartTotal - deliveryFee).toLocaleString()} TZS</span>
+                  </div>
+                  <div className="flex justify-between text-zinc-400">
+                    <span>Delivery Fee</span>
+                    <span className="font-medium text-white">{deliveryFee.toLocaleString()} TZS</span>
+                  </div>
+                  <div className="flex justify-between border-t border-white/[0.06] pt-2 text-base font-bold text-white">
+                    <span>Total</span>
+                    <span className="text-[#00bfff]">{cartTotal.toLocaleString()} TZS</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+
+                <div className="flex gap-2.5">
+                  <button
+                    onClick={clearCart}
+                    className="px-4 py-3 border border-white/[0.08] bg-white/[0.02] text-xs font-semibold text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.05] transition-all flex-1"
+                  >
+                    Clear Cart
+                  </button>
+                  <button
+                    onClick={checkout}
+                    disabled={loading}
+                    className="px-4 py-3 bg-[#00bfff] hover:bg-[#00a6e0] disabled:bg-zinc-800 disabled:text-zinc-600 text-black text-xs font-bold rounded-xl transition-all flex-[2] flex items-center justify-center gap-2 active:scale-98"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Place Order'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </motion.div>
         </div>
-        {cart.length > 0 && (
-          <div className="relative p-4 border-t mt-auto bottom-20">
-            <div className="flex justify-between mb-2">
-              <span className="font-medium dark:text-white">Subtotal:</span>
-              <span className="font-semibold text-[#00bfff]">TZS {(cartTotal - deliveryFee).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between mb-2">
-              <span className="font-medium dark:text-white">Delivery Fee:</span>
-              <span className="font-semibold text-[#00bfff]">TZS {deliveryFee.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between mb-4">
-              <span className="font-bold text-lg dark:text-white">Total:</span>
-              <span className="font-bold text-lg text-[#00bfff]">TZS {cartTotal.toFixed(2)}</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={clearCart}
-                className="px-4 py-2 border border-gray-300  bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-white flex-1"
-              >
-                Clear Cart
-              </button>
-              <button
-                onClick={checkout}
-                className="px-4 py-2 bg-[#00bfff] text-white rounded-lg hover:bg-[#0099cc] flex-1"
-              >
-                {loading ? (
-                  <svg className="animate-spin h-5 w-5 text-[#121212]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  'Checkout'
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 };
 

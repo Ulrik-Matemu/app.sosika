@@ -10,6 +10,7 @@ export interface UserRequest {
 export interface MoodResults {
   vendors: Vendor[];
   menuItems: MenuItem[];
+  isFallback?: boolean;
 }
 
 export const calculateDistance = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
@@ -46,21 +47,22 @@ const mapMoodToCategories = (mood: string): string[] => {
   // Map moods to their corresponding categories
   const moodMap: Record<string, string[]> = {
     breakfast: ["breakfast", "sandwiches"],
-    lunch: ["lunch", "dinner", "salads", "pizza", "burgers", "mains", "sides", "sandwiches"], // Lunch items could also be dinner items
-    dinner: ["dinner", "lunch", "salads", "pizza", "burgers", "mains", "sides"], // Dinner items could also be lunch items
+    lunch: ["lunch", "dinner", "salads", "pizza", "burgers", "mains", "sides", "sandwiches", "Special Order"], // Lunch items could also be dinner items
+    dinner: ["dinner", "lunch", "salads", "pizza", "burgers", "mains", "sides", "Special Order"], // Dinner items could also be lunch items
     drink: ["drinks"],
     drinks: ["drinks"],
+    specialorder: ["Special Order"],
     snack: ["snacks"],
     snacks: ["snacks"],
-    burger: ["burgers"],
-    burgers: ["burgers"],
+    burger: ["burgers", "burger"],
+    burgers: ["burgers", "burgers"],
     salad: ["salads"],
     salads: ["salads"],
     sandwiches: ["sandwiches"],
     mains: ["mains"],
     sides: ["sides"],
-    nearby: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches"], // Show all
-    any: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches"], // Show all
+    nearby: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches", "Special Order"], // Show all
+    any: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches", "Special Order"], // Show all
     bites: ["snacks", "starters", "bites"],
     softdrink: ["drinks", "soft drinks"],
     chicken: ["chicken"],
@@ -139,12 +141,15 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
    //3.6 Check name of menu items individually from menu items fetched from nearby vendors for keyword matching
   const keywordItems = itemsFromVendors.filter(item => item.name.toLowerCase().includes(keyword));
 
-  // If we found items matching the keyword, add them to validCategories
-  if (keywordItems.length > 0) {
-    validCategories.push(keyword);
+  // Merge keyword-matched items into filtered results (deduplicate by id)
+  const filteredIds = new Set(filteredItems.map(item => item.id));
+  const mergedItems = [...filteredItems, ...keywordItems.filter(item => !filteredIds.has(item.id))];
+
+  if (mergedItems.length === 0) {
+    return { vendors: nearbyVendors, menuItems: itemsFromVendors, isFallback: true };
   }
 
-  return { vendors: nearbyVendors, menuItems: filteredItems };
+  return { vendors: nearbyVendors, menuItems: mergedItems, isFallback: false };
 };
 
 export const fetchVendorMenu = async (vendorId: string): Promise<{ vendor: Vendor; menuItems: MenuItem[] }> => {

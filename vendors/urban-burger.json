@@ -1,0 +1,138 @@
+[
+  {
+    "name": "Chicken Burger",
+    "description": "Classic chicken burger in a soft sesame bun with lettuce and tomato",
+    "category": "Burgers",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Burger",
+    "description": "Juicy beef patty burger in a soft sesame bun with lettuce and tomato",
+    "category": "Burgers",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Fillet Burger",
+    "description": "Crispy chicken fillet burger in a soft sesame bun with lettuce, tomato and onion",
+    "category": "Burgers",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Vegetable Burger",
+    "description": "Fresh vegetarian burger in a soft sesame bun with lettuce and vegetables",
+    "category": "Burgers",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Twice Burger",
+    "description": "Double patty burger loaded with lettuce, tomato and onion in a sesame bun",
+    "category": "Burgers",
+    "price": "13000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Cheese Burger",
+    "description": "Classic burger topped with melted cheese in a soft sesame bun",
+    "category": "Burgers",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Cheese Burger Twice",
+    "description": "Double patty burger with melted cheese, lettuce, tomato and onion",
+    "category": "Burgers",
+    "price": "17000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Wings",
+    "description": "4 chicken wings served with 1 side dish and salad",
+    "category": "Chicken",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fish Fingers",
+    "description": "4 pieces of fish fingers served with fries, tomatoes, coleslaw and cucumber",
+    "category": "Fish",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fish & Chips",
+    "description": "1 whole fish served with fries, tomatoes, coleslaw and cucumber",
+    "category": "Fish",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Schnitzel Fish",
+    "description": "200g fish fillet in bread crumbs served with fries, carrots, green beans, broccoli and cauliflower",
+    "category": "Fish",
+    "price": "16000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fried Fish Fillet",
+    "description": "200g fried fish fillet served with fries, broccoli, green beans, cauliflower and carrots",
+    "category": "Fish",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Urban Box",
+    "description": "1 burger, 1 side dish (fries) and 2 chicken drumsticks",
+    "category": "Combos & Boxes",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fast Box",
+    "description": "2 chicken drumsticks and 1 side dish",
+    "category": "Combos & Boxes",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fast Box Pro Max",
+    "description": "3 chicken drumsticks, 1 side dish and 1 soda (free)",
+    "category": "Combos & Boxes",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "3 People Combo",
+    "description": "6 chicken portions and 2 side dishes",
+    "category": "Combos & Boxes",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Family Combo Plus",
+    "description": "10 chicken portions, 3 side dishes (fries) and 1 free 500ml soda",
+    "category": "Combos & Boxes",
+    "price": "35000",
+    "image_url": "/",
+    "is_available": true
+  }
+]

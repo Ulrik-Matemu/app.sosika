@@ -1,0 +1,418 @@
+[
+  {
+    "name": "Crunchy Chicken Plain",
+    "description": "Cossi's signature crunchy fried chicken",
+    "category": "Chicken",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Home Chicken Plain",
+    "description": "Classic home-style fried chicken",
+    "category": "Chicken",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Sticky Chicken Plain",
+    "description": "Juicy chicken coated in sticky glaze",
+    "category": "Chicken",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Lemon Chicken Plain",
+    "description": "Tender chicken with a zesty lemon flavour",
+    "category": "Chicken",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Sticky Wings Plain",
+    "description": "Chicken wings glazed in sticky sauce",
+    "category": "Chicken",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Lemon Wings Plain",
+    "description": "Chicken wings with a tangy lemon coating",
+    "category": "Chicken",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Tender Plain",
+    "description": "Crispy, golden chicken tenders",
+    "category": "Chicken",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Sticky Tenders Plain",
+    "description": "Crispy chicken tenders glazed in sticky sauce",
+    "category": "Chicken",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Combo Box For 2",
+    "description": "A sharing combo box of chicken for two people",
+    "category": "Chicken",
+    "price": "18000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Family Box 1",
+    "description": "Family-size box of Cossi's fried chicken",
+    "category": "Chicken",
+    "price": "24000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Family Box 2",
+    "description": "Larger family-size box of Cossi's fried chicken",
+    "category": "Chicken",
+    "price": "27000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Family Box 1 Sticky",
+    "description": "Family-size box with sticky glazed chicken",
+    "category": "Chicken",
+    "price": "28000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Family Box 2 Sticky",
+    "description": "Larger family-size box with sticky glazed chicken",
+    "category": "Chicken",
+    "price": "31000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Garlic Chicken Plain",
+    "description": "Succulent chicken with a rich garlic flavour",
+    "category": "Chicken",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Plain Chips",
+    "description": "Crispy golden French fries",
+    "category": "Fries",
+    "price": "3000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chips Mayai",
+    "description": "Chips cooked with egg, Tanzanian street-food style",
+    "category": "Fries",
+    "price": "4000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Masala Chips",
+    "description": "Chips seasoned with aromatic masala spices",
+    "category": "Fries",
+    "price": "4000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Spicy Masala Chips",
+    "description": "Chips seasoned with extra spicy masala blend",
+    "category": "Fries",
+    "price": "4000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Garlic Chips",
+    "description": "Crispy chips tossed in garlic seasoning",
+    "category": "Fries",
+    "price": "4000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chilly Chips",
+    "description": "Chips seasoned with chilli for a fiery kick",
+    "category": "Fries",
+    "price": "4000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mzuzu Fries",
+    "description": "Thick-cut Mzuzu-style fries",
+    "category": "Fries",
+    "price": "4000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Extra Mayo",
+    "description": "Side portion of creamy mayonnaise",
+    "category": "Fries",
+    "price": "1000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Extra Sauce (Sticky)",
+    "description": "Extra portion of Cossi's sticky dipping sauce",
+    "category": "Fries",
+    "price": "1000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Burger Plain",
+    "description": "Classic beef burger in a soft bun",
+    "category": "Burgers & Sandwiches",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Burger Plain",
+    "description": "Crispy chicken fillet burger in a soft bun",
+    "category": "Burgers & Sandwiches",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Double Beef Burger Plain",
+    "description": "Double beef patty burger in a soft bun",
+    "category": "Burgers & Sandwiches",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Double Cheese Burger Plain",
+    "description": "Double beef patty burger with melted cheese",
+    "category": "Burgers & Sandwiches",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fish Burger Plain",
+    "description": "Crispy fish fillet burger in a soft bun",
+    "category": "Burgers & Sandwiches",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Tandoor Chicken Burger Plain",
+    "description": "Tandoor-marinated chicken burger in a soft bun",
+    "category": "Burgers & Sandwiches",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fried Chicken Burger Plain",
+    "description": "Crispy fried chicken burger in a soft bun",
+    "category": "Burgers & Sandwiches",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Sticky Chicken Burger Plain",
+    "description": "Sticky glazed chicken burger in a soft bun",
+    "category": "Burgers & Sandwiches",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Veg Burger Plain",
+    "description": "Vegetarian burger in a soft bun",
+    "category": "Burgers & Sandwiches",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Extra Cheese",
+    "description": "Add extra melted cheese to your burger",
+    "category": "Burgers & Sandwiches",
+    "price": "1000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Mayo Sandwich Plain",
+    "description": "Chicken with creamy mayo in a sandwich",
+    "category": "Burgers & Sandwiches",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Avo Sandwich Plain",
+    "description": "Chicken and fresh avocado in a sandwich",
+    "category": "Burgers & Sandwiches",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Egg Sandwich Plain",
+    "description": "Classic egg sandwich",
+    "category": "Burgers & Sandwiches",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Veg Sandwich Plain",
+    "description": "Fresh vegetarian sandwich",
+    "category": "Burgers & Sandwiches",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Cheese Sandwich Plain",
+    "description": "Melted cheese sandwich",
+    "category": "Burgers & Sandwiches",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chips Yai Rosti",
+    "description": "Uswazi-style chips yai rosti",
+    "category": "Fries Uswazi Made",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chips Rost",
+    "description": "Uswazi-style roasted chips",
+    "category": "Fries Uswazi Made",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Sausage Masala Chips",
+    "description": "Masala chips topped with sausage",
+    "category": "Fries Uswazi Made",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Masala Chips",
+    "description": "Masala chips topped with chicken",
+    "category": "Fries Uswazi Made",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Masala Chips",
+    "description": "Masala chips topped with beef",
+    "category": "Fries Uswazi Made",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Tingisha Beef",
+    "description": "Uswazi-style tingisha loaded with beef",
+    "category": "Fries Uswazi Made",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Tingisha Chicken",
+    "description": "Uswazi-style tingisha loaded with chicken",
+    "category": "Fries Uswazi Made",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fish & Chips",
+    "description": "Crispy battered fish served with golden chips",
+    "category": "Fish",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chef Avocado Salad",
+    "description": "Fresh chef's salad bowl with avocado",
+    "category": "Salad Bowls",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Avo Salad Plain",
+    "description": "Fresh salad bowl with chicken and avocado",
+    "category": "Salad Bowls",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fish Salad",
+    "description": "Fresh salad bowl topped with fish",
+    "category": "Salad Bowls",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Sticky Salad",
+    "description": "Fresh salad bowl topped with sticky glazed chicken",
+    "category": "Salad Bowls",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Wings Salad",
+    "description": "Fresh salad bowl topped with chicken wings",
+    "category": "Salad Bowls",
+    "price": "11000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Salad",
+    "description": "Fresh salad bowl topped with seasoned beef",
+    "category": "Salad Bowls",
+    "price": "9000",
+    "image_url": "/",
+    "is_available": true
+  }
+]

@@ -1,0 +1,786 @@
+[
+  {
+    "name": "Plain Omelette",
+    "description": "Classic plain omelette",
+    "category": "Breakfast - Eggs",
+    "price": "4000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Spanish Omelette",
+    "description": "Omelette with Spanish-style seasoning and vegetables",
+    "category": "Breakfast - Eggs",
+    "price": "5000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fried Eggs",
+    "description": "Golden fried eggs cooked to order",
+    "category": "Breakfast - Eggs",
+    "price": "4000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Scrambled Eggs",
+    "description": "Soft and creamy scrambled eggs",
+    "category": "Breakfast - Eggs",
+    "price": "5000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Stuffed Omelette",
+    "description": "Omelette filled with a savoury stuffing",
+    "category": "Breakfast - Eggs",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Pancakes with Steamed Vegetables",
+    "description": "2 fluffy pancakes served with steamed vegetables",
+    "category": "Breakfast - Specials",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "French Toast",
+    "description": "3 pieces of golden French toast",
+    "category": "Breakfast - Specials",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Full Breakfast",
+    "description": "2 eggs, beef bacon, bread, greens, sausages, grilled tomato, fried potatoes, pancake & tea masala (maziwa) or black tea",
+    "category": "Breakfast - Specials",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Pumpkin Soup",
+    "description": "Smooth and creamy pumpkin soup",
+    "category": "Soup",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Cucumber Soup",
+    "description": "Light and refreshing cucumber soup",
+    "category": "Soup",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mushroom Soup",
+    "description": "Rich and earthy mushroom soup",
+    "category": "Soup",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Carrot & Ginger Soup",
+    "description": "Warming carrot and ginger blended soup",
+    "category": "Soup",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Zucchini Soup",
+    "description": "Smooth and delicate zucchini soup",
+    "category": "Soup",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Soup Special of the Day",
+    "description": "Chef's special soup of the day",
+    "category": "Soup",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Hot Chocolate",
+    "description": "Rich and creamy hot chocolate",
+    "category": "Hot Drinks",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Espresso",
+    "description": "Strong and bold single espresso shot",
+    "category": "Hot Drinks",
+    "price": "5000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Black Coffee",
+    "description": "Classic hot black coffee",
+    "category": "Hot Drinks",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Irish Coffee",
+    "description": "Hot coffee with a rich Irish-style preparation",
+    "category": "Hot Drinks",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Ice Coffee Milk",
+    "description": "Chilled iced coffee with milk",
+    "category": "Hot Drinks",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Ice Coffee Black",
+    "description": "Chilled black iced coffee",
+    "category": "Hot Drinks",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Ice Coffee Black with Ice Cream",
+    "description": "Chilled black iced coffee topped with ice cream",
+    "category": "Hot Drinks",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Cappuccino",
+    "description": "Espresso with steamed milk foam",
+    "category": "Hot Drinks",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Café Latte",
+    "description": "Espresso with steamed milk",
+    "category": "Hot Drinks",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mochaccino",
+    "description": "Espresso with chocolate and steamed milk",
+    "category": "Hot Drinks",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Black Tea",
+    "description": "Classic hot black tea",
+    "category": "Hot Drinks",
+    "price": "5000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chai Dawa / Lemon Tea",
+    "description": "Spiced chai dawa or refreshing lemon tea",
+    "category": "Hot Drinks",
+    "price": "5000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Green Tea",
+    "description": "Light and healthy hot green tea",
+    "category": "Hot Drinks",
+    "price": "5000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Milk Masala Tea",
+    "description": "Aromatic masala tea brewed with milk",
+    "category": "Hot Drinks",
+    "price": "6000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Passion Iced Tea",
+    "description": "Chilled passion fruit iced tea",
+    "category": "Hot Drinks",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Ice Mocha",
+    "description": "Chilled mocha over ice",
+    "category": "Hot Drinks",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Café Mocha",
+    "description": "Hot espresso with chocolate and steamed milk",
+    "category": "Hot Drinks",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Latte Macchiato",
+    "description": "Steamed milk marked with a shot of espresso",
+    "category": "Hot Drinks",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "A Bowl of Popcorns",
+    "description": "A light and crunchy bowl of popcorn",
+    "category": "Bites",
+    "price": "2000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Wings",
+    "description": "Crispy and flavourful chicken wings",
+    "category": "Bites",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Samosa",
+    "description": "Crispy pastry filled with savoury stuffing",
+    "category": "Bites",
+    "price": "7000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Cashew Nuts",
+    "description": "Premium roasted cashew nuts",
+    "category": "Bites",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Groundnuts",
+    "description": "Roasted groundnuts",
+    "category": "Bites",
+    "price": "8000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Avocado Salad",
+    "description": "Lettuce, mixed vegetables, tomato and fresh avocado",
+    "category": "Salads",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Salad",
+    "description": "Lettuce, chicken stripes, mixed vegetables and tomatoes",
+    "category": "Salads",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chef's Salad",
+    "description": "Chef's special salad selection",
+    "category": "Salads",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Sesame Beef Salad",
+    "description": "Grilled beef stripes with sesame seeds, lettuce and mixed vegetables",
+    "category": "Salads",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Pasta Salad",
+    "description": "Chilled pasta salad with fresh vegetables",
+    "category": "Salads",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Classic Cheese & Tomato Sandwich",
+    "description": "Classic sandwich with cheese and fresh tomato",
+    "category": "Sandwiches",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Mayonnaise Sandwich",
+    "description": "Tender chicken with creamy mayonnaise in a sandwich",
+    "category": "Sandwiches",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Omelette and Vegetable Sandwich",
+    "description": "Omelette and fresh vegetables in a sandwich",
+    "category": "Sandwiches",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Curry",
+    "description": "Chicken mixed in rich curry sauce",
+    "category": "Main Course",
+    "price": "18000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Stew",
+    "description": "Chicken slow-cooked in coconut and vegetable sauce",
+    "category": "Main Course",
+    "price": "18000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Stew",
+    "description": "Beef cooked in tomato sauce with vegetables",
+    "category": "Main Course",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Stir Fried",
+    "description": "Stir fried beef with fresh vegetables",
+    "category": "Main Course",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Curry",
+    "description": "Beef mixed in rich curry sauce",
+    "category": "Main Course",
+    "price": "17000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Vegetable Curry",
+    "description": "Fresh vegetables mixed in curry sauce",
+    "category": "Main Course",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Vegetable Stew",
+    "description": "Vegetables cooked in tomato sauce and coconut",
+    "category": "Main Course",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fish Stew",
+    "description": "Fish cooked in rich coconut sauce",
+    "category": "Main Course",
+    "price": "25000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Fish Curry",
+    "description": "Fish in a spiced curry sauce",
+    "category": "Main Course",
+    "price": "25000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Spaghetti Bolognese",
+    "description": "Spaghetti with minced meat in a rich tomato sauce",
+    "category": "Main Course",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Creamy Chicken & Spinach Pasta",
+    "description": "Pasta with chicken, spinach and creamy sauce",
+    "category": "Main Course",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Vegetable Pasta",
+    "description": "Pasta with fresh vegetables in tomato sauce",
+    "category": "Main Course",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Maziwa",
+    "description": "Chicken cooked in a creamy milk-based sauce",
+    "category": "Main Course",
+    "price": "18000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Fried Rice",
+    "description": "Fried rice wok-tossed with seasoned beef",
+    "category": "Main Course",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chicken Fried Rice",
+    "description": "Fried rice wok-tossed with tender chicken",
+    "category": "Main Course",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Egg Fried Rice",
+    "description": "Fried rice wok-tossed with egg",
+    "category": "Main Course",
+    "price": "12000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Vegetable Fried Rice",
+    "description": "Fried rice wok-tossed with fresh vegetables",
+    "category": "Main Course",
+    "price": "10000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Ribs Fried (½kg)",
+    "description": "½kg of crispy fried beef ribs",
+    "category": "Fried Meat",
+    "price": "13000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Ribs Fried (1kg)",
+    "description": "1kg of crispy fried beef ribs",
+    "category": "Fried Meat",
+    "price": "26000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kisasa Fried (Half)",
+    "description": "Half portion of crispy fried Kuku Kisasa",
+    "category": "Fried Meat",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kisasa Fried (Whole)",
+    "description": "Whole crispy fried Kuku Kisasa",
+    "category": "Fried Meat",
+    "price": "30000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kienyeji Fried (Half)",
+    "description": "Half portion of crispy fried free-range chicken",
+    "category": "Fried Meat",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kienyeji Fried (Whole)",
+    "description": "Whole crispy fried free-range chicken",
+    "category": "Fried Meat",
+    "price": "40000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mbuzi Fried (½kg)",
+    "description": "½kg of tender fried goat meat",
+    "category": "Fried Meat",
+    "price": "25000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mbuzi Fried (1kg)",
+    "description": "1kg of tender fried goat meat",
+    "category": "Fried Meat",
+    "price": "35000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kienyeji (Half)",
+    "description": "Half portion of free-range local chicken",
+    "category": "Local Food",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kienyeji (Whole)",
+    "description": "Whole free-range local chicken",
+    "category": "Local Food",
+    "price": "40000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Samaki (Large)",
+    "description": "Large whole grilled fish",
+    "category": "Local Food",
+    "price": "40000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Samaki (Medium)",
+    "description": "Medium whole grilled fish",
+    "category": "Local Food",
+    "price": "30000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Lavetta Beef (½kg)",
+    "description": "½kg of Lavetta's signature seasoned beef",
+    "category": "Local Food",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Lavetta Beef (1kg)",
+    "description": "1kg of Lavetta's signature seasoned beef",
+    "category": "Local Food",
+    "price": "30000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Pilau (½kg)",
+    "description": "½kg of aromatic Tanzanian beef pilau",
+    "category": "Local Food",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Beef Pilau (1kg)",
+    "description": "1kg of aromatic Tanzanian beef pilau",
+    "category": "Local Food",
+    "price": "40000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kienyeji Pilau (Half)",
+    "description": "Half portion of free-range chicken pilau",
+    "category": "Local Food",
+    "price": "25000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kienyeji Pilau (Whole)",
+    "description": "Whole free-range chicken pilau",
+    "category": "Local Food",
+    "price": "50000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kisasa Pilau (Half)",
+    "description": "Half portion of Kuku Kisasa pilau",
+    "category": "Local Food",
+    "price": "15000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Kuku Kisasa Pilau (Whole)",
+    "description": "Whole Kuku Kisasa pilau",
+    "category": "Local Food",
+    "price": "30000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chips",
+    "description": "Crispy golden French fries",
+    "category": "Side Dishes",
+    "price": "3000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Chapati",
+    "description": "Soft East African flatbread",
+    "category": "Side Dishes",
+    "price": "2000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mash",
+    "description": "Creamy mashed potatoes",
+    "category": "Side Dishes",
+    "price": "5000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Rice",
+    "description": "Steamed white rice",
+    "category": "Side Dishes",
+    "price": "3000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Ugali",
+    "description": "Traditional East African maize ugali",
+    "category": "Side Dishes",
+    "price": "2000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Ndizi Mzuzu",
+    "description": "Fried Mzuzu plantain",
+    "category": "Side Dishes",
+    "price": "2000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Ndizi Mshare",
+    "description": "Boiled Mshare banana",
+    "category": "Side Dishes",
+    "price": "1000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Garlic & Chilli Chips",
+    "description": "Crispy chips seasoned with garlic and chilli",
+    "category": "Side Dishes",
+    "price": "5000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Samaki Choma (Medium)",
+    "description": "Medium chargrilled whole fish",
+    "category": "BBQ",
+    "price": "30000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Samaki Choma (Large)",
+    "description": "Large chargrilled whole fish",
+    "category": "BBQ",
+    "price": "40000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Samaki Foil (Medium)",
+    "description": "Medium fish cooked in foil with seasoning",
+    "category": "BBQ",
+    "price": "35000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Samaki Foil (Large)",
+    "description": "Large fish cooked in foil with seasoning",
+    "category": "BBQ",
+    "price": "45000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Sausage",
+    "description": "Grilled BBQ sausage",
+    "category": "BBQ",
+    "price": "3000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mbuzi ½ KG",
+    "description": "½kg of grilled goat meat",
+    "category": "BBQ",
+    "price": "20000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mbuzi 1 KG",
+    "description": "1kg of grilled goat meat",
+    "category": "BBQ",
+    "price": "35000",
+    "image_url": "/",
+    "is_available": true
+  },
+  {
+    "name": "Mishikaki Ng'ombe",
+    "description": "Grilled beef skewers",
+    "category": "BBQ",
+    "price": "0",
+    "image_url": "/",
+    "is_available": true
+  }
+]
