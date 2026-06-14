@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
 import { logEvent, analytics, db } from '../firebase';
-import { collection, addDoc, serverTimestamp, DocumentData, DocumentReference, updateDoc as firestoreUpdateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, DocumentData, DocumentReference, updateDoc as firestoreUpdateDoc, doc, getDoc } from 'firebase/firestore';
 import { useLocationStorage } from './useLocationStorage';
 import { calculateDistance, fetchVendorGeolocation } from '../pages/mood/api/mood-api';
 import posthog from './../lib/posthog';
@@ -27,6 +27,62 @@ type CartItem = MenuItem & {
   vendor_id: string;
 };
 
+export type DeliveryOptionId = 'asap' | 'bodaboda' | 'free' | 'pickup';
+
+export interface DeliveryOption {
+  id: DeliveryOptionId;
+  label: string;
+  sublabel: string;
+  feeMultiplier: number;   // multiplied against the base distance fee
+  fixedSurcharge: number;  // flat TZS added on top (e.g. ASAP premium)
+  eta: string;             // display string e.g. "15–25 min"
+  isFree: boolean;         // if true, fee is always 0 regardless of formula
+  isPickup: boolean;       // if true, no delivery calculation at all
+}
+
+export const DELIVERY_OPTIONS: DeliveryOption[] = [
+  {
+    id: 'asap',
+    label: 'ASAP by Sosika',
+    sublabel: 'Premium delivery',
+    feeMultiplier: 1.0,
+    fixedSurcharge: 2000,
+    eta: '15–25 min',
+    isFree: false,
+    isPickup: false
+  },
+  {
+    id: 'bodaboda',
+    label: 'Bodaboda',
+    sublabel: 'Standard delivery',
+    feeMultiplier: 1.0,
+    fixedSurcharge: 0,
+    eta: '25–45 min',
+    isFree: false,
+    isPickup: false
+  },
+  {
+    id: 'free',
+    label: 'Free delivery',
+    sublabel: 'Scheduled delivery',
+    feeMultiplier: 0,
+    fixedSurcharge: 0,
+    eta: 'Within 24 hrs',
+    isFree: true,
+    isPickup: false
+  },
+  {
+    id: 'pickup',
+    label: 'Self pickup',
+    sublabel: 'You collect',
+    feeMultiplier: 0,
+    fixedSurcharge: 0,
+    eta: 'You collect',
+    isFree: true,
+    isPickup: true
+  }
+];
+
 export function useCart() {
   const { locations } = useLocationStorage();
   const userLocation = locations[0]; // Assuming the first location is the user's current location
@@ -38,40 +94,57 @@ export function useCart() {
   });
   const [cartTotal, setCartTotal] = useState<number>(0);
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  const [baseFee, setBaseFee] = useState<number>(0);
+  const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<DeliveryOptionId>('bodaboda');
   const [loading, setLoading] = useState<boolean>(false);
+  const [calculatingFee, setCalculatingFee] = useState<boolean>(false);
 
   // Persist cart to localStorage on change and calculate total and delivery fee
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
 
     const calculateTotals = async () => {
-      let subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-      let currentDeliveryFee = 0;
+      setCalculatingFee(true);
+      try {
+        let subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+        let currentDeliveryFee = 0;
+        let currentBaseFee = 0;
 
-      if (cart.length > 0 && userLocation) {
-        const firstItemVendorId = cart[0].vendor_id;
-        const vendorGeolocation = await fetchVendorGeolocation(firstItemVendorId);
+        if (cart.length > 0 && userLocation) {
+          const firstItemVendorId = cart[0].vendor_id;
+          const vendorGeolocation = await fetchVendorGeolocation(firstItemVendorId);
 
-        if (vendorGeolocation) {
-          const distance = calculateDistance(
-            userLocation,
-            vendorGeolocation
-          );
-          console.log(distance);
-          // Delivery fee: 1200 TSH per kilometer
-          // Calculate base fee (TZS 1200 per km) then round up to nearest 100 TZS for cash-friendly payment
-          const baseFee = Math.ceil(distance * 1200); // base in whole TZS
-          const ROUND_TO = 100; // round up to nearest 100 TZS to keep cash payments easy and add small profit
-          currentDeliveryFee = Math.ceil(baseFee / ROUND_TO) * ROUND_TO;
+          if (vendorGeolocation) {
+            const distance = calculateDistance(
+              userLocation,
+              vendorGeolocation
+            );
+            console.log(distance);
+            // Delivery fee: 1200 TSH per kilometer
+            // Calculate base fee (TZS 1200 per km) then round up to nearest 100 TZS for cash-friendly payment
+            currentBaseFee = Math.ceil(distance * 1200); // base in whole TZS
+
+            const option = DELIVERY_OPTIONS.find(o => o.id === selectedDeliveryOption) || DELIVERY_OPTIONS[1];
+            if (option.isFree || option.isPickup) {
+              currentDeliveryFee = 0;
+            } else {
+              currentDeliveryFee = Math.ceil((currentBaseFee * option.feeMultiplier + option.fixedSurcharge) / 100) * 100;
+            }
+          }
         }
+        console.log(currentDeliveryFee);
+        setBaseFee(currentBaseFee);
+        setDeliveryFee(currentDeliveryFee);
+        setCartTotal(subtotal + currentDeliveryFee);
+      } catch (err) {
+        console.error("Error calculating totals:", err);
+      } finally {
+        setCalculatingFee(false);
       }
-      console.log(currentDeliveryFee);
-      setDeliveryFee(currentDeliveryFee);
-      setCartTotal(subtotal + currentDeliveryFee);
     };
 
     calculateTotals();
-  }, [cart, userLocation]);
+  }, [cart, userLocation, selectedDeliveryOption]);
 
   const addToCart = useCallback((item: MenuItem) => {
     if (!item.id || !item.price) {
@@ -108,17 +181,11 @@ export function useCart() {
     setCart([]);
   }, []);
 
-
-
-
-
   // Global checkout function
   const checkout = async () => {
     setLoading(true);
 
     const userId = localStorage.getItem('userId');
-
-    
 
     // Always require a phone number for checkout (logged in or guest)
     // Pause loading while we ask the user for a phone number
@@ -130,7 +197,7 @@ export function useCart() {
       icon: 'info',
       input: 'tel',
       inputLabel: 'Phone Number',
-      inputPlaceholder: 'e.g. +1234567890',
+      inputPlaceholder: 'e.g. 255712345678',
       inputValue: localStorage.getItem('guestPhone') || '',
       showCancelButton: true,
       confirmButtonText: 'Continue',
@@ -179,65 +246,69 @@ export function useCart() {
     posthog.capture('checkout_started', {
       delivery_fee: deliveryFee,
       platform: 'app',
-      total_amount: total
+      total_amount: total,
+      deliveryOption: selectedDeliveryOption
     });
 
     // 2. Format the line items into a readable string (for the email body)
     const orderItemsHtml = cart.map(item =>
-      `<li>${item.quantity} x ${item.name} @ TZS ${parseFloat(item.price).toFixed(2)}</li>`
+      `<li>${item.quantity} × ${item.name} — TZS ${(parseFloat(item.price) * item.quantity).toLocaleString()}</li>`
     ).join(''); // This creates a single HTML string of <li> elements
 
-    // 3. Construct the full template parameters object
-    const templateParams = {
-      // These keys must match the variable names in your EmailJS template
-      customer_name: userId || phone, // Prefer userId, fallback to phone if guest
-      order_id: `ORD-${Date.now()}`, // Generate a temporary ID
-      order_items: `<ul>${orderItemsHtml}</ul>`, // The HTML list of items
-      subtotal_amount: `TZS ${total.toFixed(2)}`,
-      delivery_fee: `TZS ${deliveryFee.toFixed(2)}`,
-      total_amount: `TZS ${orderTotal}`,
-      admin_email: 'sosika.app@gmail.com', // The email address you want to send *to*
-      guest_phone: phone,
-      display_location: (() => {
-        const s = localStorage.getItem('sosika_locations');
-        if (!s) return 'N/A';
-        try {
-          const parsed = JSON.parse(s);
-          const first = Array.isArray(parsed) ? parsed[0] : parsed;
-          return first?.address ?? 'N/A';
-        } catch {
-          return 'N/A';
-        }
-      })(),
-      location_coords: (() => {
-        const s = localStorage.getItem('sosika_locations');
-        if (!s) return 'N/A';
-        try {
-          const parsed = JSON.parse(s);
-          const first = Array.isArray(parsed) ? parsed[0] : parsed;
-          return (first && typeof first.lat !== 'undefined' && typeof first.lng !== 'undefined')
-            ? `${first.lat},${first.lng}`
-            : 'N/A';
-        } catch {
-          return 'N/A';
-        }
-      })(),
-      raw_coordinates: (() => {
-        const s = localStorage.getItem('sosika_locations');
-        if (!s) return 'N/A';
-        try {
-          const parsed = JSON.parse(s);
-          const first = Array.isArray(parsed) ? parsed[0] : parsed;
-          return first ? JSON.stringify(first) : 'N/A';
-        } catch {
-          return 'N/A';
-        }
-      })(),
-      // You can add any other details like delivery info here
-      // delivery_address: '123 Main St',
-    };
+    const displayLocation = (() => {
+      const s = localStorage.getItem('sosika_locations');
+      if (!s) return 'N/A';
+      try {
+        const parsed = JSON.parse(s);
+        const first = Array.isArray(parsed) ? parsed[0] : parsed;
+        return first?.address ?? 'N/A';
+      } catch {
+        return 'N/A';
+      }
+    })();
 
-    // --- END EmailJS Payload Generation ---
+    const locationCoords = (() => {
+      const s = localStorage.getItem('sosika_locations');
+      if (!s) return 'N/A';
+      try {
+        const parsed = JSON.parse(s);
+        const first = Array.isArray(parsed) ? parsed[0] : parsed;
+        return (first && typeof first.lat !== 'undefined' && typeof first.lng !== 'undefined')
+          ? `${first.lat},${first.lng}`
+          : 'N/A';
+      } catch {
+        return 'N/A';
+      }
+    })();
+
+    const rawCoordinates = (() => {
+      const s = localStorage.getItem('sosika_locations');
+      if (!s) return 'N/A';
+      try {
+        const parsed = JSON.parse(s);
+        const first = Array.isArray(parsed) ? parsed[0] : parsed;
+        return first ? JSON.stringify(first) : 'N/A';
+      } catch {
+        return 'N/A';
+      }
+    })();
+
+    let vendorName = 'Unknown Vendor';
+    if (cart.length > 0) {
+      try {
+        const vendorRef = doc(db, 'vendors', cart[0].vendor_id);
+        const vendorSnap = await getDoc(vendorRef);
+        if (vendorSnap.exists()) {
+          vendorName = (vendorSnap.data() as { name: string }).name;
+        }
+      } catch {
+        vendorName = 'Unknown Vendor';
+      }
+    }
+
+    const chosenOption = DELIVERY_OPTIONS.find(o => o.id === selectedDeliveryOption);
+    const deliveryOptionLabel = chosenOption?.label ?? selectedDeliveryOption;
+    const deliveryOptionEta = chosenOption?.eta ?? 'N/A';
 
     try {
       // Save order to Firestore
@@ -248,10 +319,10 @@ export function useCart() {
         subtotal: total,
         deliveryFee,
         totalAmount: parseFloat(orderTotal),
-        orderId: templateParams.order_id,
-        displayLocation: templateParams.display_location,
-        locationCoords: templateParams.location_coords,
-        rawCoordinates: templateParams.raw_coordinates,
+        orderId: `ORD-${Date.now()}`,
+        displayLocation,
+        locationCoords,
+        rawCoordinates,
         timestamp: serverTimestamp(),
         status: 'pending',
         riderId: null,
@@ -259,25 +330,36 @@ export function useCart() {
         pickedUpAt: null,
         deliveredAt: null,
         paymentStatus: 'unpaid',
+        deliveryOption: selectedDeliveryOption,
+        vendor_name: vendorName,
       };
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       await updateDoc(docRef, { orderId: docRef.id });
 
-      // ----------------------------------------------------------------
-      // NEW EMAILJS INTEGRATION START
-      // ----------------------------------------------------------------
+      const templateParams = {
+        customer_phone: localStorage.getItem('guestPhone') || 'Guest',
+        order_id: docRef.id,
+        vendor_name: vendorName,
+        order_items: `<ul>${orderItemsHtml}</ul>`,
+        subtotal_amount: `TZS ${total.toFixed(2)}`,
+        delivery_fee: `TZS ${deliveryFee.toFixed(2)}`,
+        delivery_option: deliveryOptionLabel,
+        delivery_eta: deliveryOptionEta,
+        total_amount: `TZS ${orderTotal}`,
+        admin_email: 'sosika.app@gmail.com',
+        guest_phone: phone,
+        display_location: displayLocation,
+        customer_coords: locationCoords,
+      };
 
       // 1. Define your IDs
       const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID; // e.g., 'gmail_service'
       const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID; // e.g., 'order_notification'
 
-      // 2. Prepare the payload (reuse values computed above to avoid duplicate calculations)
-      emailjs.send(SERVICE_ID, TEMPLATE_ID, {
-        ...templateParams,
-        order_id: docRef.id,   // use the real ID in the email too
-        admin_email: 'sosika.app@gmail.com',
-      }).catch(err => console.warn('Email failed silently:', err));
+      // 2. Prepare the payload
+      emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+        .catch(err => console.warn('Email failed silently:', err));
 
       await Swal.fire({
         title: 'Order Placed!',
@@ -292,10 +374,6 @@ export function useCart() {
       });
       setCart([]);
 
-      // ----------------------------------------------------------------
-      // NEW EMAILJS INTEGRATION END
-      // ----------------------------------------------------------------
-
     } catch (error) {
       console.error("Checkout error:", error);
       await Swal.fire({
@@ -308,8 +386,6 @@ export function useCart() {
     }
   };
 
-
-
   return {
     cart,
     setCart,
@@ -321,8 +397,13 @@ export function useCart() {
     checkout,
     loading,
     deliveryFee,
+    baseFee,
+    selectedDeliveryOption,
+    setSelectedDeliveryOption,
+    calculatingFee,
   };
 }
+
 async function updateDoc(docRef: DocumentReference<DocumentData, DocumentData>, data: { orderId: string }): Promise<void> {
   try {
     // defer to the Firestore SDK's updateDoc (imported as firestoreUpdateDoc)
@@ -332,4 +413,3 @@ async function updateDoc(docRef: DocumentReference<DocumentData, DocumentData>, 
     throw err;
   }
 }
-
