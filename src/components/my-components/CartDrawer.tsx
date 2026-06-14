@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShoppingCart, X, Image as ImageIcon, Minus, Plus, Trash2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DeliveryOptionId, DELIVERY_OPTIONS } from '../../hooks/useCart';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -8,11 +9,15 @@ interface CartDrawerProps {
   cart: any[];
   cartTotal: number;
   deliveryFee: number;
-  updateQuantity: (id: number, qty: number) => void;
-  removeFromCart: (id: number) => void;
+  baseFee: number;
+  updateQuantity: (id: string, qty: number) => void;
+  removeFromCart: (id: string) => void;
   clearCart: () => void;
   checkout: () => void;
   loading: boolean;
+  selectedDeliveryOption: DeliveryOptionId;
+  setSelectedDeliveryOption: (id: DeliveryOptionId) => void;
+  calculatingFee: boolean;
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -21,11 +26,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   cart,
   cartTotal,
   deliveryFee,
+  baseFee,
   updateQuantity,
   removeFromCart,
   clearCart,
   checkout,
   loading,
+  selectedDeliveryOption,
+  setSelectedDeliveryOption,
+  calculatingFee,
 }) => {
   return (
     <AnimatePresence>
@@ -51,7 +60,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
             {/* Header */}
             <div className="p-4 border-b border-white/[0.06] flex justify-between items-center bg-white/[0.01]">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <ShoppingCart className="h-4.5 w-4.5 text-[#00bfff]" />
+                <ShoppingCart className="h-[18px] w-[18px] text-[#00bfff]" />
                 Your Cart
                 <span className="text-xs font-semibold bg-white/[0.06] px-2 py-0.5 rounded-full text-zinc-400">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)} items
@@ -129,8 +138,52 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
 
             {/* Footer Summary */}
             {cart.length > 0 && (
-              <div className="p-4 border-t border-white/[0.06] bg-white/[0.01] space-y-3.5">
-                <div className="space-y-1.5 text-sm">
+              <div className="p-4 border-t border-white/[0.06] bg-white/[0.01] space-y-4">
+                {/* Delivery Option Selector */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Delivery Option</span>
+                  <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none">
+                    {DELIVERY_OPTIONS.map((option) => {
+                      const isSelected = selectedDeliveryOption === option.id;
+
+                      // Calculate displayed fee
+                      let feeDisplay = '';
+                      if (option.isFree) {
+                        feeDisplay = 'Free';
+                      } else if (option.isPickup) {
+                        feeDisplay = 'You pick up';
+                      } else {
+                        const optionFee = Math.ceil((baseFee * option.feeMultiplier + option.fixedSurcharge) / 100) * 100;
+                        feeDisplay = `${optionFee.toLocaleString()} TZS`;
+                      }
+
+                      return (
+                        <button
+                          key={option.id}
+                          onClick={() => setSelectedDeliveryOption(option.id)}
+                          className={`flex-shrink-0 text-left p-3 rounded-xl border transition-all duration-200 min-w-[125px] bg-white/[0.01] flex flex-col justify-between ${
+                            isSelected
+                              ? 'border-[#00bfff] text-[#00bfff] bg-white/[0.02]'
+                              : 'border-white/[0.06] text-zinc-400 hover:border-white/[0.12] hover:text-zinc-300'
+                          }`}
+                        >
+                          <div>
+                            <div className={`text-xs font-bold truncate ${isSelected ? 'text-[#00bfff]' : 'text-zinc-200'}`}>
+                              {option.label}
+                            </div>
+                            <div className="text-[10px] text-zinc-500 mt-0.5">{option.eta}</div>
+                          </div>
+                          <div className={`text-xs font-semibold mt-2 ${isSelected ? 'text-[#00bfff]' : 'text-zinc-400'}`}>
+                            {feeDisplay}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Price summary block */}
+                <div className="space-y-1.5 text-sm pt-2 border-t border-white/[0.04]">
                   <div className="flex justify-between text-zinc-400">
                     <span>Subtotal</span>
                     <span className="font-medium text-white">{(cartTotal - deliveryFee).toLocaleString()} TZS</span>
@@ -139,13 +192,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     <span>Delivery Fee</span>
                     <span className="font-medium text-white">{deliveryFee.toLocaleString()} TZS</span>
                   </div>
+                  {selectedDeliveryOption === 'free' && (
+                    <div className="text-xs text-zinc-500 mt-0.5">
+                      Scheduled batched delivery · up to 24 hrs
+                    </div>
+                  )}
                   <div className="flex justify-between border-t border-white/[0.06] pt-2 text-base font-bold text-white">
                     <span>Total</span>
                     <span className="text-[#00bfff]">{cartTotal.toLocaleString()} TZS</span>
                   </div>
                 </div>
 
-                <div className="flex gap-2.5">
+                <div className="flex gap-2.5 pt-2">
                   <button
                     onClick={clearCart}
                     className="px-4 py-3 border border-white/[0.08] bg-white/[0.02] text-xs font-semibold text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.05] transition-all flex-1"
@@ -154,11 +212,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   </button>
                   <button
                     onClick={checkout}
-                    disabled={loading}
+                    disabled={loading || calculatingFee}
                     className="px-4 py-3 bg-[#00bfff] hover:bg-[#00a6e0] disabled:bg-zinc-800 disabled:text-zinc-600 text-black text-xs font-bold rounded-xl transition-all flex-[2] flex items-center justify-center gap-2 active:scale-98"
                   >
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : calculatingFee ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Calculating...</span>
+                      </>
+                    ) : selectedDeliveryOption === 'pickup' ? (
+                      'Confirm Pickup'
                     ) : (
                       'Place Order'
                     )}

@@ -22,27 +22,22 @@ export default function Navbar() {
     cart,
     cartTotal,
     deliveryFee,
-    updateQuantity: updateQuantityString,
+    baseFee,
+    updateQuantity,
     removeFromCart,
     clearCart,
     checkout,
     loading,
+    selectedDeliveryOption,
+    setSelectedDeliveryOption,
+    calculatingFee,
   } = useCartContext();
   const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // wrapper to adapt CartDrawer's expected (id: number, qty: number) signature
-  const handleUpdateQuantity = (id: number, qty: number) => {
-    updateQuantityString(String(id), qty);
-  };
 
   const triggerHapticFeedback = () => {
     if (navigator.vibrate) {
       navigator.vibrate(20);
     }
-  };
-
-  const handleRemoveFromCart = (id: number) => {
-    removeFromCart(String(id));
   };
 
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -110,16 +105,20 @@ export default function Navbar() {
       </div>
 
       <CartDrawer
-        updateQuantity={handleUpdateQuantity}
+        updateQuantity={updateQuantity}
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cart={cart}
         cartTotal={cartTotal}
-        removeFromCart={handleRemoveFromCart}
+        removeFromCart={removeFromCart}
         clearCart={clearCart}
         checkout={checkout}
         loading={loading}
         deliveryFee={deliveryFee}
+        baseFee={baseFee}
+        selectedDeliveryOption={selectedDeliveryOption}
+        setSelectedDeliveryOption={setSelectedDeliveryOption}
+        calculatingFee={calculatingFee}
       />
     </>
   );
