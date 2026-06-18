@@ -36,11 +36,15 @@ export const fetchVendorGeolocation = async (vendorId: string): Promise<{ lat: n
     return null;
   }
 
-  const vendorData = vendorSnap.data() as any; // Type-casted loosely to safely access nested maps
+  const vendorData = vendorSnap.data() as any; 
   
-  // Secure structural lookup gate
+  // Secure structural approval gate
   const isApproved = vendorData.is_approved ?? vendorData.auth_info?.is_approved ?? false;
   if (!isApproved) return null;
+
+  // Operational availability gate check
+  const isOpen = vendorData.is_open ?? vendorData.listing_data?.is_open ?? false;
+  if (!isOpen) return null;
 
   return vendorData.geolocation || null;
 };
@@ -94,12 +98,17 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
   const vendorsCollection = collection(db, "vendors");
   const vendorSnapshot = await getDocs(vendorsCollection);
   
-  // Transform and Filter out unapproved vendors instantly using dual-structure checking logic
+  // Transform and filter vendors instantly based on verification state AND operational channel visibility status
   const allVendors: Vendor[] = vendorSnapshot.docs
     .map(doc => ({ id: doc.id, ...doc.data() } as any))
     .filter(vendor => {
-      // Gracefully evaluates either root property or nested onboard map structure
-      return vendor.is_approved === true || vendor.auth_info?.is_approved === true;
+      // 1st Gate: Must be approved by system administration
+      const approvedCheck = vendor.is_approved === true || vendor.auth_info?.is_approved === true;
+      
+      // 2nd Gate: Channel must be explicitly opened by the merchant 
+      const openCheck = vendor.is_open === true || vendor.listing_data?.is_open === true;
+      
+      return approvedCheck && openCheck;
     });
 
   // 2. Filter vendors by location proximity (100 km radius limit)
@@ -175,6 +184,7 @@ export const fetchVendorMenu = async (vendorId: string): Promise<{ vendor: Vendo
     throw new Error("This vendor spot has not been verified yet.");
   }
 
+  // Allow single-page visits but safely check open state if you choose to show a banner on their menu page
   // 2. Fetch all menu items for that vendor
   const menuItemsCollection = collection(db, "menuItems");
   const q = query(menuItemsCollection, where("vendor_id", "==", vendorId));
