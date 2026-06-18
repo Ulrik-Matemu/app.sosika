@@ -36,7 +36,12 @@ export const fetchVendorGeolocation = async (vendorId: string): Promise<{ lat: n
     return null;
   }
 
-  const vendorData = vendorSnap.data() as Vendor;
+  const vendorData = vendorSnap.data() as any; // Type-casted loosely to safely access nested maps
+  
+  // Secure structural lookup gate
+  const isApproved = vendorData.is_approved ?? vendorData.auth_info?.is_approved ?? false;
+  if (!isApproved) return null;
+
   return vendorData.geolocation || null;
 };
 
@@ -44,11 +49,10 @@ export const fetchVendorGeolocation = async (vendorId: string): Promise<{ lat: n
 const mapMoodToCategories = (mood: string): string[] => {
   const moodLower = mood.toLowerCase();
   
-  // Map moods to their corresponding categories
   const moodMap: Record<string, string[]> = {
     breakfast: ["breakfast", "sandwiches"],
-    lunch: ["lunch", "dinner", "salads", "pizza", "burgers", "mains", "sides", "sandwiches", "Special Order"], // Lunch items could also be dinner items
-    dinner: ["dinner", "lunch", "salads", "pizza", "burgers", "mains", "sides", "Special Order"], // Dinner items could also be lunch items
+    lunch: ["lunch", "dinner", "salads", "pizza", "burgers", "mains", "sides", "sandwiches", "Special Order"],
+    dinner: ["dinner", "lunch", "salads", "pizza", "burgers", "mains", "sides", "Special Order"],
     drink: ["drinks"],
     drinks: ["drinks"],
     specialorder: ["Special Order"],
@@ -61,8 +65,8 @@ const mapMoodToCategories = (mood: string): string[] => {
     sandwiches: ["sandwiches"],
     mains: ["mains"],
     sides: ["sides"],
-    nearby: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches", "Special Order"], // Show all
-    any: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches", "Special Order"], // Show all
+    nearby: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches", "Special Order"],
+    any: ["breakfast", "lunch", "dinner", "drinks", "snacks", "starters", "burgers", "salads", "pizza", "mains", "sides", "sandwiches", "Special Order"],
     bites: ["snacks", "starters", "bites"],
     softdrink: ["drinks", "soft drinks"],
     chicken: ["chicken"],
@@ -86,16 +90,21 @@ const mapMoodToCategories = (mood: string): string[] => {
 };
 
 export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> => {
-
   // 1. Fetch all vendors from Firestore
   const vendorsCollection = collection(db, "vendors");
   const vendorSnapshot = await getDocs(vendorsCollection);
-  const allVendors: Vendor[] = vendorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vendor));
-
-  // 2. Filter vendors by location proximity
-  const nearbyVendors = allVendors.filter(v => calculateDistance(v.geolocation, req.location) < 100); // 100 km radius
   
+  // Transform and Filter out unapproved vendors instantly using dual-structure checking logic
+  const allVendors: Vendor[] = vendorSnapshot.docs
+    .map(doc => ({ id: doc.id, ...doc.data() } as any))
+    .filter(vendor => {
+      // Gracefully evaluates either root property or nested onboard map structure
+      return vendor.is_approved === true || vendor.auth_info?.is_approved === true;
+    });
 
+  // 2. Filter vendors by location proximity (100 km radius limit)
+  const nearbyVendors = allVendors.filter(v => calculateDistance(v.geolocation, req.location) < 100);
+  
   if (nearbyVendors.length === 0) {
     return { vendors: [], menuItems: [] };
   }
@@ -103,16 +112,13 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
   // 3. Get valid categories for this mood
   const validCategories = mapMoodToCategories(req.mood);
 
-  //3.5 Check names of menu items for keywords matching the mood (e.g., "burger" in name for burger mood)
-  // This is a simple keyword check and can be enhanced with more sophisticated NLP techniques if needed.
+  // 3.5 Keyword injection match enhancement logic
   const keyword = req.mood.toLowerCase();
   if (!validCategories.includes(keyword)) {
     validCategories.push(keyword);
   }
 
- 
-
-  // 4. Fetch menu items for nearby vendors
+  // 4. Fetch menu items for nearby authorized vendors
   const nearbyVendorIds = nearbyVendors.map(v => v.id);
 
   if (nearbyVendorIds.length === 0) {
@@ -122,7 +128,7 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
   const menuItemsCollection = collection(db, "menuItems");
   let itemsFromVendors: MenuItem[] = [];
 
-  // Chunking for 'in' query since it's limited to 10 values per query
+  // Chunking mechanics mapping parameters for firestore arrays limits
   const CHUNK_SIZE = 10;
   for (let i = 0; i < nearbyVendorIds.length; i += CHUNK_SIZE) {
       const chunk = nearbyVendorIds.slice(i, i + CHUNK_SIZE);
@@ -135,13 +141,13 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
       }
   }
 
-  // Now filter by category client-side
+  // Filter items by category client-side
   const filteredItems = itemsFromVendors.filter(item => validCategories.includes(item.category));
 
-   //3.6 Check name of menu items individually from menu items fetched from nearby vendors for keyword matching
+  // 3.6 String parsing filtering matching lookup vector algorithms
   const keywordItems = itemsFromVendors.filter(item => item.name.toLowerCase().includes(keyword));
 
-  // Merge keyword-matched items into filtered results (deduplicate by id)
+  // Merge and deduplicate records safely inside cache array
   const filteredIds = new Set(filteredItems.map(item => item.id));
   const mergedItems = [...filteredItems, ...keywordItems.filter(item => !filteredIds.has(item.id))];
 
@@ -161,7 +167,13 @@ export const fetchVendorMenu = async (vendorId: string): Promise<{ vendor: Vendo
     throw new Error("Vendor not found");
   }
 
-  const vendor = { id: vendorSnap.id, ...vendorSnap.data() } as Vendor;
+  const vendor = { id: vendorSnap.id, ...vendorSnap.data() } as any;
+
+  // Protect standalone page requests from showing unapproved vendors
+  const isApproved = vendor.is_approved ?? vendor.auth_info?.is_approved ?? false;
+  if (!isApproved) {
+    throw new Error("This vendor spot has not been verified yet.");
+  }
 
   // 2. Fetch all menu items for that vendor
   const menuItemsCollection = collection(db, "menuItems");
