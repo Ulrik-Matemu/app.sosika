@@ -112,7 +112,7 @@ function App() {
                     <Route path="/" element={<MoodSelection />} />
                     {/* <Route path="/vendor/:vendorId" element={<VendorPage />} />
                 <Route path="/menu-item/:id" element={<MenuItemScreen />} />
-                <Route path="/explore" element={<MenuExplorer />} /> */}
+                <Route path="/explore-here" element={<MenuExplorer />} /> */}
                     <Route path="/mood" element={<MoodSelection />} />
                     <Route path="/mood/location" element={<LocationSelection />} />
                     <Route path="/mood/results" element={<ResultsPage />} />
