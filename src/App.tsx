@@ -37,6 +37,9 @@ import ResultsPage from "./pages/mood/ResultsPage";
 import AdminDashboard from "./pages/admin/Dashboard";
 import VendorMenuPage from "./pages/vendor/MenuPage";
 import AppEntryTracker from "./components/my-components/AppEntryTracker";
+import VendorOnboarding from "./pages/vendor-portal/vendor-onboarding";
+import VendorAuthPortal from "./pages/vendor-portal/auth";
+import VendorDashboard from "./pages/vendor-portal/dashboard";
 
 function App() {
   // const [selectedLocation, setSelectedLocation] = useState<SavedLocation | null>(null);
@@ -52,6 +55,8 @@ function App() {
         duration_seconds: Math.floor(durationMs / 1000),
       });
     };
+
+
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
@@ -90,7 +95,7 @@ function App() {
 
   return (
     <>
-    <AppEntryTracker />
+      <AppEntryTracker />
       <HelmetProvider>
         <MapProvider>
           <CartProvider>
@@ -113,6 +118,9 @@ function App() {
                     <Route path="/mood/results" element={<ResultsPage />} />
                     <Route path="/vendor/:vendorId/menu" element={<VendorMenuPage />} />
                     <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/vendor-onboarding" element={<VendorOnboarding />} />
+                    <Route path="/vendor-auth" element={<VendorAuthPortal />} />
+                    <Route path="/vendor-dashboard" element={<VendorDashboard />} />
                     {/* <Route path="/browse" element={<Browser />} /> */}
                     {/* Private Routes */}
                     <Route element={<PrivateRoutes />}>

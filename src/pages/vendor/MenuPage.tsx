@@ -20,22 +20,34 @@ const MenuItemRow = React.memo(({ item }: { item: MenuItem }) => {
   const { addToCart } = useCartContext();
   const [isAdding, setIsAdding] = useState(false);
 
+  const isAvailable = item.is_available !== false;
+
   const handleAddToCart = useCallback(async () => {
+    if (!isAvailable) return;
     setIsAdding(true);
     addToCart({ ...item, quantity: 1 } as any);
     // Quick visual feedback
     setTimeout(() => setIsAdding(false), 600);
-  }, [item, addToCart]);
+  }, [item, addToCart, isAvailable]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex items-start justify-between py-4 border-b border-zinc-800 last:border-b-0 gap-3"
+      className={`flex items-start justify-between py-4 border-b border-zinc-800 last:border-b-0 gap-3 transition-all duration-300 ${
+        isAvailable ? "" : "opacity-50"
+      }`}
     >
       <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-white text-base leading-snug">{item.name}</h4>
+        <div className="flex items-center gap-2 flex-wrap mb-1">
+          <h4 className="font-semibold text-white text-base leading-snug">{item.name}</h4>
+          {!isAvailable && (
+            <span className="text-[9px] font-bold text-zinc-400 bg-white/[0.04] border border-white/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider">
+              Out of Stock
+            </span>
+          )}
+        </div>
         {item.description && (
           <p className="text-zinc-400 text-sm mt-1.5 line-clamp-2">{item.description}</p>
         )}
@@ -51,6 +63,7 @@ const MenuItemRow = React.memo(({ item }: { item: MenuItem }) => {
       </div>
       <button
         onClick={() => {
+          if (!isAvailable) return;
           posthog.capture("order_started", {
             platform: 'app',
             item_id: item.id,
@@ -58,15 +71,19 @@ const MenuItemRow = React.memo(({ item }: { item: MenuItem }) => {
           })
           handleAddToCart();
         }}
-        disabled={isAdding}
-        className="p-3 rounded-full bg-zinc-800 hover:bg-zinc-700 active:scale-95 transition-all flex-shrink-0 disabled:opacity-50"
-        aria-label={`Add ${item.name} to cart`}
+        disabled={isAdding || !isAvailable}
+        className={`p-3 rounded-full transition-all flex-shrink-0 ${
+          !isAvailable
+            ? "bg-zinc-900 border border-zinc-850 cursor-not-allowed opacity-40"
+            : "bg-zinc-800 hover:bg-zinc-700 active:scale-95 disabled:opacity-50"
+        }`}
+        aria-label={!isAvailable ? `${item.name} is out of stock` : `Add ${item.name} to cart`}
       >
         <motion.div
           animate={isAdding ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
           transition={{ duration: 0.4 }}
         >
-          <ShoppingBag className="w-5 h-5 text-[#00bfff]" />
+          <ShoppingBag className={`w-5 h-5 ${!isAvailable ? "text-zinc-600" : "text-[#00bfff]"}`} />
         </motion.div>
       </button>
     </motion.div>

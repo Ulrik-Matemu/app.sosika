@@ -182,7 +182,7 @@ export function useCart() {
   }, []);
 
   // Global checkout function
-  const checkout = async () => {
+ const checkout = async () => {
     setLoading(true);
 
     const userId = localStorage.getItem('userId');
@@ -299,7 +299,8 @@ export function useCart() {
         const vendorRef = doc(db, 'vendors', cart[0].vendor_id);
         const vendorSnap = await getDoc(vendorRef);
         if (vendorSnap.exists()) {
-          vendorName = (vendorSnap.data() as { name: string }).name;
+          // Fallback to 'name' or 'listing_data.name' depending on structure
+          vendorName = vendorSnap.data().name || vendorSnap.data().listing_data?.name || 'Unknown Vendor';
         }
       } catch {
         vendorName = 'Unknown Vendor';
@@ -311,6 +312,9 @@ export function useCart() {
     const deliveryOptionEta = chosenOption?.eta ?? 'N/A';
 
     try {
+      // Extract all distinct vendor IDs present in this purchase payload
+      const uniqueVendorIds = [...new Set(cart.map(item => item.vendor_id).filter(Boolean))];
+
       // Save order to Firestore
       const orderData = {
         userId: userId || 'guest',
@@ -332,6 +336,7 @@ export function useCart() {
         paymentStatus: 'unpaid',
         deliveryOption: selectedDeliveryOption,
         vendor_name: vendorName,
+        vendor_ids: uniqueVendorIds, // Explicit indexing map allows array-contains rules to run
       };
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
@@ -357,9 +362,39 @@ export function useCart() {
       const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID; // e.g., 'gmail_service'
       const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID; // e.g., 'order_notification'
 
-      // 2. Prepare the payload
+      // 2. Send admin notification email
       emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
-        .catch(err => console.warn('Email failed silently:', err));
+        .catch(err => console.warn('Admin email failed silently:', err));
+
+      // 3. Send vendor notification emails — free alert for each vendor involved in this order
+      for (const vid of uniqueVendorIds) {
+        try {
+          const vRef = doc(db, 'vendors', vid);
+          const vSnap = await getDoc(vRef);
+          if (vSnap.exists()) {
+            const vData = vSnap.data();
+            const vendorEmail = vData?.auth_info?.email || vData?.email;
+            const vName = vData?.name || vData?.listing_data?.name || 'Vendor';
+            if (vendorEmail) {
+              const vendorItems = cart
+                .filter(item => item.vendor_id === vid)
+                .map(item => `<li>${item.quantity} × ${item.name} — TZS ${(parseFloat(item.price) * item.quantity).toLocaleString()}</li>`)
+                .join('');
+
+              const vendorTemplateParams = {
+                ...templateParams,
+                admin_email: vendorEmail,
+                vendor_name: vName,
+                order_items: `<ul>${vendorItems}</ul>`,
+              };
+              emailjs.send(SERVICE_ID, TEMPLATE_ID, vendorTemplateParams)
+                .catch(err => console.warn(`Vendor email to ${vendorEmail} failed silently:`, err));
+            }
+          }
+        } catch (err) {
+          console.warn(`Failed to send vendor email for ${vid}:`, err);
+        }
+      }
 
       await Swal.fire({
         title: 'Order Placed!',
