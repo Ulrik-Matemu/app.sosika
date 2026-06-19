@@ -47,7 +47,10 @@ const MenuItemCard = ({
   const { addToCart } = useCartContext();
   const [isAdded, setIsAdded] = useState(false);
 
+  const isAvailable = item.is_available !== false;
+
   const handleAdd = useCallback(() => {
+    if (!isAvailable) return;
     addToCart({ ...item, quantity: 1 } as any);
     posthog.capture("order_started", {
       platform: "app",
@@ -57,21 +60,32 @@ const MenuItemCard = ({
     });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1200);
-  }, [item, addToCart]);
+  }, [item, addToCart, isAvailable]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: Math.min(index * 0.03, 0.2), ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="group bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 hover:bg-white/[0.05] hover:border-white/[0.1] transition-all duration-300"
+      className={`group bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 transition-all duration-300 ${
+        isAvailable
+          ? "hover:bg-white/[0.05] hover:border-white/[0.1]"
+          : "opacity-50"
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           {/* Item name */}
-          <h3 className="font-semibold text-white text-[15px] leading-snug mb-1 truncate">
-            {item.name}
-          </h3>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h3 className="font-semibold text-white text-[15px] leading-snug truncate">
+              {item.name}
+            </h3>
+            {!isAvailable && (
+              <span className="text-[9px] font-bold text-zinc-400 bg-white/[0.04] border border-white/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                Out of Stock
+              </span>
+            )}
+          </div>
           {/* Description */}
           {item.description && (
             <p className="text-zinc-500 text-xs leading-relaxed line-clamp-2 mb-2.5">
@@ -91,12 +105,15 @@ const MenuItemCard = ({
         {/* Add to cart button */}
         <button
           onClick={handleAdd}
-          disabled={isAdded}
-          className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isAdded
-            ? "bg-emerald-500/20 border border-emerald-500/30"
-            : "bg-white/[0.05] border border-white/[0.08] hover:bg-[#00bfff]/[0.12] hover:border-[#00bfff]/30 active:scale-90"
-            }`}
-          aria-label={`Add ${item.name} to cart`}
+          disabled={isAdded || !isAvailable}
+          className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+            isAdded
+              ? "bg-emerald-500/20 border border-emerald-500/30"
+              : !isAvailable
+              ? "bg-zinc-800/20 border border-white/[0.02] cursor-not-allowed opacity-40"
+              : "bg-white/[0.05] border border-white/[0.08] hover:bg-[#00bfff]/[0.12] hover:border-[#00bfff]/30 active:scale-90"
+          }`}
+          aria-label={!isAvailable ? `${item.name} is out of stock` : `Add ${item.name} to cart`}
         >
           <AnimatePresence mode="wait">
             {isAdded ? (
@@ -115,7 +132,7 @@ const MenuItemCard = ({
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
               >
-                <ShoppingBag className="w-4 h-4 text-zinc-400 group-hover:text-[#00bfff] transition-colors" />
+                <ShoppingBag className={`w-4 h-4 ${!isAvailable ? "text-zinc-600" : "text-zinc-400 group-hover:text-[#00bfff] transition-colors"}`} />
               </motion.div>
             )}
           </AnimatePresence>

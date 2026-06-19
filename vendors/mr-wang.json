@@ -1,0 +1,938 @@
+[
+    {
+        "name": "Mr. Wang's Chicken",
+        "description": "Sichuan-style cold chicken drenched in a savory, aromatic chili oil sauce.",
+        "category": "house specialties",
+        "price": "32000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Hotpot Vegetables",
+        "description": "A comforting, spicy Sichuan medley of fresh seasonal vegetables cooked in a flavorful broth.",
+        "category": "house specialties",
+        "price": "35000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Hotpot (Chicken / Beef / Mutton / Pork)",
+        "description": "Your choice of tender meat simmered with spices and vegetables in a classic fiery Sichuan hotpot style.",
+        "category": "house specialties",
+        "price": "38000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Soy Sauce Beef Mix",
+        "description": "Thinly sliced cold beef platter expertly braised in a rich, aromatic soy sauce blend.",
+        "category": "house specialties",
+        "price": "38000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mr. Wang's Duck",
+        "description": "Authentic Peking-style roasted duck with a crisp, golden-brown skin and juicy meat.",
+        "category": "house specialties",
+        "price": "75000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Goat Ribs",
+        "description": "Tender, succulent roasted goat ribs seasoned with aromatic Chinese spices.",
+        "category": "house specialties",
+        "price": "55000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Seafood Platter",
+        "description": "An ultimate feast featuring a luxurious, seasoned mix of fresh ocean catches.",
+        "category": "house specialties",
+        "price": "105000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Tomato Egg Noodle Soup (Small)",
+        "description": "A cozy, classic noodle soup topped with a savory egg and fresh tomato broth.",
+        "category": "soups",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Tomato Egg Noodle Soup (Large)",
+        "description": "A generous sharing portion of classic Chinese egg and fresh tomato noodle soup.",
+        "category": "soups",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Mushroom Soup (Small)",
+        "description": "Light and nourishing broth infused with tender chicken strips and earthy mushrooms.",
+        "category": "soups",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Mushroom Soup (Large)",
+        "description": "A large, comforting bowl of clear chicken broth packed with mushrooms and tender chicken.",
+        "category": "soups",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Noodle Soup (Small)",
+        "description": "Warm comforting broth featuring soft noodles and shredded chicken pieces.",
+        "category": "soups",
+        "price": "8000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Noodle Soup (Large)",
+        "description": "A hearty, large bowl of satisfying chicken noodle soup perfect for sharing.",
+        "category": "soups",
+        "price": "20000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Corn Soup (Small)",
+        "description": "Thick, creamy, and mildly sweet soup filled with sweetcorn and chicken bits.",
+        "category": "soups",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Corn Soup (Large)",
+        "description": "A family-sized serving of rich and creamy chicken sweetcorn egg-drop soup.",
+        "category": "soups",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Prawns Soup (Small)",
+        "description": "A delicate, clear seafood broth highlighting fresh, sweet prawns.",
+        "category": "soups",
+        "price": "9000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Prawns Soup (Large)",
+        "description": "A premium large sharing broth swimming with juicy, tender prawns.",
+        "category": "soups",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Tomato Egg Soup (Small)",
+        "description": "Simple and traditional Chinese egg drop soup with fresh, tangy tomatoes.",
+        "category": "soups",
+        "price": "6000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Tomato Egg Soup (Large)",
+        "description": "A large bowl of vibrant, comforting tomato egg drop soup.",
+        "category": "soups",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Seafood Noodle Soup (Small)",
+        "description": "Savory noodle soup loaded with assorted fresh seafood and greens.",
+        "category": "soups",
+        "price": "9000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Seafood Noodle Soup (Large)",
+        "description": "A large, rich, and deeply satisfying noodle soup featuring a medley of seafood.",
+        "category": "soups",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Wonton Soup (Small)",
+        "description": "Delicate handmade wonton dumplings served in a light, fragrant clear broth.",
+        "category": "soups",
+        "price": "9000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Wonton Soup (Large)",
+        "description": "A large comforting sharing bowl filled with savory meat wontons in hot broth.",
+        "category": "soups",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Vegetable Soup (Small)",
+        "description": "A light, clean, and healthy clear soup brimming with fresh seasonal greens.",
+        "category": "soups",
+        "price": "6000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Vegetable Soup (Large)",
+        "description": "A large bowl of nourishing, garden-fresh vegetable clear broth.",
+        "category": "soups",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Crab Soup with Tofu (Small)",
+        "description": "A smooth, delicate soup pairing sweet crab meat chunks with silky tofu cubes.",
+        "category": "soups",
+        "price": "9000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Crab Soup with Tofu (Large)",
+        "description": "A rich, velvety large-sized soup combining fresh crab notes and smooth bean curd.",
+        "category": "soups",
+        "price": "25000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Hot and Sour Soup (Chicken) (Small)",
+        "description": "Classic thick Sichuan broth balanced perfectly with tangy vinegar and white pepper heat.",
+        "category": "soups",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Hot and Sour Soup (Chicken) (Large)",
+        "description": "A large sharing bowl of the bold, spicy, and tangy shredded chicken favorite.",
+        "category": "soups",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Vegetable Dumplings",
+        "description": "9 pieces of delicate wrappers packed with finely minced seasoned garden vegetables.",
+        "category": "starters",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Pork Dumplings",
+        "description": "9 pieces of traditional steamed dumplings filled with juicy, savory minced pork.",
+        "category": "starters",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Beef Dumplings",
+        "description": "9 pieces of hearty dumplings packed with perfectly seasoned minced beef.",
+        "category": "starters",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Pan Fried Dumplings",
+        "description": "9 pieces of crispy-bottomed potstickers with a savory, juicy meat filling.",
+        "category": "starters",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Dumplings",
+        "description": "9 pieces of tender, light dumplings stuffed with flavorful minced chicken.",
+        "category": "starters",
+        "price": "17000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Vegetable Spring Roll",
+        "description": "4 pieces of golden, ultra-crispy rolls stuffed with seasoned shredded vegetables.",
+        "category": "starters",
+        "price": "9000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Spring Roll",
+        "description": "4 pieces of crunchy fried spring rolls featuring savory chicken and vegetable fillings.",
+        "category": "starters",
+        "price": "12000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Meat Balls (3PCS)",
+        "description": "3 pieces of savory, deeply seasoned fried Asian meat balls.",
+        "category": "starters",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Butter Fried Calamari",
+        "description": "Tender calamari rings tossed in a rich, crisp butter coating.",
+        "category": "starters",
+        "price": "34000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Butter Fried Prawns",
+        "description": "Plump, juicy prawns fried to a gorgeous golden crisp in savory butter.",
+        "category": "starters",
+        "price": "36000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Aromatic Chicken Wings",
+        "description": "8 pieces of crispy wings seasoned with a deeply fragrant blend of spices.",
+        "category": "starters",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chicken Popcorn (SOFT)",
+        "description": "Bite-sized, tender pieces of seasoned chicken fried with a delicate, soft coating.",
+        "category": "starters",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Taiwanese Fried Chicken Cutlets",
+        "description": "Crispy, heavily spiced night-market style chicken cutlet with an incredible crunch.",
+        "category": "starters",
+        "price": "32000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Crispy Cashew Nuts (SPICY)",
+        "description": "Golden roasted cashew nuts tossed in a fiery, addictive chili-spice mix.",
+        "category": "starters",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Spiced Beef",
+        "description": "Slices of rich beef dry-braised with five-spice powder and aromatic herbs.",
+        "category": "starters",
+        "price": "32000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fried Mutton Rib with Garlic Aroma",
+        "description": "Crispy fried mutton ribs intensely infused with roasted garlic and fragrant spices.",
+        "category": "starters",
+        "price": "28000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Crispy Peanuts",
+        "description": "Crunchy roasted peanuts finished with a delicate dusting of savory seasoning.",
+        "category": "starters",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Beef Ribs (SPECIAL)",
+        "description": "Chef's special recipe tender beef ribs fried to perfection with bold savory notes.",
+        "category": "starters",
+        "price": "32000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Special Fish Balls",
+        "description": "Springy, authentic bouncy fish balls prepared with fresh fish paste.",
+        "category": "starters",
+        "price": "24000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fruit Salad",
+        "description": "A refreshing mix of fresh, vibrant diced seasonal fruits.",
+        "category": "starters",
+        "price": "8000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Honey Wings",
+        "description": "8 pieces of sweet and glossy chicken wings glazed in a rich honey sauce.",
+        "category": "starters",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Beef Muscles Salad",
+        "description": "A chilled, textured beef tendon salad tossed with spicy, savory Chinese dressings.",
+        "category": "starters",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Calamari Salad",
+        "description": "Light, tender parboiled calamari tossed in a bright, zesty sesame-herb dressing.",
+        "category": "starters",
+        "price": "22000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Feast of the Flock Chicken",
+        "description": "Crispy golden fried shredded chicken strips perfect for sharing.",
+        "category": "starters",
+        "price": "31000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Orange Chicken",
+        "description": "Crispy battered chicken chunks tossed in a sweet, zesty, and tangy orange glaze.",
+        "category": "starters",
+        "price": "32000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Extra Garlic",
+        "description": "An extra side serving of aromatic roasted or minced garlic.",
+        "category": "starters",
+        "price": "3000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Extra Cashew nut",
+        "description": "An extra portion of crunchy, golden roasted cashew nuts.",
+        "category": "starters",
+        "price": "5000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Extra vegetable",
+        "description": "An extra portion of fresh, seasonal stir-fried or steamed vegetables.",
+        "category": "starters",
+        "price": "3000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Extra egg",
+        "description": "An additional egg added to your dish cooked to your preference.",
+        "category": "starters",
+        "price": "3000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sizzling Pork",
+        "description": "Tender pork strips sautéed with onions and bell peppers, served crackling on a hot iron plate.",
+        "category": "sizzling dishes",
+        "price": "26000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sizzling Beef",
+        "description": "Juicy beef slices in a savory brown sauce served sizzling hot to lock in flavor.",
+        "category": "sizzling dishes",
+        "price": "33000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sizzling Mutton",
+        "description": "Rich, tender mutton tossed with bold spices and presented on a dramatic sizzling platter.",
+        "category": "sizzling dishes",
+        "price": "26000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sizzling Chicken",
+        "description": "Marinated chicken breast pieces stir-fried with veggies on an intensely hot iron dish.",
+        "category": "sizzling dishes",
+        "price": "26000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sizzling Vegetable",
+        "description": "A dynamic, steamy mix of fresh seasonal vegetables tossed in a light savory sauce.",
+        "category": "sizzling dishes",
+        "price": "26000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sizzling Calamari",
+        "description": "Succulent squid pieces flashed in a wok and served bubbling hot with onions and pepper.",
+        "category": "sizzling dishes",
+        "price": "29000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sizzling Prawns",
+        "description": "Plump ocean prawns coated in garlic sauce, bursting with flavor on a hot platter.",
+        "category": "sizzling dishes",
+        "price": "32000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sizzling Mix Seafood",
+        "description": "The ultimate seafood assortment sizzling together with ginger, garlic, and scallions.",
+        "category": "sizzling dishes",
+        "price": "39000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sizzling Chicken Wings",
+        "description": "Crispy chicken wings tossed in barbecue-style spices, arriving snap-crackle-hot.",
+        "category": "sizzling dishes",
+        "price": "22000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Broccoli with Garlic Sauce",
+        "description": "Bright green, crisp broccoli florets lightly tossed in a fragrant, translucent garlic sauce.",
+        "category": "vegetables",
+        "price": "16000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mushroom with Veg and Egg",
+        "description": "A wholesome home-style stir-fry featuring earthy mushrooms, seasonal greens, and scrambled egg.",
+        "category": "vegetables",
+        "price": "16000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fried Egg with Fresh Tomatoes",
+        "description": "A beloved Chinese classic of sweet, juicy wok-stewed tomatoes and soft scrambled eggs.",
+        "category": "vegetables",
+        "price": "16000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mapo Tofu",
+        "description": "Silky tofu cubes set in a deep, bright-red, spicy and numbing Sichuan peppercorn sauce.",
+        "category": "vegetables",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Shredded Potato with Green Pepper",
+        "description": "Thin, crunchy potato juliennes quickly stir-fried with crisp green chili for a distinct texture.",
+        "category": "vegetables",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sour and Hot Chinese Cabbage",
+        "description": "Crisp Napa cabbage leaves tossed rapidly in a high-heat wok with dry chilies and black vinegar.",
+        "category": "vegetables",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Steam Fried Chinese Cabbage",
+        "description": "Tender Chinese cabbage prepared gently to maintain its natural sweetness and soft bite.",
+        "category": "vegetables",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Corn with Green Pepper",
+        "description": "Sweet, juicy golden corn kernels wok-tossed with finely diced crisp green bell peppers.",
+        "category": "vegetables",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fried Cauli Flower",
+        "description": "Tender cauliflower florets tossed in a light, savory home-style soy seasoning.",
+        "category": "vegetables",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Hot Spicy Cauli Flower",
+        "description": "Dry-pot style cauliflower florets infused with dry chilies and numbing Sichuan spices.",
+        "category": "vegetables",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chilli Corn",
+        "description": "Sweet corn kernels kicked up a notch with a vibrant, fiery chili stir-fry seasoning.",
+        "category": "vegetables",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Jiachang Style Tofu",
+        "description": "Home-style fried tofu slices braised with a deeply rich, savory soybean paste sauce.",
+        "category": "vegetables",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chinese Mushroom",
+        "description": "Plump, premium dark mushrooms braised beautifully in a rich oyster-soy glaze.",
+        "category": "vegetables",
+        "price": "21000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chilli Cucumber (COLD DISH)",
+        "description": "Crispy, smashed refreshing cucumbers drizzled with black vinegar and an aromatic chili oil.",
+        "category": "vegetables",
+        "price": "14000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fish in Black Bean Sauce",
+        "description": "Tender fish fillets simmered beautifully in a rich, pungent fermented black bean sauce.",
+        "category": "減eafood dishes",
+        "price": "28000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Soya Lemon Prawns",
+        "description": "Juicy prawns balanced effortlessly with a deep soy base and a bright splash of fresh lemon juice.",
+        "category": "seafood dishes",
+        "price": "35000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Sweet and Sour Prawns",
+        "description": "Crisp battered prawns tossed with bell peppers in a classic vibrant sweet and tangy glaze.",
+        "category": "seafood dishes",
+        "price": "35000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Spicy Prawns with Crispy Garlic",
+        "description": "Dry-fried crunchy prawns buried under a decadent heap of golden roasted aromatic garlic and chili.",
+        "category": "seafood dishes",
+        "price": "37000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Stir-Fried Prawns with Cashew Nuts",
+        "description": "A beautiful contrast of textures combining sweet snap prawns and buttery roasted cashew nuts.",
+        "category": "seafood dishes",
+        "price": "38000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fried Prawns",
+        "description": "Simply delicious golden fried prawns with a delicate crispy outer layer.",
+        "category": "seafood dishes",
+        "price": "33000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Braised Sea Fish Chili Soy Sauce",
+        "description": "Whole or chunk sea fish slow-braised to perfection in a deeply savory chili-infused soy reduction.",
+        "category": "seafood dishes",
+        "price": "38000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fish in Szechuan Sauce",
+        "description": "Flaky fish fillets poached in an authentic, intensely fiery Sichuan chili bean broth.",
+        "category": "seafood dishes",
+        "price": "38000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fried Prawns (GOLDEN)",
+        "description": "Premium plump prawns fried to a gorgeous, crisp, deep-golden perfection.",
+        "category": "seafood dishes",
+        "price": "34000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Soya Lemon Calamari",
+        "description": "Tender, springy calamari ring stir-fry brightened with a balanced citrusy-soy dressing.",
+        "category": "seafood dishes",
+        "price": "29000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Crispy Chili Crab",
+        "description": "Fresh whole crab fried to a crunch and tossed in a sweet-and-spicy aromatic chili paste.",
+        "category": "seafood dishes",
+        "price": "32000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Crab with Ginger and Scallion",
+        "description": "A classic, elegant preparation highlighting the natural crab sweetness with fresh ginger and green onion.",
+        "category": "seafood dishes",
+        "price": "32000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Stir-Fried Whole Fish with Spicy Beans",
+        "description": "Crisp fried whole fish topped generously with a deeply savory, pungent spicy fermented bean sauce.",
+        "category": "seafood dishes",
+        "price": "38000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fish in Sweet and Sour Sauce",
+        "description": "Deep-fried fish chunks drenched fully in a bright, nostalgic sweet-and-tangy tomato-based sauce.",
+        "category": "seafood dishes",
+        "price": "38000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mutton with Shredded Cashew Nuts",
+        "description": "Tender strips of mutton wok-fried alongside crunch roasted cashew nuts in a savory sauce.",
+        "category": "mutton",
+        "price": "24000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mutton with Oyster Sauce",
+        "description": "Savory, velvet-textured mutton stir-fried smoothly with broccoli or onions in rich oyster glaze.",
+        "category": "mutton",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mutton with Szechuan Sauce",
+        "description": "Bold and spicy mutton slices wok-tossed with hot peppers and earthy Sichuan bean paste.",
+        "category": "mutton",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mutton with Honey Sauce",
+        "description": "A delightful sweet-savory take featuring tender mutton tossed in a rich, glossy honey reduction.",
+        "category": "mutton",
+        "price": "20000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mutton with Basil Chinese Sauce",
+        "description": "Highly aromatic dish featuring tender mutton flashed with fresh, fragrant Asian basil leaves.",
+        "category": "mutton",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mutton with Sweet and Sour Sauce",
+        "description": "Wok-fried mutton chunks balanced perfectly with a vibrant, fruity sweet-and-sour glaze.",
+        "category": "mutton",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Mutton with Green Pepper",
+        "description": "Simple and satisfying stir-fry combining rich mutton slices with crisp, earthy green bell peppers.",
+        "category": "mutton",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Cunmin Mutton",
+        "description": "Authentic Northern-style cumin mutton tossed with dry chilies and heavy crushed aromatic cumin seeds.",
+        "category": "mutton",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Egg Fried Rice",
+        "description": "Fragrant fluffy jasmine rice wok-tossed simply with eggs, scallions, and light soy.",
+        "category": "rice and noodles",
+        "price": "8000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Steamed Rice",
+        "description": "A perfect, clean bowl of freshly steamed premium white jasmine rice.",
+        "category": "rice and noodles",
+        "price": "3000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Egg Fried Noodle",
+        "description": "Classic wok-fried soft wheat noodles tossed with scrambled egg and crisp vegetables.",
+        "category": "rice and noodles",
+        "price": "8000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Vegetable Fried Rice",
+        "description": "Light and healthy wok-fried rice loaded with finely diced colorful garden vegetables.",
+        "category": "rice and noodles",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Vegetable Fried Noodles (CHAOMIAN)",
+        "description": "Authentic Chinese stir-fried chow mein noodles packed full of crisp seasonal greens.",
+        "category": "rice and noodles",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Steamed Noodle",
+        "description": "Plain, clean steamed wheat noodles ready to pair beautifully with any saucy main dish.",
+        "category": "rice and noodles",
+        "price": "4000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Yangzhou Fried Rice",
+        "description": "Premium traditional fried rice mixed with bits of meats, egg, and fresh sweet peas.",
+        "category": "rice and noodles",
+        "price": "18000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fried Noodle (Beef / Pork / Chicken)",
+        "description": "Hearty Chinese stir-fried noodles with vegetables and your choice of tender sliced protein.",
+        "category": "rice and noodles",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Fried Rice (Beef / Pork / Chicken)",
+        "description": "Savory, high-heat wok fried rice featuring vegetables and your preference of meat.",
+        "category": "rice and noodles",
+        "price": "15000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chips Masala",
+        "description": "Crisp french fries fully coated in a heavy, spicy, sweet-and-tangy tomato masala gravy.",
+        "category": "rice and noodles",
+        "price": "9000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Chips Salsa (Beef / Pork / Chicken)",
+        "description": "Thick fries loaded with a rich, seasoned stir-fry sauce containing vegetables and your choice of meat.",
+        "category": "rice and noodles",
+        "price": "17000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "French Fries",
+        "description": "A classic portion of crispy, golden-fried salted potato chips.",
+        "category": "rice and noodles",
+        "price": "7000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "Seafood Noodle",
+        "description": "Luxury wok-fried noodles tossed with a generous assortment of squid, prawns, and fish.",
+        "category": "rice and noodles",
+        "price": "22000",
+        "image_url": "/",
+        "is_available": true
+    },
+    {
+        "name": "General Tsao's Chicken",
+        "description": "Crispy deep-fried chicken chunks tossed in a sweet, savory, mildly spicy, and tangy glaze.",
+        "category": "rice and noodles",
+        "price": "32000",
+        "image_url": "/",
+        "is_available": true
+    }
+]
