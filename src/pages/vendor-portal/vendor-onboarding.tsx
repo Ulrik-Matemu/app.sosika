@@ -159,90 +159,90 @@ export default function VendorOnboarding() {
     };
 
     const handleOnboardingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedGeo || !coverFile) {
-        toast({ title: "Missing Information", description: "Please complete profile assets & geolocation.", variant: "destructive" });
-        return;
-    }
-    setSubmitting(true);
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        const uid = userCredential.user.uid;
-        await sendEmailVerification(userCredential.user);
-
-        const coverImageUrl = await uploadToCloudinary(coverFile);
-        let businessLicenseUrl = "";
-        if (formData.isRegistered && licenseFile) {
-            businessLicenseUrl = await uploadToCloudinary(licenseFile);
+        e.preventDefault();
+        if (!selectedGeo || !coverFile) {
+            toast({ title: "Missing Information", description: "Please complete profile assets & geolocation.", variant: "destructive" });
+            return;
         }
+        setSubmitting(true);
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+            const uid = userCredential.user.uid;
+            await sendEmailVerification(userCredential.user);
 
-        saveLocation({ address: geoAddress, lat: selectedGeo.lat, lng: selectedGeo.lng });
+            const coverImageUrl = await uploadToCloudinary(coverFile);
+            let businessLicenseUrl = "";
+            if (formData.isRegistered && licenseFile) {
+                businessLicenseUrl = await uploadToCloudinary(licenseFile);
+            }
 
-        // Generated properties to keep slugs and ratings uniform
-        const computedSlug = formData.spotName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+            saveLocation({ address: geoAddress, lat: selectedGeo.lat, lng: selectedGeo.lng });
 
-        // EXACT SCHEMA ALIGNMENT BLOCK
-        await setDoc(doc(db, "vendors", uid), {
-            // 1. Root Level Fields (Critical for Customer App Fetch & Filtering)
-            averageRating: 5, // Default new vendors with baseline 5-star metric
-            ratingCount: 0,
-            college_id: Number(formData.collegeId),
-            cover_image_url: coverImageUrl,
-            featured_rank: 0,
-            is_featured: false,
-            is_open: false,
-            name: formData.spotName,
-            owner_name: formData.ownerName,
-            short_description: "",
-            full_description: "",
-            slug: computedSlug,
-            service_area: ["Arusha"],
-            geolocation: {
-                lat: selectedGeo.lat,
-                lng: selectedGeo.lng
-            },
+            // Generated properties to keep slugs and ratings uniform
+            const computedSlug = formData.spotName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
-            // 2. Auth Map (For your Dashboard Multimodal Auth Loop)
-            auth_info: {
-                owner_name: formData.ownerName,
-                email: formData.email,
-                phone_number: formData.phone,
-                created_at: new Date().toISOString(),
-                is_approved: false, // Must be approved by you first
-            },
-
-            // 3. Subscription Map (For scaling into Premium Tiers)
-            subscription: {
-                tier: "free",
-                status: "active",
-                expires_at: null,
-                features_enabled: { analytics: false, recommendations: false, sms_notifications: false }
-            },
-
-            // 4. Compliance Verification Tracking
-            compliance: {
-                is_registered: formData.isRegistered,
-                license_url: businessLicenseUrl || null
-            },
-
-            // 5. Duplicate Listing Map (Matches legacy "listing_data" structure)
-            listing_data: {
+            // EXACT SCHEMA ALIGNMENT BLOCK
+            await setDoc(doc(db, "vendors", uid), {
+                // 1. Root Level Fields (Critical for Customer App Fetch & Filtering)
+                averageRating: 5, // Default new vendors with baseline 5-star metric
+                ratingCount: 0,
+                college_id: Number(formData.collegeId),
+                cover_image_url: coverImageUrl,
+                featured_rank: 0,
+                is_featured: false,
+                is_open: false,
                 name: formData.spotName,
                 owner_name: formData.ownerName,
-                is_open: false,
-                opening_hours: "Contact for hours",
-                ratingCount: 0
-            }
-        });
-        
-        toast({ title: "Welcome to Sosika!", description: "Account created. Application pending review." });
-        navigate("/vendor-auth");
-    } catch (err: any) {
-        toast({ title: "Onboarding Error", description: err.message || "Failed to register profile", variant: "destructive" });
-    } finally {
-        setSubmitting(false);
-    }
-};
+                short_description: "",
+                full_description: "",
+                slug: computedSlug,
+                service_area: ["Arusha"],
+                geolocation: {
+                    lat: selectedGeo.lat,
+                    lng: selectedGeo.lng
+                },
+
+                // 2. Auth Map (For your Dashboard Multimodal Auth Loop)
+                auth_info: {
+                    owner_name: formData.ownerName,
+                    email: formData.email,
+                    phone_number: formData.phone,
+                    created_at: new Date().toISOString(),
+                    is_approved: false, // Must be approved by you first
+                },
+
+                // 3. Subscription Map (For scaling into Premium Tiers)
+                subscription: {
+                    tier: "free",
+                    status: "active",
+                    expires_at: null,
+                    features_enabled: { analytics: false, recommendations: false, sms_notifications: false }
+                },
+
+                // 4. Compliance Verification Tracking
+                compliance: {
+                    is_registered: formData.isRegistered,
+                    license_url: businessLicenseUrl || null
+                },
+
+                // 5. Duplicate Listing Map (Matches legacy "listing_data" structure)
+                listing_data: {
+                    name: formData.spotName,
+                    owner_name: formData.ownerName,
+                    is_open: false,
+                    opening_hours: "Contact for hours",
+                    ratingCount: 0
+                }
+            });
+
+            toast({ title: "Welcome to Sosika!", description: "Account created. Application pending review." });
+            navigate("/vendor-auth");
+        } catch (err: any) {
+            toast({ title: "Onboarding Error", description: err.message || "Failed to register profile", variant: "destructive" });
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     if (loadError) return <div role="alert" className="min-h-screen flex items-center justify-center bg-[#0a0a0b] text-red-400">Map initialization crashed.</div>;
     if (!isLoaded) return <div aria-live="polite" className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0b] gap-2"><Loader2 className="w-8 h-8 text-[#00bfff] animate-spin" /><span className="text-sm text-zinc-500">Loading Mapping Engine...</span></div>;
@@ -312,6 +312,9 @@ export default function VendorOnboarding() {
                                 <button type="submit" className="w-full bg-white text-black font-bold py-3.5 rounded-xl text-sm transition-all hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff] active:scale-[0.99]">
                                     Continue Form Setup
                                 </button>
+                                <div className="flex items-center justify-center gap-2 mt-20 text-white">
+                                    <p>Already have an account? <a href="/vendor-auth" className="text-[#00bfff] font-bold">Sign In</a></p>
+                                </div>
                             </motion.div>
                         )}
 
