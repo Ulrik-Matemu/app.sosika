@@ -7,11 +7,11 @@ import {
 import {
   Store, Utensils, ShoppingBag, Clock, CheckCircle2,
   XCircle, AlertCircle, Plus, Edit3, Trash2, Loader2, Save, Upload, Eye, EyeOff,
-  TrendingUp, Lock, Smartphone, Monitor, MapPin, Phone
+  TrendingUp, Lock, Smartphone, Monitor, MapPin, Phone, LogOut
 } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 type TabType = "orders" | "menu" | "profile";
 
@@ -101,7 +101,7 @@ export default function VendorDashboard() {
 
   // Audio control loop variables
   const audioContextRef = useRef<AudioContext | null>(null);
-  const chimeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const chimeIntervalRef = useRef<any>(null);
   const [userInteracted, setUserInteracted] = useState(false);
   const [audioBlockedNotification, setAudioBlockedNotification] = useState(false);
 
@@ -173,6 +173,13 @@ export default function VendorDashboard() {
       if (!user) {
         // Immediately redirect to vendor authentication portal to prevent mounting loop
         navigate("/vendor-auth");
+      } else if (!user.emailVerified) {
+        toast({
+          title: "Verification Required",
+          description: "Please verify your email before accessing the dashboard.",
+          variant: "destructive"
+        });
+        signOut(auth).then(() => navigate("/vendor-auth"));
       }
     });
     return () => unsubscribe();
@@ -188,10 +195,23 @@ export default function VendorDashboard() {
     const unsubVendor = onSnapshot(doc(db, "vendors", vendorId), (docSnap) => {
       if (docSnap.exists()) {
         setVendorData(docSnap.data());
+      } else {
+        toast({
+          title: "Access Denied",
+          description: "No vendor profile associated with this account.",
+          variant: "destructive"
+        });
+        signOut(auth).then(() => navigate("/vendor-auth"));
       }
       setIsDataFetching(false);
     }, (error) => {
       console.error("Error streaming vendor data:", error);
+      toast({
+        title: "Permission Denied",
+        description: "You do not have access to this dashboard.",
+        variant: "destructive"
+      });
+      signOut(auth).then(() => navigate("/vendor-auth"));
       setIsDataFetching(false);
     });
 
@@ -222,6 +242,16 @@ export default function VendorDashboard() {
       unsubOrders();
     };
   }, [vendorId]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({ title: "Logged Out", description: "Successfully ended vendor session." });
+      navigate("/vendor-auth");
+    } catch (err) {
+      toast({ title: "Logout Failed", description: "Could not safely terminate session.", variant: "destructive" });
+    }
+  };
 
   const handleGlobalStatusToggle = async () => {
     if (!vendorId || togglingStatus) return;
@@ -328,6 +358,15 @@ export default function VendorDashboard() {
             );
           })}
         </nav>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all shrink-0 whitespace-nowrap lg:mt-auto border border-red-500/15 bg-red-500/5 cursor-pointer"
+        >
+          <LogOut size={16} />
+          <span>Sign Out</span>
+        </button>
       </aside>
 
       {/* Main Framework Content Workspace Container */}
@@ -353,7 +392,7 @@ export default function VendorDashboard() {
    ========================================================================== */
 function BusinessInsights({ vendorData }: { vendorData: any }) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const hasAnalytics = vendorData?.subscription?.features_enabled?.analytics === true;
+  const hasAnalytics = vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.analytics === true;
 
   return (
     <div className="border border-white/[0.05] rounded-2xl bg-white/[0.01] p-6 relative overflow-hidden mt-8">
@@ -463,7 +502,7 @@ function BusinessInsights({ vendorData }: { vendorData: any }) {
                   onClick={() => {
                     // Trigger native Google Play Billing flow via Android interface bridge
                     if ((window as any).AndroidInterface?.launchSubscription) {
-                      (window as any).AndroidInterface.launchSubscription("sosika_premium_monthly");
+                      (window as any).AndroidInterface.launchSubscription("sosika_vendor_premium:premium_monthly");
                     } else {
                       setShowUpgradeModal(true);
                     }
@@ -511,8 +550,37 @@ function BusinessInsights({ vendorData }: { vendorData: any }) {
                 To activate Premium Console features, subscription management runs directly through the Google Play Store billing portal on your <strong className="text-[#00bfff]">Sosika Hub mobile app</strong>.
               </p>
             </div>
+            <div className="border border-[#00bfff]/20 bg-[#00bfff]/5 p-3.5 rounded-xl text-center space-y-2">
+              <span className="text-[10px] font-bold text-[#00bfff] uppercase tracking-wider block">🚨 Action Required on Mobile</span>
+              <p className="text-xs text-zinc-300">
+                Play Store subscriptions can <strong className="text-white">only</strong> be processed and managed inside our native Android application.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center justify-center bg-white/[0.02] border border-white/[0.05] p-4 rounded-xl gap-2">
+              <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Scan to Open App</p>
+              {/* Clean styled QR Code Mock */}
+              <div className="w-28 h-28 bg-white p-2.5 rounded-lg flex items-center justify-center relative">
+                <div className="w-full h-full border-2 border-black flex flex-wrap justify-between p-0.5 bg-white">
+                  <div className="w-6 h-6 border-4 border-black bg-white flex items-center justify-center"><div className="w-2 h-2 bg-black"></div></div>
+                  <div className="w-6 h-6 border-4 border-black bg-white flex items-center justify-center"><div className="w-2 h-2 bg-black"></div></div>
+                  <div className="w-full flex justify-between h-6 mt-1">
+                    <div className="w-4 h-4 bg-black"></div>
+                    <div className="w-3 h-3 bg-black"></div>
+                    <div className="w-4 h-4 bg-black"></div>
+                  </div>
+                  <div className="w-6 h-6 border-4 border-black bg-white flex items-center justify-center"><div className="w-2 h-2 bg-black"></div></div>
+                  <div className="w-6 h-6 bg-black flex flex-wrap p-0.5"><div className="w-1.5 h-1.5 bg-white"></div><div className="w-1.5 h-1.5 bg-white"></div></div>
+                </div>
+                <div className="absolute inset-0 m-auto w-5 h-5 bg-black text-[#00bfff] text-[8px] font-black flex items-center justify-center rounded border border-white">
+                  SOS
+                </div>
+              </div>
+              <p className="text-[9px] text-[#00bfff] font-mono mt-0.5 hover:underline cursor-pointer">sosika.app/download/vendor</p>
+            </div>
+
             <div className="bg-white/[0.02] border border-white/[0.04] p-3.5 rounded-xl text-center">
-              <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">How to activate:</p>
+              <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">How to activate on mobile:</p>
               <ol className="text-xs text-zinc-300 text-left list-decimal list-inside space-y-1.5 mt-2">
                 <li>Open the <strong className="text-white">Sosika Hub</strong> app on your device</li>
                 <li>Go to <strong className="text-white">Account &gt; Subscription</strong></li>
@@ -537,6 +605,11 @@ function LiveOrdersView({ orders, vendorId, vendorData }: { orders: any[]; vendo
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const updateOrderStatus = async (orderId: string, status: string) => {
+    const orderToUpdate = orders.find(o => o.id === orderId);
+    if (!orderToUpdate || !orderToUpdate.vendor_ids?.includes(vendorId)) {
+      toast({ title: "Access Denied", description: "You are not authorized to update this order.", variant: "destructive" });
+      return;
+    }
     try {
       const orderRef = doc(db, "orders", orderId);
       const updates: any = { status };
@@ -685,7 +758,7 @@ function LiveOrdersView({ orders, vendorId, vendorData }: { orders: any[]; vendo
           ) : (
             activeOrders.map((order) => {
               const myItems = order.cart?.filter((item: any) => item.vendor_id === vendorId) || [];
-              const hasExtendedInfo = vendorData?.subscription?.features_enabled?.extended_customer_info === true;
+              const hasExtendedInfo = vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.extended_customer_info === true;
 
               return (
                 <div key={order.id} className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-5 flex flex-col gap-4">
@@ -915,6 +988,10 @@ function MenuCatalogueView({ menuItems, vendorId }: { menuItems: any[]; vendorId
 
     try {
       if (editingItem) {
+        if (editingItem.vendor_id !== vendorId) {
+          toast({ title: "Access Denied", description: "You are not authorized to update this item.", variant: "destructive" });
+          return;
+        }
         await updateDoc(doc(db, "menuItems", editingItem.id), payload);
         toast({ title: "Catalog updated", description: "Reference adjusted securely." });
       } else {
@@ -928,6 +1005,11 @@ function MenuCatalogueView({ menuItems, vendorId }: { menuItems: any[]; vendorId
   };
 
   const handleDeleteItem = async (id: string) => {
+    const itemToDelete = menuItems.find(item => item.id === id);
+    if (!itemToDelete || itemToDelete.vendor_id !== vendorId) {
+      toast({ title: "Access Denied", description: "You are not authorized to delete this item.", variant: "destructive" });
+      return;
+    }
     if (!confirm("Are you sure you want to delete this menu item?")) return;
     try {
       await deleteDoc(doc(db, "menuItems", id));
@@ -938,6 +1020,11 @@ function MenuCatalogueView({ menuItems, vendorId }: { menuItems: any[]; vendorId
   };
 
   const handleToggleAvailability = async (id: string, currentVal: boolean) => {
+    const itemToToggle = menuItems.find(item => item.id === id);
+    if (!itemToToggle || itemToToggle.vendor_id !== vendorId) {
+      toast({ title: "Access Denied", description: "You are not authorized to update this item.", variant: "destructive" });
+      return;
+    }
     setTogglingId(id);
     try {
       await updateDoc(doc(db, "menuItems", id), {
