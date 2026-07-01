@@ -12,6 +12,7 @@ import {
 import { useToast } from "../../hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { usePlayBilling } from "./usePlayBilling";
 
 type TabType = "orders" | "menu" | "profile";
 
@@ -392,7 +393,24 @@ export default function VendorDashboard() {
    ========================================================================== */
 function BusinessInsights({ vendorData }: { vendorData: any }) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { isPlayBillingAvailable, handlePurchase, purchasing, error: billingError } = usePlayBilling();
+  const { toast } = useToast();
   const hasAnalytics = vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.analytics === true;
+
+  const onSubscribeClick = async () => {
+    if (isPlayBillingAvailable) {
+      // Digital Goods API path (TWA / Android WebView)
+      const success = await handlePurchase();
+      if (success) {
+        toast({ title: "Subscription Activated!", description: "Premium features are now unlocked. Your dashboard will update momentarily." });
+      } else if (billingError) {
+        toast({ title: "Subscription Failed", description: billingError, variant: "destructive" });
+      }
+    } else {
+      // Desktop fallback — show modal with instructions
+      setShowUpgradeModal(true);
+    }
+  };
 
   return (
     <div className="border border-white/[0.05] rounded-2xl bg-white/[0.01] p-6 relative overflow-hidden mt-8">
@@ -491,53 +509,43 @@ function BusinessInsights({ vendorData }: { vendorData: any }) {
             </div>
             <h4 className="text-sm font-bold text-white">Upgrade to Premium Analytics</h4>
 
-            {isAndroidWrapper() ? (
-              /* Android Wrapper: Direct Google Play Billing flow */
-              <>
-                <p className="text-xs text-zinc-300 leading-relaxed">
-                  Unlock real-time demand analytics, student ordering peaks, and customer loyalty tracking.
-                  Tap below to subscribe via Google Play.
-                </p>
-                <button
-                  onClick={() => {
-                    // Trigger native Google Play Billing flow via Android interface bridge
-                    if ((window as any).AndroidInterface?.launchSubscription) {
-                      (window as any).AndroidInterface.launchSubscription("sosika_vendor_premium:premium_monthly");
-                    } else {
-                      setShowUpgradeModal(true);
-                    }
-                  }}
-                  className="bg-gradient-to-r from-[#00bfff] to-[#00a8e6] text-black font-bold text-xs px-5 py-2.5 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] pointer-events-auto flex items-center gap-2 mx-auto"
-                >
-                  <Smartphone size={14} />
-                  Subscribe via Google Play
-                </button>
-              </>
-            ) : (
-              /* Desktop Web: Direct to mobile app */
-              <>
-                <div className="flex items-start gap-3 bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 text-left pointer-events-auto">
-                  <Monitor size={18} className="text-[#00bfff] shrink-0 mt-0.5" />
-                  <div className="space-y-1.5">
-                    <p className="text-xs text-zinc-300 leading-relaxed">
-                      <strong className="text-white">Premium Feature:</strong> To unlock deep time-filtered analytics, please open the <strong className="text-[#00bfff]">Sosika Vendor</strong> app on your Android device to manage your subscription via Google Play.
-                    </p>
-                    <p className="text-[10px] text-zinc-500">Subscription management is handled securely through Google Play Billing.</p>
-                  </div>
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              Unlock real-time demand analytics, student ordering peaks, and customer loyalty tracking.
+              {isPlayBillingAvailable
+                ? " Tap below to subscribe via Google Play."
+                : " Open the Sosika Vendor app on your Android device to manage your subscription."}
+            </p>
+
+            <button
+              onClick={onSubscribeClick}
+              disabled={purchasing}
+              className="bg-gradient-to-r from-[#00bfff] to-[#00a8e6] text-black font-bold text-xs px-5 py-2.5 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] pointer-events-auto flex items-center gap-2 mx-auto disabled:opacity-50"
+            >
+              {purchasing ? (
+                <><Loader2 size={14} className="animate-spin" /> Processing...</>
+              ) : isPlayBillingAvailable ? (
+                <><Smartphone size={14} /> Subscribe via Google Play</>
+              ) : (
+                <><Monitor size={14} /> How to Subscribe</>
+              )}
+            </button>
+
+            {!isPlayBillingAvailable && (
+              <div className="flex items-start gap-3 bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 text-left pointer-events-auto">
+                <Monitor size={18} className="text-[#00bfff] shrink-0 mt-0.5" />
+                <div className="space-y-1.5">
+                  <p className="text-xs text-zinc-300 leading-relaxed">
+                    <strong className="text-white">Desktop detected:</strong> Subscription management is handled securely through Google Play Billing on the <strong className="text-[#00bfff]">Sosika Vendor</strong> Android app.
+                  </p>
+                  <p className="text-[10px] text-zinc-500">Already subscribed? Your dashboard will update automatically via real-time sync.</p>
                 </div>
-                <button
-                  onClick={() => setShowUpgradeModal(true)}
-                  className="text-[#00bfff] text-xs font-bold hover:underline transition-all pointer-events-auto"
-                >
-                  Learn how to activate →
-                </button>
-              </>
+              </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Premium Upgrade Explainer Modal */}
+      {/* Premium Upgrade Explainer Modal (Desktop fallback) */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-[#0f0f11] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl relative">
@@ -557,28 +565,6 @@ function BusinessInsights({ vendorData }: { vendorData: any }) {
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center bg-white/[0.02] border border-white/[0.05] p-4 rounded-xl gap-2">
-              <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Scan to Open App</p>
-              {/* Clean styled QR Code Mock */}
-              <div className="w-28 h-28 bg-white p-2.5 rounded-lg flex items-center justify-center relative">
-                <div className="w-full h-full border-2 border-black flex flex-wrap justify-between p-0.5 bg-white">
-                  <div className="w-6 h-6 border-4 border-black bg-white flex items-center justify-center"><div className="w-2 h-2 bg-black"></div></div>
-                  <div className="w-6 h-6 border-4 border-black bg-white flex items-center justify-center"><div className="w-2 h-2 bg-black"></div></div>
-                  <div className="w-full flex justify-between h-6 mt-1">
-                    <div className="w-4 h-4 bg-black"></div>
-                    <div className="w-3 h-3 bg-black"></div>
-                    <div className="w-4 h-4 bg-black"></div>
-                  </div>
-                  <div className="w-6 h-6 border-4 border-black bg-white flex items-center justify-center"><div className="w-2 h-2 bg-black"></div></div>
-                  <div className="w-6 h-6 bg-black flex flex-wrap p-0.5"><div className="w-1.5 h-1.5 bg-white"></div><div className="w-1.5 h-1.5 bg-white"></div></div>
-                </div>
-                <div className="absolute inset-0 m-auto w-5 h-5 bg-black text-[#00bfff] text-[8px] font-black flex items-center justify-center rounded border border-white">
-                  SOS
-                </div>
-              </div>
-              <p className="text-[9px] text-[#00bfff] font-mono mt-0.5 hover:underline cursor-pointer">sosika.app/download/vendor</p>
-            </div>
-
             <div className="bg-white/[0.02] border border-white/[0.04] p-3.5 rounded-xl text-center">
               <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">How to activate on mobile:</p>
               <ol className="text-xs text-zinc-300 text-left list-decimal list-inside space-y-1.5 mt-2">
@@ -587,6 +573,22 @@ function BusinessInsights({ vendorData }: { vendorData: any }) {
                 <li>Select the Premium Plan and confirm</li>
               </ol>
             </div>
+
+            <div className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.04] p-3 rounded-xl text-left">
+              <Lock size={14} className="text-zinc-500 shrink-0" />
+              <div>
+                <p className="text-[10px] text-zinc-400">Already subscribed? Manage or cancel:</p>
+                <a
+                  href="https://play.google.com/store/account/subscriptions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[#00bfff] font-bold hover:underline"
+                >
+                  Open Google Play Subscriptions →
+                </a>
+              </div>
+            </div>
+
             <button
               onClick={() => setShowUpgradeModal(false)}
               className="w-full bg-white text-black font-bold text-xs py-3 rounded-xl hover:bg-zinc-200 transition-all"
@@ -1302,6 +1304,52 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
           {updating ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> Commit Settings Changes</>}
         </button>
       </form>
+
+      {/* ── Subscription Management ────────────────────────────────── */}
+      <div className="border-t border-white/[0.05] pt-6 mt-6 space-y-4">
+        <div>
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <Lock size={14} className="text-zinc-500" />
+            Subscription
+          </h3>
+          <p className="text-[11px] text-zinc-500 mt-0.5">Manage your Sosika Premium plan.</p>
+        </div>
+
+        <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Current Tier</span>
+            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+              vendorData?.subscription?.tier === "premium"
+                ? "bg-[#00bfff]/10 text-[#00bfff] border-[#00bfff]/20"
+                : "bg-zinc-800 text-zinc-400 border-white/[0.05]"
+            }`}>
+              {vendorData?.subscription?.tier === "premium" ? "Premium" : "Free"}
+            </span>
+          </div>
+
+          {vendorData?.subscription?.tier === "premium" && vendorData?.subscription?.expires_at && (
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Renews</span>
+              <span className="text-xs text-zinc-300 font-mono">
+                {new Date(vendorData.subscription.expires_at).toLocaleDateString()}
+              </span>
+            </div>
+          )}
+
+          <div className="border-t border-white/[0.03] pt-3">
+            <a
+              href="https://play.google.com/store/account/subscriptions"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#00bfff] font-bold hover:underline transition-all flex items-center gap-1.5"
+            >
+              <Smartphone size={12} />
+              Manage Subscription on Google Play →
+            </a>
+            <p className="text-[10px] text-zinc-600 mt-1">Cancel, change plans, or update payment methods directly on Google Play.</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
