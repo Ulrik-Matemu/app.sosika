@@ -188,7 +188,7 @@ export default function MoodSelection() {
           variants={itemVariants}
           className="text-center text-zinc-600 text-xs mt-6 font-medium"
         >
-          Your next favorite meal is just a tap away.
+          Your next favorite meal is just a tap away. <a className="underline font-semibold" href="/vendor-onboarding">Sell on Sosika</a>
         </motion.p>
       </motion.div>
     </div>
