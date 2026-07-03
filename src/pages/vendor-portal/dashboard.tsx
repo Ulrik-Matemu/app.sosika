@@ -204,7 +204,7 @@ export default function VendorDashboard() {
       const updated = [...visitedTabs, activeTab];
       setVisitedTabs(updated);
       localStorage.setItem(`sosika_visited_tabs_${vendorId}`, JSON.stringify(updated));
-      
+
       if (!tourActive) {
         const tabTitle = activeTab === 'profile' ? 'Store Settings' : activeTab === 'support' ? 'Help & Support' : activeTab === 'menu' ? 'Menu Catalogue' : 'Live Orders';
         toast({
@@ -228,7 +228,7 @@ export default function VendorDashboard() {
   // Synchronize sidebar open/closed state with tour step targeting
   useEffect(() => {
     if (!tourActive) return;
-    
+
     const step = tourSteps[currentTourStep];
     const isSidebarTarget = [
       "walkthrough-welcome",
@@ -853,7 +853,7 @@ export default function VendorDashboard() {
               </h2>
             </div>
           </div>
-          
+
           <button
             type="button"
             onClick={startWalkthrough}
@@ -913,14 +913,14 @@ export default function VendorDashboard() {
           </div>
 
           <div className="h-1 bg-zinc-850 dark:bg-white/5 rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-[#00bfff] transition-all duration-300"
               style={{ width: `${((currentTourStep + 1) / tourSteps.length) * 100}%` }}
             />
           </div>
 
           <div className="flex items-center justify-between pt-1">
-            <button 
+            <button
               type="button"
               onClick={handleSkipTour}
               className="text-xs text-zinc-500 hover:text-zinc-350 font-bold transition-all cursor-pointer bg-transparent border-none p-0"
@@ -1209,7 +1209,7 @@ function LiveOrdersView({
   const activeOrders = orders.filter(o => o.status === "pending" || o.status === "preparing");
   const pastOrders = orders.filter(o => o.status === "ready_for_pickup" || o.status === "delivered" || o.status === "declined");
 
-  const isFree = vendorData?.subscription?.tier !== "premium";
+  // const isFree = vendorData?.subscription?.tier !== "premium";
 
   const [revenueTimeRange, setRevenueTimeRange] = useState<string>("7d");
 
@@ -1298,118 +1298,118 @@ function LiveOrdersView({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {activeOrders.map((order) => {
-                const myItems = order.cart?.filter((item: any) => item.vendor_id === vendorId) || [];
-                const hasExtendedInfo = vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.extended_customer_info === true;
-                const orderDate = parseOrderDate(order);
-                const timeStr = orderDate ? orderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "N/A";
+                  const myItems = order.cart?.filter((item: any) => item.vendor_id === vendorId) || [];
+                  const hasExtendedInfo = vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.extended_customer_info === true;
+                  const orderDate = parseOrderDate(order);
+                  const timeStr = orderDate ? orderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "N/A";
 
-                return (
-                  <div key={order.id} className="bg-white dark:bg-[#0c0c0e] border-2 border-zinc-250 dark:border-zinc-800 rounded-2xl p-6 flex flex-col gap-4 shadow-sm dark:shadow-none min-h-[290px]">
-                    {/* Header */}
-                    <div className="flex justify-between items-center pb-3 border-b border-zinc-100 dark:border-zinc-800/50">
-                      <div>
-                        <span className="text-xs font-mono font-black text-zinc-400 dark:text-zinc-500">TICKET:</span>
-                        <span className="text-sm font-mono font-black text-zinc-900 dark:text-white ml-1">{order.orderId || order.id?.substring(0, 8)}</span>
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-xs font-bold font-mono text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-                          <Clock size={13} /> {timeStr}
-                        </span>
-                        <span className={`text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-lg ${order.status === "pending" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 animate-pulse" :
-                          order.status === "preparing" ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 animate-pulse" :
-                            order.status === "declined" ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          }`}>
-                          {order.status}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Cart list */}
-                    <div className="flex-1 space-y-2.5 py-2">
-                      {myItems.map((item: any, i: number) => (
-                        <div key={i} className="flex justify-between items-center text-sm py-1.5 border-b border-zinc-50 dark:border-zinc-800/20">
-                          <span className="text-zinc-800 dark:text-zinc-200 font-bold">
-                            <span className="text-[#00bfff] font-mono font-black mr-2 text-base">{item.quantity}x</span>
-                            {item.name}
+                  return (
+                    <div key={order.id} className="bg-white dark:bg-[#0c0c0e] border-2 border-zinc-250 dark:border-zinc-800 rounded-2xl p-6 flex flex-col gap-4 shadow-sm dark:shadow-none min-h-[290px]">
+                      {/* Header */}
+                      <div className="flex justify-between items-center pb-3 border-b border-zinc-100 dark:border-zinc-800/50">
+                        <div>
+                          <span className="text-xs font-mono font-black text-zinc-400 dark:text-zinc-500">TICKET:</span>
+                          <span className="text-sm font-mono font-black text-zinc-900 dark:text-white ml-1">{order.orderId || order.id?.substring(0, 8)}</span>
+                        </div>
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-xs font-bold font-mono text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+                            <Clock size={13} /> {timeStr}
                           </span>
-                          <span className="text-xs font-mono font-bold text-zinc-500 dark:text-zinc-400">
-                            {((item.price || 0) * (item.quantity || 1)).toLocaleString()} TZS
+                          <span className={`text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-lg ${order.status === "pending" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 animate-pulse" :
+                            order.status === "preparing" ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 animate-pulse" :
+                              order.status === "declined" ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            }`}>
+                            {order.status}
                           </span>
                         </div>
-                      ))}
-                    </div>
-
-                    {/* Delivery & Customer Info */}
-                    <div className="bg-zinc-50 dark:bg-zinc-800/10 p-3.5 rounded-xl border border-zinc-150 dark:border-zinc-800/30 text-xs space-y-2">
-                      <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-                        <Phone size={14} className="text-zinc-400 shrink-0" />
-                        {hasExtendedInfo ? (
-                          <span className="font-mono font-bold">{order.phone || order.customer_phone || "N/A"}</span>
-                        ) : (
-                          <span className="font-mono text-zinc-400">{maskPhoneNumber(order.phone || order.customer_phone || "")}</span>
-                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-                        <MapPin size={14} className="text-zinc-400 shrink-0" />
-                        {hasExtendedInfo ? (
-                          order.locationCoords && order.locationCoords !== "N/A" ? (
-                            <a
-                              href={`https://www.google.com/maps?q=${order.locationCoords}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[#00bfff] font-bold hover:underline transition-all truncate"
-                            >
-                              {order.displayLocation || "Open in Maps"}
-                            </a>
+
+                      {/* Cart list */}
+                      <div className="flex-1 space-y-2.5 py-2">
+                        {myItems.map((item: any, i: number) => (
+                          <div key={i} className="flex justify-between items-center text-sm py-1.5 border-b border-zinc-50 dark:border-zinc-800/20">
+                            <span className="text-zinc-800 dark:text-zinc-200 font-bold">
+                              <span className="text-[#00bfff] font-mono font-black mr-2 text-base">{item.quantity}x</span>
+                              {item.name}
+                            </span>
+                            <span className="text-xs font-mono font-bold text-zinc-500 dark:text-zinc-400">
+                              {((item.price || 0) * (item.quantity || 1)).toLocaleString()} TZS
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Delivery & Customer Info */}
+                      <div className="bg-zinc-50 dark:bg-zinc-800/10 p-3.5 rounded-xl border border-zinc-150 dark:border-zinc-800/30 text-xs space-y-2">
+                        <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                          <Phone size={14} className="text-zinc-400 shrink-0" />
+                          {hasExtendedInfo ? (
+                            <span className="font-mono font-bold">{order.phone || order.customer_phone || "N/A"}</span>
                           ) : (
-                            <span className="truncate">{order.displayLocation || "N/A"}</span>
-                          )
-                        ) : (
-                          <span className="text-zinc-450 dark:text-zinc-500 font-medium">🔒 Premium Feature</span>
-                        )}
+                            <span className="font-mono text-zinc-400">{maskPhoneNumber(order.phone || order.customer_phone || "")}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                          <MapPin size={14} className="text-zinc-400 shrink-0" />
+                          {hasExtendedInfo ? (
+                            order.locationCoords && order.locationCoords !== "N/A" ? (
+                              <a
+                                href={`https://www.google.com/maps?q=${order.locationCoords}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#00bfff] font-bold hover:underline transition-all truncate"
+                              >
+                                {order.displayLocation || "Open in Maps"}
+                              </a>
+                            ) : (
+                              <span className="truncate">{order.displayLocation || "N/A"}</span>
+                            )
+                          ) : (
+                            <span className="text-zinc-450 dark:text-zinc-500 font-medium">🔒 Premium Feature</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Total & Action Buttons */}
+                      <div className="border-t border-zinc-100 dark:border-zinc-800/50 pt-4 flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Total Value</span>
+                          <span className="text-base font-black text-zinc-950 dark:text-white font-mono">{order.totalAmount?.toLocaleString()} TZS</span>
+                        </div>
+
+                        <div className="flex gap-2">
+                          {order.status === "pending" && (
+                            <>
+                              <button
+                                onClick={() => updateOrderStatus(order.id, "preparing")}
+                                className="flex-1 bg-[#00bfff] text-black font-black text-sm h-14 rounded-xl hover:bg-[#00a8e6] transition-all active:scale-[0.97] cursor-pointer"
+                              >
+                                Accept Ticket
+                              </button>
+                              <button
+                                onClick={() => updateOrderStatus(order.id, "declined")}
+                                className="w-14 h-14 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-500/20 transition-all active:scale-[0.97] cursor-pointer"
+                                aria-label="Decline transaction request"
+                              >
+                                <XCircle size={22} />
+                              </button>
+                            </>
+                          )}
+                          {order.status === "preparing" && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, "ready_for_pickup")}
+                              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-sm h-14 rounded-xl hover:opacity-90 transition-all active:scale-[0.97] cursor-pointer"
+                            >
+                              Ready for Dispatch
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-
-                    {/* Total & Action Buttons */}
-                    <div className="border-t border-zinc-100 dark:border-zinc-800/50 pt-4 flex flex-col gap-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Total Value</span>
-                        <span className="text-base font-black text-zinc-950 dark:text-white font-mono">{order.totalAmount?.toLocaleString()} TZS</span>
-                      </div>
-
-                      <div className="flex gap-2">
-                        {order.status === "pending" && (
-                          <>
-                            <button
-                              onClick={() => updateOrderStatus(order.id, "preparing")}
-                              className="flex-1 bg-[#00bfff] text-black font-black text-sm h-14 rounded-xl hover:bg-[#00a8e6] transition-all active:scale-[0.97] cursor-pointer"
-                            >
-                              Accept Ticket
-                            </button>
-                            <button
-                              onClick={() => updateOrderStatus(order.id, "declined")}
-                              className="w-14 h-14 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-500/20 transition-all active:scale-[0.97] cursor-pointer"
-                              aria-label="Decline transaction request"
-                            >
-                              <XCircle size={22} />
-                            </button>
-                          </>
-                        )}
-                        {order.status === "preparing" && (
-                          <button
-                            onClick={() => updateOrderStatus(order.id, "ready_for_pickup")}
-                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-sm h-14 rounded-xl hover:opacity-90 transition-all active:scale-[0.97] cursor-pointer"
-                          >
-                            Ready for Dispatch
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -2103,7 +2103,7 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
 
       <form onSubmit={handleUpdateStore} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          
+
           {/* Column 1: Storefront Identity & Branding */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-[#00bfff] uppercase tracking-wider flex items-center gap-1.5">
@@ -2267,9 +2267,9 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
         </div>
 
         {/* Global Save Button */}
-        <button 
-          type="submit" 
-          disabled={updating || uploadingCover} 
+        <button
+          type="submit"
+          disabled={updating || uploadingCover}
           className="w-full bg-zinc-950 dark:bg-white text-white dark:text-black font-extrabold py-4 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all disabled:opacity-40 active:scale-[0.99] cursor-pointer shadow-md shadow-zinc-900/10 dark:shadow-none"
         >
           {updating ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> Commit Settings Changes</>}
@@ -2288,7 +2288,7 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
 
         <div className="bg-white dark:bg-[#0c0c0e] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 space-y-4 shadow-2xs dark:shadow-none">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
+
             <div className="bg-zinc-50 dark:bg-white/[0.01] border border-zinc-200 dark:border-white/[0.04] p-4 rounded-xl flex items-center justify-between shadow-2xs">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Subscription Tier</p>
@@ -2527,12 +2527,12 @@ function HelpSupportView({ vendorData, vendorId }: { vendorData: any; vendorId: 
                       aria-checked={priority === level}
                       role="radio"
                       className={`flex-1 py-3 text-xs font-bold rounded-xl border capitalize transition-all cursor-pointer ${priority === level
-                          ? level === "high"
-                            ? "bg-red-500/10 text-red-500 border-red-500/30 ring-1 ring-red-500/30"
-                            : level === "medium"
-                              ? "bg-amber-500/10 text-amber-550 dark:text-amber-400 border-amber-500/30 ring-1 ring-amber-500/30"
-                              : "bg-emerald-500/10 text-emerald-500 border-emerald-500/30 ring-1 ring-emerald-500/30"
-                          : "bg-zinc-50 dark:bg-white/[0.01] border-zinc-200 dark:border-zinc-800/60 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                        ? level === "high"
+                          ? "bg-red-500/10 text-red-500 border-red-500/30 ring-1 ring-red-500/30"
+                          : level === "medium"
+                            ? "bg-amber-500/10 text-amber-550 dark:text-amber-400 border-amber-500/30 ring-1 ring-amber-500/30"
+                            : "bg-emerald-500/10 text-emerald-500 border-emerald-500/30 ring-1 ring-emerald-500/30"
+                        : "bg-zinc-50 dark:bg-white/[0.01] border-zinc-200 dark:border-zinc-800/60 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
                         }`}
                     >
                       {level}
@@ -2686,8 +2686,8 @@ function HelpSupportView({ vendorData, vendorId }: { vendorData: any; vendorId: 
                           {ticket.subject}
                         </span>
                         <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ${ticket.status === "resolved"
-                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                            : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                          : "bg-amber-500/10 text-amber-500 border-amber-500/20"
                           }`}>
                           {ticket.status}
                         </span>
@@ -2727,8 +2727,8 @@ function HelpSupportView({ vendorData, vendorId }: { vendorData: any; vendorId: 
                             <div
                               key={idx}
                               className={`p-3 rounded-xl border ${resp.sender === "admin"
-                                  ? "bg-[#00bfff]/5 border-[#00bfff]/20 text-zinc-900 dark:text-zinc-100"
-                                  : "bg-zinc-100 dark:bg-zinc-800/30 border-zinc-200 dark:border-zinc-800/40 text-zinc-700 dark:text-zinc-300"
+                                ? "bg-[#00bfff]/5 border-[#00bfff]/20 text-zinc-900 dark:text-zinc-100"
+                                : "bg-zinc-100 dark:bg-zinc-800/30 border-zinc-200 dark:border-zinc-800/40 text-zinc-700 dark:text-zinc-300"
                                 }`}
                             >
                               <div className="flex justify-between items-center mb-1 text-[9px] font-bold">
