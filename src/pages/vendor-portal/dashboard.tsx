@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { auth, db } from "../../firebase";
 import {
   collection, doc, updateDoc, onSnapshot,
@@ -8,15 +8,18 @@ import {
   Store, Utensils, ShoppingBag, Clock, CheckCircle2,
   XCircle, AlertCircle, Plus, Edit3, Trash2, Loader2, Save, Upload, Eye, EyeOff,
   TrendingUp, Lock, Smartphone, Monitor, MapPin, Phone, LogOut,
-  Sun, Moon, Menu, ChevronLeft, ChevronRight, X
+  Sun, Moon, Menu, ChevronLeft, ChevronRight, X, MessageSquare,
+  LifeBuoy, Mail, Send, History, Sparkles, LocateFixed, Search
 } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { usePlayBilling } from "./usePlayBilling";
 import { uploadToCloudinary } from "../../services/cloudinary";
+import { GoogleMap, Autocomplete } from "@react-google-maps/api";
+import { useMapLoader } from "../../services/map-provider";
 
-type TabType = "orders" | "menu" | "profile";
+type TabType = "orders" | "menu" | "profile" | "support";
 
 // Professional Web Audio Chime Synthesizer
 const playChime = (ctx: AudioContext) => {
@@ -72,6 +75,52 @@ const maskPhoneNumber = (phone: string): string => {
   return phone.substring(0, 6) + "******";
 };
 
+interface TourStep {
+  targetId: string;
+  tab: TabType;
+  title: string;
+  description: string;
+}
+
+const tourSteps: TourStep[] = [
+  {
+    targetId: "walkthrough-welcome",
+    tab: "orders",
+    title: "Welcome to your Partner Console!",
+    description: "This console helps you manage orders, customize your menu, and grow your student kitchen. Let's do a quick 1-minute tour."
+  },
+  {
+    targetId: "walkthrough-channel-engine",
+    tab: "orders",
+    title: "Channel Engine Status Toggle",
+    description: "Toggle this online to start receiving orders on the student app, or offline when your kitchen is closed."
+  },
+  {
+    targetId: "walkthrough-orders-list",
+    tab: "orders",
+    title: "Live Order Pipeline",
+    description: "Active orders and incoming requests land here in real-time. Review detail panels, accept, or dispatch orders here."
+  },
+  {
+    targetId: "walkthrough-nav-menu",
+    tab: "menu",
+    title: "Menu Catalog Manager",
+    description: "Switch to this tab to add dishes, adjust pricing, and toggle in-stock/out-of-stock items dynamically."
+  },
+  {
+    targetId: "walkthrough-nav-profile",
+    tab: "profile",
+    title: "Store Settings & Map Customization",
+    description: "Head here to customize your kitchen banner, hours, short details, and pinpoint your exact location on the map."
+  },
+  {
+    targetId: "walkthrough-nav-support",
+    tab: "support",
+    title: "Merchant Care Hotline",
+    description: "Stuck or facing billing issues? Reach out directly via WhatsApp, Call, or Email, or submit a support ticket here."
+  }
+];
+
 export default function VendorDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("orders");
   const [vendorData, setVendorData] = useState<any>(null);
@@ -85,6 +134,185 @@ export default function VendorDashboard() {
   const navigate = useNavigate();
 
   const vendorId = currentUser?.uid;
+
+  // In-App Walkthrough Engine States
+  const [tourActive, setTourActive] = useState(false);
+  const [currentTourStep, setCurrentTourStep] = useState(0);
+  const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties | null>(null);
+
+  const startWalkthrough = () => {
+    if (window.innerWidth < 1024) return;
+    setActiveTab("orders");
+    setCurrentTourStep(0);
+    setTourActive(true);
+  };
+
+  const handleNextTourStep = () => {
+    const nextIdx = currentTourStep + 1;
+    if (nextIdx < tourSteps.length) {
+      const nextStep = tourSteps[nextIdx];
+      if (nextStep.tab !== activeTab) {
+        setActiveTab(nextStep.tab);
+      }
+      setCurrentTourStep(nextIdx);
+    } else {
+      setTourActive(false);
+      setMobileSidebarOpen(false);
+      localStorage.setItem(`sosika_walkthrough_completed_${vendorId}`, "true");
+      toast({
+        title: "Walkthrough Completed",
+        description: "You're fully trained! You can relaunch this tour anytime by tapping 'Quick Tour' in the top bar.",
+      });
+    }
+  };
+
+  const handlePrevTourStep = () => {
+    if (currentTourStep > 0) {
+      const prevIdx = currentTourStep - 1;
+      const prevStep = tourSteps[prevIdx];
+      if (prevStep.tab !== activeTab) {
+        setActiveTab(prevStep.tab);
+      }
+      setCurrentTourStep(prevIdx);
+    }
+  };
+
+  const handleSkipTour = () => {
+    setTourActive(false);
+    setMobileSidebarOpen(false);
+    localStorage.setItem(`sosika_walkthrough_completed_${vendorId}`, "true");
+    toast({
+      title: "Walkthrough Skipped",
+      description: "You can rerun the guide anytime by clicking 'Quick Tour' at the top of your console."
+    });
+  };
+
+  // Visited Tabs tracker for localized welcomes
+  const [visitedTabs, setVisitedTabs] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(`sosika_visited_tabs_${vendorId}`);
+      return saved ? JSON.parse(saved) : ["orders"];
+    } catch {
+      return ["orders"];
+    }
+  });
+
+  // Track first time visiting a tab
+  useEffect(() => {
+    if (!vendorId) return;
+    if (!visitedTabs.includes(activeTab)) {
+      const updated = [...visitedTabs, activeTab];
+      setVisitedTabs(updated);
+      localStorage.setItem(`sosika_visited_tabs_${vendorId}`, JSON.stringify(updated));
+      
+      if (!tourActive) {
+        const tabTitle = activeTab === 'profile' ? 'Store Settings' : activeTab === 'support' ? 'Help & Support' : activeTab === 'menu' ? 'Menu Catalogue' : 'Live Orders';
+        toast({
+          title: `Welcome to ${tabTitle}!`,
+          description: window.innerWidth >= 1024
+            ? `First time exploring this view. Click 'Quick Tour' above if you want a guided walkthrough.`
+            : `First time exploring this view. Manage your ${tabTitle.toLowerCase()} settings here.`,
+          action: window.innerWidth >= 1024 ? (
+            <button
+              onClick={startWalkthrough}
+              className="px-2.5 py-1 text-[10px] font-bold bg-[#00bfff] hover:bg-[#00a8e6] text-black rounded-md shadow-xs cursor-pointer"
+            >
+              Start Tour
+            </button>
+          ) : undefined
+        });
+      }
+    }
+  }, [activeTab, vendorId, tourActive, visitedTabs]);
+
+  // Synchronize sidebar open/closed state with tour step targeting
+  useEffect(() => {
+    if (!tourActive) return;
+    
+    const step = tourSteps[currentTourStep];
+    const isSidebarTarget = [
+      "walkthrough-welcome",
+      "walkthrough-nav-menu",
+      "walkthrough-nav-profile",
+      "walkthrough-nav-support"
+    ].includes(step.targetId);
+
+    // Ensure desktop sidebar expands so target elements are fully rendered and visible
+    if (isSidebarTarget) {
+      setSidebarExpanded(true);
+    }
+
+    // Automatically slide open or close mobile sidebar drawer depending on target area
+    if (window.innerWidth < 1024) {
+      setMobileSidebarOpen(isSidebarTarget);
+    }
+  }, [currentTourStep, tourActive]);
+
+  // Spotlight Bounding Rectangle Positioner
+  useEffect(() => {
+    if (!tourActive) {
+      setHighlightStyle(null);
+      return;
+    }
+
+    // Delay slightly (350ms) to allow sidebar open/close CSS transitions to complete
+    const timer = setTimeout(() => {
+      const step = tourSteps[currentTourStep];
+      if (step.targetId === "walkthrough-welcome") {
+        // Welcome card is centered without element highlight
+        setHighlightStyle({
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "360px",
+          height: "220px",
+          borderRadius: "1rem",
+          boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.7)",
+          border: "2px dashed #00bfff",
+          pointerEvents: "none",
+          zIndex: 101
+        });
+        return;
+      }
+
+      const element = document.getElementById(step.targetId);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        setHighlightStyle({
+          position: "fixed",
+          top: rect.top - 6,
+          left: rect.left - 6,
+          width: rect.width + 12,
+          height: rect.height + 12,
+          borderRadius: "0.75rem",
+          boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.65), 0 0 15px 4px #00bfff",
+          border: "2px solid #00bfff",
+          pointerEvents: "none",
+          zIndex: 101,
+          transition: "all 0.25s ease-in-out"
+        });
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        setHighlightStyle(null);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [currentTourStep, tourActive, activeTab]);
+
+  // Auto-start walkthrough for newly onboarded merchants on first load
+  useEffect(() => {
+    if (!vendorId) return;
+    if (window.innerWidth < 1024) return;
+    const completed = localStorage.getItem(`sosika_walkthrough_completed_${vendorId}`);
+    if (!completed) {
+      const timer = setTimeout(() => {
+        setTourActive(true);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [vendorId]);
 
   // Responsive, Collapsible & Theme states
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -325,8 +553,8 @@ export default function VendorDashboard() {
               onClick={() => setPosMode(!posMode)}
               aria-label="Toggle POS mode"
               className={`p-2 rounded-lg transition-all ${posMode
-                  ? "bg-[#00bfff] text-black"
-                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                ? "bg-[#00bfff] text-black"
+                : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
                 }`}
             >
               <Monitor size={18} />
@@ -347,11 +575,11 @@ export default function VendorDashboard() {
       {/* Sidebar Control Module */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 lg:relative lg:inset-auto lg:z-auto
+          fixed inset-y-0 left-0 z-50 lg:sticky lg:top-0 lg:h-screen
           flex flex-col gap-5 p-5 shrink-0 transition-all duration-300
           bg-white dark:bg-[#0c0c0e] border-r border-zinc-200 dark:border-zinc-800/80
           ${mobileSidebarOpen ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0"}
-          ${sidebarExpanded ? "lg:w-64" : "lg:w-20"}
+          ${sidebarExpanded ? "lg:w-64 lg:p-5" : "lg:w-20 lg:px-0 lg:py-5"}
         `}
       >
         {/* Collapse Toggle for Desktop */}
@@ -367,7 +595,7 @@ export default function VendorDashboard() {
         <div className="flex items-center justify-between pb-2">
           {sidebarExpanded || mobileSidebarOpen ? (
             <div>
-              <h1 className="text-lg font-black tracking-tight flex items-center gap-2">
+              <h1 id="walkthrough-welcome" className="text-lg font-black tracking-tight flex items-center gap-2">
                 Sosika <span className="text-[#00bfff] font-medium text-xs bg-[#00bfff]/10 px-2 py-0.5 rounded-full">Console</span>
               </h1>
               <p className="text-xs text-zinc-500 mt-1 truncate max-w-[180px]">
@@ -393,16 +621,17 @@ export default function VendorDashboard() {
         {/* Global Store Status Toggle (Channel Engine) */}
         {sidebarExpanded || mobileSidebarOpen ? (
           <button
+            id="walkthrough-channel-engine"
             onClick={handleGlobalStatusToggle}
             disabled={togglingStatus}
             aria-label={isStoreOpen ? "Close storefront visibility" : "Open storefront visibility"}
             className={`w-full p-3.5 rounded-xl border flex items-center justify-between text-left transition-all ${isStoreOpen
-                ? "bg-[#00bfff]/5 border-[#00bfff]/20 text-[#00bfff] hover:bg-[#00bfff]/10"
-                : "bg-zinc-100 dark:bg-zinc-800/20 border-zinc-200 dark:border-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40"
+              ? "bg-[#00bfff]/5 border-[#00bfff]/20 text-[#00bfff] hover:bg-[#00bfff]/10"
+              : "bg-zinc-100 dark:bg-zinc-800/20 border-zinc-200 dark:border-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40"
               }`}
           >
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Channel Engine</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-550">Channel Engine</p>
               <p className="text-xs font-semibold text-zinc-900 dark:text-white/80 truncate">
                 {isStoreOpen ? "Accepting Orders" : "Closed / Offline"}
               </p>
@@ -417,13 +646,14 @@ export default function VendorDashboard() {
           </button>
         ) : (
           <button
+            id="walkthrough-channel-engine"
             onClick={handleGlobalStatusToggle}
             disabled={togglingStatus}
             title={isStoreOpen ? "Storefront Online - Click to Go Offline" : "Storefront Offline - Click to Go Online"}
             aria-label={isStoreOpen ? "Go offline" : "Go online"}
             className={`w-12 h-12 mx-auto rounded-xl border flex items-center justify-center transition-all relative ${isStoreOpen
-                ? "bg-[#00bfff]/5 border-[#00bfff]/20 text-[#00bfff] hover:bg-[#00bfff]/10"
-                : "bg-zinc-100 dark:bg-zinc-800/20 border-zinc-200 dark:border-zinc-800/50 text-zinc-500 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40"
+              ? "bg-[#00bfff]/5 border-[#00bfff]/20 text-[#00bfff] hover:bg-[#00bfff]/10"
+              : "bg-zinc-100 dark:bg-zinc-800/20 border-zinc-200 dark:border-zinc-800/50 text-zinc-500 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/40"
               }`}
           >
             {togglingStatus ? (
@@ -445,8 +675,8 @@ export default function VendorDashboard() {
         {/* System Administration Verification Badges */}
         {sidebarExpanded || mobileSidebarOpen ? (
           <div className={`p-3 rounded-xl border flex items-center gap-2.5 transition-all ${vendorData?.auth_info?.is_approved
-              ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-              : "bg-amber-500/5 border-amber-500/10 text-amber-600 dark:text-amber-400"
+            ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+            : "bg-amber-500/5 border-amber-500/10 text-amber-600 dark:text-amber-400"
             }`}>
             {vendorData?.auth_info?.is_approved ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
             <div className="min-w-0">
@@ -460,8 +690,8 @@ export default function VendorDashboard() {
           <div
             title={vendorData?.auth_info?.is_approved ? "System Approved" : "Pending Approval"}
             className={`w-12 h-12 mx-auto rounded-xl border flex items-center justify-center transition-all ${vendorData?.auth_info?.is_approved
-                ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                : "bg-amber-500/5 border-amber-500/10 text-amber-600 dark:text-amber-400"
+              ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              : "bg-amber-500/5 border-amber-500/10 text-amber-600 dark:text-amber-400"
               }`}
           >
             {vendorData?.auth_info?.is_approved ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
@@ -470,33 +700,35 @@ export default function VendorDashboard() {
 
         {/* Navigation Switcher */}
         {sidebarExpanded || mobileSidebarOpen ? (
-          <nav className="flex flex-col gap-1" aria-label="Main Navigation">
+          <nav className="flex flex-col gap-1 flex-1 overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" aria-label="Main Navigation">
             {[
               { id: "orders", label: "Live Orders", icon: ShoppingBag, count: orders.length },
               { id: "menu", label: "Menu Catalogue", icon: Utensils, count: menuItems.length },
-              { id: "profile", label: "Store Settings", icon: Store, count: null }
+              { id: "profile", label: "Store Settings", icon: Store, count: null },
+              { id: "support", label: "Help & Support", icon: LifeBuoy, count: null }
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
+                  id={`walkthrough-nav-${tab.id}`}
                   onClick={() => {
                     setActiveTab(tab.id as TabType);
                     setMobileSidebarOpen(false);
                   }}
                   aria-current={isActive ? "page" : undefined}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${isActive
-                      ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/10"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.02]"
+                    ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/10"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.02]"
                     }`}
                 >
                   <Icon size={16} />
                   <span className="mr-auto">{tab.label}</span>
                   {tab.count !== null && (
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-black ${isActive
-                        ? "bg-black/20 text-black"
-                        : "bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400"
+                      ? "bg-black/20 text-black"
+                      : "bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400"
                       }`}>
                       {tab.count}
                     </span>
@@ -506,23 +738,25 @@ export default function VendorDashboard() {
             })}
           </nav>
         ) : (
-          <nav className="flex flex-col gap-2 items-center" aria-label="Main Navigation">
+          <nav className="flex flex-col gap-2 items-center flex-1 overflow-y-auto py-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" aria-label="Main Navigation">
             {[
               { id: "orders", label: "Live Orders", icon: ShoppingBag, count: orders.length },
               { id: "menu", label: "Menu Catalogue", icon: Utensils, count: menuItems.length },
-              { id: "profile", label: "Store Settings", icon: Store, count: null }
+              { id: "profile", label: "Store Settings", icon: Store, count: null },
+              { id: "support", label: "Help & Support", icon: LifeBuoy, count: null }
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
+                  id={`walkthrough-nav-${tab.id}`}
                   onClick={() => setActiveTab(tab.id as TabType)}
                   aria-current={isActive ? "page" : undefined}
                   title={tab.label}
                   className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all relative ${isActive
-                      ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/10"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.02]"
+                    ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/10"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.02]"
                     }`}
                 >
                   <Icon size={18} />
@@ -565,8 +799,8 @@ export default function VendorDashboard() {
               <button
                 onClick={() => setPosMode(!posMode)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${posMode
-                    ? "bg-[#00bfff]/20 text-[#00bfff] border border-[#00bfff]/30"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.02]"
+                  ? "bg-[#00bfff]/20 text-[#00bfff] border border-[#00bfff]/30"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.02]"
                   }`}
               >
                 <Monitor size={16} />
@@ -577,8 +811,8 @@ export default function VendorDashboard() {
                 onClick={() => setPosMode(!posMode)}
                 title={posMode ? "Standard View" : "POS View"}
                 className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center transition-all ${posMode
-                    ? "bg-[#00bfff]/20 text-[#00bfff] border border-[#00bfff]/30"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.02]"
+                  ? "bg-[#00bfff]/20 text-[#00bfff] border border-[#00bfff]/30"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.02]"
                   }`}
               >
                 <Monitor size={18} />
@@ -609,6 +843,27 @@ export default function VendorDashboard() {
 
       {/* Main Framework Content Workspace Container */}
       <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-5xl overflow-y-auto w-full">
+        {/* Workspace Title & Quick Tour Controller */}
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-150 dark:border-white/[0.05]">
+          <div className="flex items-center gap-3">
+            <div>
+              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-none">Console Workspace</p>
+              <h2 className="text-sm font-bold text-zinc-900 dark:text-white mt-1.5 capitalize">
+                {activeTab === 'profile' ? 'Store settings' : activeTab === 'support' ? 'Help & support' : activeTab === 'menu' ? 'Menu catalogue' : 'Live orders'}
+              </h2>
+            </div>
+          </div>
+          
+          <button
+            type="button"
+            onClick={startWalkthrough}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-[#00bfff]/10 hover:bg-[#00bfff]/20 text-[#00bfff] hover:text-[#00bfff] transition-all border border-[#00bfff]/25 cursor-pointer active:scale-[0.98]"
+          >
+            <Sparkles size={12} className="animate-pulse text-[#00bfff]" />
+            Quick Tour
+          </button>
+        </div>
+
         {audioBlockedNotification && (
           <div className="mb-6 p-4 bg-[#00bfff]/5 border border-[#00bfff]/20 rounded-2xl flex items-center justify-between text-xs text-[#00bfff] animate-pulse">
             <span className="flex items-center gap-2">
@@ -628,7 +883,73 @@ export default function VendorDashboard() {
         )}
         {activeTab === "menu" && <MenuCatalogueView menuItems={menuItems} vendorId={vendorId!} />}
         {activeTab === "profile" && <StoreSettingsView vendorData={vendorData} vendorId={vendorId!} />}
+        {activeTab === "support" && <HelpSupportView vendorData={vendorData} vendorId={vendorId!} />}
       </main>
+
+      {/* ── Walkthrough Spotlight Scrim & Overlay ─────────────────────── */}
+      {tourActive && (
+        <div className="fixed inset-0 z-[100] bg-transparent cursor-default pointer-events-auto" onClick={e => e.stopPropagation()} />
+      )}
+
+      {tourActive && highlightStyle && (
+        <div style={highlightStyle} className="pointer-events-none" />
+      )}
+
+      {/* Walkthrough Tour Instructions Panel */}
+      {tourActive && (
+        <div className="fixed bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 lg:right-8 lg:w-96 z-[102] bg-zinc-950 dark:bg-[#0c0c0e] border border-zinc-800 dark:border-white/[0.08] rounded-2xl p-5 shadow-2xl text-white space-y-4 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="flex justify-between items-center text-[9px] uppercase tracking-widest font-black text-zinc-500">
+            <span className="flex items-center gap-1"><Sparkles size={10} className="text-[#00bfff]" /> Interactive Guide</span>
+            <span>Step {currentTourStep + 1} of {tourSteps.length}</span>
+          </div>
+
+          <div className="space-y-1.5">
+            <h4 className="text-sm font-black text-white flex items-center gap-2">
+              {tourSteps[currentTourStep].title}
+            </h4>
+            <p className="text-xs text-zinc-400 font-medium leading-relaxed">
+              {tourSteps[currentTourStep].description}
+            </p>
+          </div>
+
+          <div className="h-1 bg-zinc-850 dark:bg-white/5 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-[#00bfff] transition-all duration-300"
+              style={{ width: `${((currentTourStep + 1) / tourSteps.length) * 100}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <button 
+              type="button"
+              onClick={handleSkipTour}
+              className="text-xs text-zinc-500 hover:text-zinc-350 font-bold transition-all cursor-pointer bg-transparent border-none p-0"
+            >
+              Skip Tour
+            </button>
+
+            <div className="flex gap-2">
+              {currentTourStep > 0 && (
+                <button
+                  type="button"
+                  onClick={handlePrevTourStep}
+                  className="px-3 py-1.5 bg-zinc-850 hover:bg-zinc-800 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                >
+                  Back
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleNextTourStep}
+                className="px-4 py-1.5 bg-[#00bfff] hover:bg-[#00a8e6] text-black rounded-lg text-xs font-black transition-all active:scale-[0.98] cursor-pointer"
+              >
+                {currentTourStep === tourSteps.length - 1 ? "Finish Tour" : "Next Step"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -969,13 +1290,14 @@ function LiveOrdersView({
             Live Queue ({activeOrders.length} Tickets)
           </h3>
 
-          {activeOrders.length === 0 ? (
-            <div className="p-16 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl text-zinc-500 dark:text-zinc-400 text-sm">
-              No active production tickets found in database stream pipelines.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {activeOrders.map((order) => {
+          <div id="walkthrough-orders-list">
+            {activeOrders.length === 0 ? (
+              <div className="p-16 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl text-zinc-500 dark:text-zinc-400 text-sm">
+                No active production tickets found in database stream pipelines.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {activeOrders.map((order) => {
                 const myItems = order.cart?.filter((item: any) => item.vendor_id === vendorId) || [];
                 const hasExtendedInfo = vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.extended_customer_info === true;
                 const orderDate = parseOrderDate(order);
@@ -994,8 +1316,8 @@ function LiveOrdersView({
                           <Clock size={13} /> {timeStr}
                         </span>
                         <span className={`text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-lg ${order.status === "pending" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 animate-pulse" :
-                            order.status === "preparing" ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 animate-pulse" :
-                              order.status === "declined" ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                          order.status === "preparing" ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 animate-pulse" :
+                            order.status === "declined" ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                           }`}>
                           {order.status}
                         </span>
@@ -1088,6 +1410,7 @@ function LiveOrdersView({
               })}
             </div>
           )}
+          </div>
         </div>
       </div>
     );
@@ -1112,13 +1435,31 @@ function LiveOrdersView({
         </button>
       </div>
 
-      {/* Free User Metric Cards */}
-      {isFree && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-[#0c0c0e] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 relative overflow-hidden group hover:border-[#00bfff]/30 transition-all flex flex-col justify-between shadow-xs dark:shadow-none">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-[#00bfff]/5 rounded-full blur-2xl group-hover:bg-[#00bfff]/10 transition-all"></div>
+      {/* Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white dark:bg-[#0c0c0e] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 relative overflow-hidden group hover:border-[#00bfff]/30 transition-all flex flex-col justify-between shadow-xs dark:shadow-none">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#00bfff]/5 rounded-full blur-2xl group-hover:bg-[#00bfff]/10 transition-all"></div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Completed Orders</p>
+            <p className="text-[10px] text-[#00bfff] font-bold uppercase tracking-wider mt-0.5">
+              {revenueTimeRange === "24h" ? "Past 24 Hours" :
+                revenueTimeRange === "7d" ? "Past 7 Days" :
+                  revenueTimeRange === "30d" ? "Past 30 Days" :
+                    revenueTimeRange === "90d" ? "Past 90 Days" : "Past 365 Days"}
+            </p>
+          </div>
+          <div className="flex items-baseline gap-2 mt-4 z-10">
+            <p className="text-3xl font-black text-zinc-900 dark:text-white">{filteredStats.count}</p>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium ml-1">processed</span>
+          </div>
+          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 z-10">Refreshes automatically based on selected range.</p>
+        </div>
+
+        <div className="bg-white dark:bg-[#0c0c0e] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 relative overflow-hidden group hover:border-[#00bfff]/30 transition-all flex flex-col justify-between shadow-xs dark:shadow-none">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#00bfff]/5 rounded-full blur-2xl group-hover:bg-[#00bfff]/10 transition-all"></div>
+          <div className="flex justify-between items-start z-10 w-full">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Completed Orders</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Gross Revenue</p>
               <p className="text-[10px] text-[#00bfff] font-bold uppercase tracking-wider mt-0.5">
                 {revenueTimeRange === "24h" ? "Past 24 Hours" :
                   revenueTimeRange === "7d" ? "Past 7 Days" :
@@ -1126,45 +1467,25 @@ function LiveOrdersView({
                       revenueTimeRange === "90d" ? "Past 90 Days" : "Past 365 Days"}
               </p>
             </div>
-            <div className="flex items-baseline gap-2 mt-4 z-10">
-              <p className="text-3xl font-black text-zinc-900 dark:text-white">{filteredStats.count}</p>
-              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium ml-1">processed</span>
-            </div>
-            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 z-10">Refreshes automatically based on selected range.</p>
+            <select
+              value={revenueTimeRange}
+              onChange={(e) => setRevenueTimeRange(e.target.value)}
+              className="bg-white dark:bg-[#0f0f11] border border-zinc-200 dark:border-white/[0.08] text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg text-xs font-bold py-1.5 px-2.5 outline-none cursor-pointer focus:border-[#00bfff]/40 transition-all shadow-xs"
+            >
+              <option value="24h">24 Hours</option>
+              <option value="7d">7 Days</option>
+              <option value="30d">30 Days</option>
+              <option value="90d">90 Days</option>
+              <option value="365d">365 Days</option>
+            </select>
           </div>
-
-          <div className="bg-white dark:bg-[#0c0c0e] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 relative overflow-hidden group hover:border-[#00bfff]/30 transition-all flex flex-col justify-between shadow-xs dark:shadow-none">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-[#00bfff]/5 rounded-full blur-2xl group-hover:bg-[#00bfff]/10 transition-all"></div>
-            <div className="flex justify-between items-start z-10 w-full">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Gross Revenue</p>
-                <p className="text-[10px] text-[#00bfff] font-bold uppercase tracking-wider mt-0.5">
-                  {revenueTimeRange === "24h" ? "Past 24 Hours" :
-                    revenueTimeRange === "7d" ? "Past 7 Days" :
-                      revenueTimeRange === "30d" ? "Past 30 Days" :
-                        revenueTimeRange === "90d" ? "Past 90 Days" : "Past 365 Days"}
-                </p>
-              </div>
-              <select
-                value={revenueTimeRange}
-                onChange={(e) => setRevenueTimeRange(e.target.value)}
-                className="bg-white dark:bg-[#0f0f11] border border-zinc-200 dark:border-white/[0.08] text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg text-xs font-bold py-1.5 px-2.5 outline-none cursor-pointer focus:border-[#00bfff]/40 transition-all shadow-xs"
-              >
-                <option value="24h">24 Hours</option>
-                <option value="7d">7 Days</option>
-                <option value="30d">30 Days</option>
-                <option value="90d">90 Days</option>
-                <option value="365d">365 Days</option>
-              </select>
-            </div>
-            <div className="flex items-baseline gap-2 mt-4 z-10">
-              <p className="text-3xl font-black text-[#008bbb] dark:text-[#00bfff] font-mono">{filteredStats.revenue.toLocaleString()}</p>
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-450 font-bold ml-1">TZS</span>
-            </div>
-            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 z-10">Calculated client-side from completed tickets.</p>
+          <div className="flex items-baseline gap-2 mt-4 z-10">
+            <p className="text-3xl font-black text-[#008bbb] dark:text-[#00bfff] font-mono">{filteredStats.revenue.toLocaleString()}</p>
+            <span className="text-[10px] text-zinc-500 dark:text-zinc-450 font-bold ml-1">TZS</span>
           </div>
+          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 z-10">Calculated client-side from completed tickets.</p>
         </div>
-      )}
+      </div>
 
       <div className="space-y-4">
         <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
@@ -1172,7 +1493,7 @@ function LiveOrdersView({
           Active Tickets ({activeOrders.length})
         </h3>
 
-        <div className="grid gap-4">
+        <div id="walkthrough-orders-list" className="grid gap-4">
           {activeOrders.length === 0 ? (
             <div className="p-12 text-center border border-dashed border-zinc-200 dark:border-white/[0.05] rounded-2xl text-zinc-500 text-sm bg-white dark:bg-white/[0.01]">
               No active production tickets found in database stream pipelines.
@@ -1562,8 +1883,8 @@ function MenuCatalogueView({ menuItems, vendorId }: { menuItems: any[]; vendorId
                     onClick={() => handleToggleAvailability(item.id, isAvailable)}
                     disabled={togglingId === item.id}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${isAvailable
-                        ? "bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 hover:bg-emerald-500/15"
-                        : "bg-zinc-100 dark:bg-zinc-800/40 text-zinc-550 border border-zinc-200 dark:border-white/[0.05] hover:bg-zinc-200/50 dark:hover:bg-zinc-800/70"
+                      ? "bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 hover:bg-emerald-500/15"
+                      : "bg-zinc-100 dark:bg-zinc-800/40 text-zinc-550 border border-zinc-200 dark:border-white/[0.05] hover:bg-zinc-200/50 dark:hover:bg-zinc-800/70"
                       }`}
                   >
                     <span className={`w-1.5 h-1.5 rounded-full ${isAvailable ? "bg-emerald-500 dark:bg-emerald-400 animate-pulse" : "bg-zinc-400 dark:bg-zinc-650"}`}></span>
@@ -1597,12 +1918,132 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
   const [uploadingCover, setUploadingCover] = useState(false);
   const [updating, setUpdating] = useState(false);
 
+  // Map Loader state
+  const { isLoaded: isMapLoaded, loadError: mapLoadError } = useMapLoader();
+
   // Buffer States synced safely with legacy and onboarding maps
   const [spotName, setSpotName] = useState(vendorData?.name || vendorData?.listing_data?.name || "");
   const [shortDesc, setShortDesc] = useState(vendorData?.short_description || "");
   const [fullDesc, setFullDesc] = useState(vendorData?.full_description || "");
   const [openingHours, setOpeningHours] = useState(vendorData?.opening_hours || vendorData?.listing_data?.opening_hours || "");
   const [coverUrl, setCoverUrl] = useState(vendorData?.cover_image_url || "/");
+
+  // Geotargeting Coordinates States
+  const [selectedGeo, setSelectedGeo] = useState<{ lat: number; lng: number } | null>(() => {
+    if (vendorData?.geolocation?.lat && vendorData?.geolocation?.lng) {
+      return { lat: vendorData.geolocation.lat, lng: vendorData.geolocation.lng };
+    }
+    if (vendorData?.listing_data?.geolocation?.lat && vendorData?.listing_data?.geolocation?.lng) {
+      return { lat: vendorData.listing_data.geolocation.lat, lng: vendorData.listing_data.geolocation.lng };
+    }
+    return null;
+  });
+  const [geoAddress, setGeoAddress] = useState(vendorData?.address || vendorData?.listing_data?.address || "");
+  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
+
+  // Initialize marker when map loads
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+    geocoderRef.current = new google.maps.Geocoder();
+
+    if (selectedGeo) {
+      if (markerRef.current) markerRef.current.map = null;
+      markerRef.current = new google.maps.marker.AdvancedMarkerElement({
+        position: selectedGeo,
+        map: map,
+      });
+      map.panTo(selectedGeo);
+      map.setZoom(15);
+    }
+  }, [selectedGeo]);
+
+  const updateMapSelection = useCallback((pos: { lat: number; lng: number }, address: string) => {
+    setSelectedGeo(pos);
+    setGeoAddress(address);
+
+    if (mapRef.current) {
+      if (markerRef.current) markerRef.current.map = null;
+      markerRef.current = new google.maps.marker.AdvancedMarkerElement({
+        position: pos,
+        map: mapRef.current,
+      });
+      mapRef.current.panTo(pos);
+      mapRef.current.setZoom(15);
+    }
+  }, []);
+
+  const reverseGeocode = useCallback(async (pos: { lat: number; lng: number }) => {
+    if (!geocoderRef.current) return "Selected Location";
+    try {
+      const response = await geocoderRef.current.geocode({ location: pos });
+      return response.results[0]?.formatted_address || "Custom Location";
+    } catch (error) {
+      console.error("Reverse geocoding failed:", error);
+      return "Selected Location";
+    }
+  }, []);
+
+  const handleMapClick = async (e: google.maps.MapMouseEvent) => {
+    if (!e.latLng) return;
+    const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+    const address = await reverseGeocode(pos);
+    updateMapSelection(pos, address);
+  };
+
+  const onPlaceChanged = () => {
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      if (place.geometry?.location) {
+        const pos = {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        };
+        updateMapSelection(pos, place.formatted_address || "Search Result");
+      }
+    }
+  };
+
+  const handleGeolocate = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const pos = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        const address = await reverseGeocode(pos);
+        updateMapSelection(pos, address);
+        setIsLocating(false);
+      },
+      (error) => {
+        console.error("Geolocation failed:", error);
+        toast({
+          title: "Geolocation failed",
+          description: "Could not get your location. Please check browser permissions.",
+          variant: "destructive",
+        });
+        setIsLocating(false);
+      }
+    );
+  };
+
+  // Cleanup map marker on unmount
+  useEffect(() => {
+    return () => {
+      if (markerRef.current) {
+        markerRef.current.map = null;
+      }
+    };
+  }, []);
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1631,6 +2072,8 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
         "full_description": fullDesc,
         "opening_hours": openingHours,
         "cover_image_url": coverUrl,
+        "geolocation": selectedGeo ? { lat: selectedGeo.lat, lng: selectedGeo.lng } : null,
+        "address": geoAddress,
 
         // Synced Nested Target Structures
         "listing_data.name": spotName,
@@ -1638,6 +2081,8 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
         "listing_data.full_description": fullDesc,
         "listing_data.opening_hours": openingHours,
         "listing_data.cover_image_url": coverUrl,
+        "listing_data.geolocation": selectedGeo ? { lat: selectedGeo.lat, lng: selectedGeo.lng } : null,
+        "listing_data.address": geoAddress,
       });
       toast({ title: "Configuration Updated", description: "Operational profile adjusted correctly." });
     } catch (err) {
@@ -1647,80 +2092,186 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
     }
   };
 
+  const mapContainerStyle = { width: "100%", height: "260px", borderRadius: "1rem" };
+
   return (
-    <div className="space-y-6 max-w-md animate-in fade-in duration-200" aria-label="Store Settings Interface">
+    <div className="space-y-6 max-w-5xl animate-in fade-in duration-200" aria-label="Store Settings Interface">
       <div>
         <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Store Settings</h2>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Modify storefront branding assets and metadata details dynamically.</p>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Modify storefront branding assets, metadata details, and geocoordinates dynamically.</p>
       </div>
 
-      <form onSubmit={handleUpdateStore} className="space-y-4">
+      <form onSubmit={handleUpdateStore} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          
+          {/* Column 1: Storefront Identity & Branding */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-[#00bfff] uppercase tracking-wider flex items-center gap-1.5">
+              <Store size={14} /> Brand Identity
+            </h3>
 
-        {/* Dynamic Cover Asset Selector */}
-        <div className="space-y-2">
-          <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest block">Brand Banner / Cover Image</label>
-          <div className="relative h-28 w-full bg-zinc-150 dark:bg-zinc-800 border border-zinc-200 dark:border-white/[0.06] rounded-xl overflow-hidden flex items-center justify-center group">
-            {coverUrl && coverUrl !== "/" ? (
-              <img src={coverUrl} alt="Store Banner Preview" className="w-full h-full object-cover group-hover:opacity-70 transition-opacity" />
-            ) : (
-              <Store size={24} className="text-zinc-400" />
-            )}
-            <input type="file" accept="image/*" ref={fileInputRef} onChange={handleCoverUpload} className="hidden" />
+            {/* Dynamic Cover Asset Selector */}
+            <div className="space-y-2">
+              <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest block">Brand Banner / Cover Image</label>
+              <div className="relative h-32 w-full bg-zinc-150 dark:bg-zinc-800 border border-zinc-200 dark:border-white/[0.06] rounded-xl overflow-hidden flex items-center justify-center group shadow-xs">
+                {coverUrl && coverUrl !== "/" ? (
+                  <img src={coverUrl} alt="Store Banner Preview" className="w-full h-full object-cover group-hover:opacity-75 transition-opacity" />
+                ) : (
+                  <Store size={24} className="text-zinc-400 animate-pulse" />
+                )}
+                <input type="file" accept="image/*" ref={fileInputRef} onChange={handleCoverUpload} className="hidden" />
+                <button
+                  type="button"
+                  disabled={uploadingCover}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 m-auto w-fit h-fit bg-black/60 text-white border border-white/10 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer shadow-md"
+                >
+                  {uploadingCover ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                  Change Cover Asset
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider block">Spot Listing Name</label>
+              <input
+                type="text"
+                required
+                value={spotName}
+                onChange={e => setSpotName(e.target.value)}
+                className="w-full bg-zinc-55 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl py-3 px-4 text-xs outline-none focus:border-[#00bfff]/40 transition-colors text-zinc-900 dark:text-white font-medium"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider block">Opening Schedule</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g., Daily: 09:00 AM - 10:00 PM"
+                value={openingHours}
+                onChange={e => setOpeningHours(e.target.value)}
+                className="w-full bg-zinc-55 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl py-3 px-4 text-xs outline-none focus:border-[#00bfff]/40 transition-colors text-zinc-900 dark:text-white font-medium"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider block">Short Feed Card Subtitle</label>
+              <input
+                type="text"
+                value={shortDesc}
+                onChange={e => setShortDesc(e.target.value)}
+                className="w-full bg-zinc-55 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl py-3 px-4 text-xs outline-none focus:border-[#00bfff]/40 transition-colors text-zinc-900 dark:text-white font-medium"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider block">Full Showcase Overview Description</label>
+              <textarea
+                value={fullDesc}
+                onChange={e => setFullDesc(e.target.value)}
+                className="w-full h-24 bg-zinc-55 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl py-2.5 px-4 text-xs outline-none focus:border-[#00bfff]/40 transition-colors text-zinc-900 dark:text-white font-medium resize-none"
+              />
+            </div>
+          </div>
+
+          {/* Column 2: Physical Location & Mapping */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-[#00bfff] uppercase tracking-wider flex items-center gap-1.5">
+              <MapPin size={14} /> Physical Location & Map
+            </h3>
+
+            {/* Address Search */}
+            <div className="space-y-2">
+              <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest block">Search Restaurant Location</label>
+              {mapLoadError ? (
+                <div className="text-xs text-red-500">Maps error, search disabled.</div>
+              ) : !isMapLoaded ? (
+                <div className="h-10 bg-zinc-100 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl animate-pulse flex items-center px-4 text-zinc-450 text-[10px] uppercase font-bold">Mounting Autocomplete Search...</div>
+              ) : (
+                <Autocomplete onLoad={setAutocomplete} onPlaceChanged={onPlaceChanged}>
+                  <div className="relative group">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-650 dark:text-zinc-500 w-3.5 h-3.5 group-focus-within:text-[#00bfff] transition-colors" />
+                    <input
+                      type="text"
+                      placeholder="Search for physical address or landmarks"
+                      value={geoAddress}
+                      onChange={e => setGeoAddress(e.target.value)}
+                      className="w-full bg-zinc-55 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl py-3 pl-10 pr-4 text-xs outline-none focus:border-[#00bfff]/40 transition-colors text-zinc-900 dark:text-white font-medium placeholder-zinc-550 dark:placeholder-zinc-600"
+                    />
+                  </div>
+                </Autocomplete>
+              )}
+            </div>
+
+            {/* Geolocate Button */}
             <button
               type="button"
-              disabled={uploadingCover}
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute inset-0 m-auto w-fit h-fit bg-black/60 text-white border border-white/10 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer"
+              onClick={handleGeolocate}
+              disabled={isLocating}
+              className="w-full flex items-center justify-center gap-2 bg-zinc-100 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.06] rounded-xl py-3 px-4 hover:bg-zinc-200 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-all text-zinc-700 dark:text-zinc-300 shadow-2xs font-semibold text-xs cursor-pointer"
             >
-              {uploadingCover ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-              Change Cover Asset
+              {isLocating ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00bfff]" />
+              ) : (
+                <LocateFixed className="w-3.5 h-3.5 text-[#00bfff]" />
+              )}
+              Use My Current GPS Position
             </button>
+
+            {/* Google Map Box */}
+            <div className="relative border border-zinc-200 dark:border-white/[0.06] rounded-2xl overflow-hidden shadow-xs">
+              {mapLoadError ? (
+                <div className="h-[260px] bg-red-500/5 flex items-center justify-center text-center p-4">
+                  <p className="text-xs font-semibold text-red-500">Maps API failed to load correctly. Check network or key.</p>
+                </div>
+              ) : !isMapLoaded ? (
+                <div className="h-[260px] bg-zinc-50 dark:bg-white/[0.01] flex flex-col items-center justify-center gap-2">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#00bfff]" />
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Mounting Map Engine...</p>
+                </div>
+              ) : (
+                <>
+                  <GoogleMap
+                    mapContainerStyle={mapContainerStyle}
+                    zoom={14}
+                    center={selectedGeo || { lat: -6.79, lng: 39.27 }}
+                    onLoad={onMapLoad}
+                    onClick={handleMapClick}
+                    options={{
+                      mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID,
+                      disableDefaultUI: true,
+                      zoomControl: true,
+                      gestureHandling: 'cooperative'
+                    }}
+                  />
+                  {!selectedGeo && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-black/40">
+                      <div className="bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/[0.08] text-[10px] text-white/80 font-bold uppercase tracking-wide">
+                        Click on the Map Grid to Set Coordinates
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Coordinates Stats Display */}
+            {selectedGeo && (
+              <div className="bg-zinc-50 dark:bg-white/[0.01] border border-zinc-150 dark:border-white/[0.04] p-3.5 rounded-xl flex items-center justify-between text-[11px] font-mono text-zinc-500 dark:text-zinc-450 shadow-2xs">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> LAT: {selectedGeo.lat.toFixed(5)}</span>
+                <span>LNG: {selectedGeo.lng.toFixed(5)}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider block">Spot Listing Name</label>
-          <input
-            type="text"
-            required
-            value={spotName}
-            onChange={e => setSpotName(e.target.value)}
-            className="w-full bg-zinc-55 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl py-3 px-4 text-xs outline-none focus:border-[#00bfff]/40 transition-colors text-zinc-900 dark:text-white font-medium"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider block">Opening Schedule</label>
-          <input
-            type="text"
-            required
-            placeholder="e.g., Daily: 09:00 AM - 10:00 PM"
-            value={openingHours}
-            onChange={e => setOpeningHours(e.target.value)}
-            className="w-full bg-zinc-55 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl py-3 px-4 text-xs outline-none focus:border-[#00bfff]/40 transition-colors text-zinc-900 dark:text-white font-medium"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider block">Short Feed Card Subtitle</label>
-          <input
-            type="text"
-            value={shortDesc}
-            onChange={e => setShortDesc(e.target.value)}
-            className="w-full bg-zinc-55 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl py-3 px-4 text-xs outline-none focus:border-[#00bfff]/40 transition-colors text-zinc-900 dark:text-white font-medium"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider block">Full Showcase Overview Description</label>
-          <textarea
-            value={fullDesc}
-            onChange={e => setFullDesc(e.target.value)}
-            className="w-full h-24 bg-zinc-55 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.08] rounded-xl py-2.5 px-4 text-xs outline-none focus:border-[#00bfff]/40 transition-colors text-zinc-900 dark:text-white font-medium resize-none"
-          />
-        </div>
-
-        <button type="submit" disabled={updating || uploadingCover} className="w-full bg-zinc-950 dark:bg-white text-white dark:text-black font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all disabled:opacity-40 active:scale-[0.99] cursor-pointer">
+        {/* Global Save Button */}
+        <button 
+          type="submit" 
+          disabled={updating || uploadingCover} 
+          className="w-full bg-zinc-950 dark:bg-white text-white dark:text-black font-extrabold py-4 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all disabled:opacity-40 active:scale-[0.99] cursor-pointer shadow-md shadow-zinc-900/10 dark:shadow-none"
+        >
           {updating ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> Commit Settings Changes</>}
         </button>
       </form>
@@ -1730,45 +2281,483 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
         <div>
           <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
             <Lock size={14} className="text-zinc-450" />
-            Subscription
+            Subscription Settings
           </h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Manage your Sosika Premium plan.</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Manage your merchant account billing tier and premium feature access.</p>
         </div>
 
-        <div className="bg-white dark:bg-white/[0.02] border border-zinc-200 dark:border-zinc-800/80 rounded-xl p-4 space-y-3 shadow-xs dark:shadow-none">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-550 dark:text-zinc-400">Current Tier</span>
-            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${vendorData?.subscription?.tier === "premium"
+        <div className="bg-white dark:bg-[#0c0c0e] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 space-y-4 shadow-2xs dark:shadow-none">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <div className="bg-zinc-50 dark:bg-white/[0.01] border border-zinc-200 dark:border-white/[0.04] p-4 rounded-xl flex items-center justify-between shadow-2xs">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Subscription Tier</p>
+                <p className="text-xs font-bold text-zinc-900 dark:text-white mt-1">{vendorData?.subscription?.tier === "premium" ? "Premium Partner" : "Free Plan Account"}</p>
+              </div>
+              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded border ${vendorData?.subscription?.tier === "premium"
                 ? "bg-[#00bfff]/10 text-[#00bfff] border-[#00bfff]/20"
                 : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-white/[0.05]"
-              }`}>
-              {vendorData?.subscription?.tier === "premium" ? "Premium" : "Free"}
-            </span>
+                }`}>
+                {vendorData?.subscription?.tier === "premium" ? "Premium" : "Free"}
+              </span>
+            </div>
+
+            <div className="bg-zinc-50 dark:bg-white/[0.01] border border-zinc-200 dark:border-white/[0.04] p-4 rounded-xl flex items-center justify-between shadow-2xs">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">SMS Notification Gate</p>
+                <p className="text-xs font-bold text-zinc-900 dark:text-white mt-1">Automatic order text alerts</p>
+              </div>
+              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded border ${(vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.sms_notifications)
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border-zinc-200 dark:border-white/[0.05]"
+                }`}>
+                {(vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.sms_notifications) ? "Active" : "Locked"}
+              </span>
+            </div>
           </div>
 
           {vendorData?.subscription?.tier === "premium" && vendorData?.subscription?.expires_at && (
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-550 dark:text-zinc-400">Renews</span>
-              <span className="text-xs text-zinc-700 dark:text-zinc-300 font-mono">
+            <div className="flex items-center justify-between text-xs px-1 border-t border-zinc-100 dark:border-zinc-800/40 pt-3">
+              <span className="text-zinc-500">Subscription Renews / Expires:</span>
+              <span className="font-mono font-bold text-zinc-950 dark:text-white">
                 {new Date(vendorData.subscription.expires_at).toLocaleDateString()}
               </span>
             </div>
           )}
 
-          <div className="border-t border-zinc-150 dark:border-white/[0.03] pt-3">
-            <a
-              href="https://play.google.com/store/account/subscriptions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-[#008bbb] dark:text-[#00bfff] font-bold hover:underline transition-all flex items-center gap-1.5"
-            >
-              <Smartphone size={12} />
-              Manage Subscription on Google Play →
-            </a>
-            <p className="text-[10px] text-zinc-550 dark:text-zinc-500 mt-1">Cancel, change plans, or update payment methods directly on Google Play.</p>
+          <div className="border-t border-zinc-150 dark:border-white/[0.03] pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <a
+                href="https://play.google.com/store/account/subscriptions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[#008bbb] dark:text-[#00bfff] font-bold hover:underline transition-all flex items-center gap-1.5"
+              >
+                <Smartphone size={13} />
+                Manage Plan on Google Play Console →
+              </a>
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-550">Cancel, upgrade, or verify payment instruments directly via Google Play Services.</p>
+            </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ==========================================================================
+   4. HELP & SUPPORT VIEW
+   ========================================================================== */
+function HelpSupportView({ vendorData, vendorId }: { vendorData: any; vendorId: string }) {
+  const [subject, setSubject] = useState("");
+  const [category, setCategory] = useState("orders");
+  const [priority, setPriority] = useState("medium");
+  const [description, setDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loadingTickets, setLoadingTickets] = useState(true);
+  const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  // Stream vendor's support tickets in real-time
+  useEffect(() => {
+    if (!vendorId) return;
+
+    const ticketsQuery = query(
+      collection(db, "supportTickets"),
+      where("vendorId", "==", vendorId)
+    );
+
+    const unsubscribe = onSnapshot(ticketsQuery, (snap) => {
+      const fetchedTickets = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      // Sort client-side by timestamp descending (newest first)
+      fetchedTickets.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeB - timeA;
+      });
+
+      setTickets(fetchedTickets);
+      setLoadingTickets(false);
+    }, (error) => {
+      console.error("Error streaming support tickets:", error);
+      setLoadingTickets(false);
+    });
+
+    return () => unsubscribe();
+  }, [vendorId]);
+
+  const handleSubmitTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subject.trim() || !description.trim()) {
+      toast({
+        title: "Missing Fields",
+        description: "Please fill in all fields before submitting.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const ticketData = {
+        vendorId,
+        vendorName: vendorData?.name || vendorData?.listing_data?.name || "Partner Vendor",
+        subject: subject.trim(),
+        category,
+        priority,
+        description: description.trim(),
+        status: "open",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        responses: []
+      };
+
+      await addDoc(collection(db, "supportTickets"), ticketData);
+
+      toast({
+        title: "Ticket Filed Successfully",
+        description: "A support agent will review your issue shortly."
+      });
+
+      // Reset form
+      setSubject("");
+      setDescription("");
+      setPriority("medium");
+    } catch (err) {
+      console.error("Failed filing support ticket:", err);
+      toast({
+        title: "Submission Error",
+        description: "Could not deliver support request. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-300">
+
+      {/* Dynamic Welcoming Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-zinc-900 to-zinc-950 dark:from-zinc-950 dark:to-black border border-zinc-200 dark:border-white/[0.05] p-6 sm:p-8 text-zinc-900 dark:text-white shadow-xs">
+        {/* Subtle Decorative Ambient Light Glow */}
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00bfff]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#00bfff]/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00bfff]/15 text-[#00bfff] text-[10px] font-black uppercase tracking-wider">
+              <Sparkles size={10} className="animate-pulse" />
+              Partner Care Desk
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">We've got your back.</h2>
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              Facing order glitches, billing mismatch, or menu hiccups? Submit a ticket below or talk to us directly. Our vendor relations team is online.
+            </p>
+          </div>
+          <div className="shrink-0 flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 border border-white/10 text-[#00bfff] shadow-inner">
+            <LifeBuoy size={32} className="animate-spin duration-3000" />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+        {/* Left Hand side: Ticket Filing Form */}
+        <div className="lg:col-span-2 bg-white dark:bg-white/[0.02] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 sm:p-6 shadow-xs dark:shadow-none space-y-5">
+          <div>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+              <Send size={14} className="text-[#00bfff]" />
+              File a Support Request
+            </h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Please provide specific details to help us debug faster.</p>
+          </div>
+
+          <form onSubmit={handleSubmitTicket} className="space-y-4">
+            <div>
+              <label htmlFor="subject" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">
+                Issue Subject
+              </label>
+              <input
+                id="subject"
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="e.g. Printer not receipting, Payout not reconciled"
+                required
+                className="w-full text-xs bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-zinc-800/60 rounded-xl px-3.5 py-3 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-650 focus:outline-hidden focus:border-[#00bfff] focus:ring-1 focus:ring-[#00bfff] transition-all"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="category" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">
+                  Category
+                </label>
+                <select
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full text-xs bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-zinc-800/60 rounded-xl px-3.5 py-3 text-zinc-950 dark:text-white focus:outline-hidden focus:border-[#00bfff] focus:ring-1 focus:ring-[#00bfff] transition-all cursor-pointer"
+                >
+                  <option value="orders" className="dark:bg-[#0c0c0e]">Order Management</option>
+                  <option value="billing" className="dark:bg-[#0c0c0e]">Payouts & Billing</option>
+                  <option value="menu" className="dark:bg-[#0c0c0e]">Menu & Availability</option>
+                  <option value="technical" className="dark:bg-[#0c0c0e]">App Bugs & Tech</option>
+                  <option value="other" className="dark:bg-[#0c0c0e]">Other / Inquiry</option>
+                </select>
+              </div>
+
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-550 dark:text-zinc-400 mb-1.5">
+                  Priority
+                </span>
+                <div className="flex gap-2" role="radiogroup" aria-label="Priority level">
+                  {["low", "medium", "high"].map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => setPriority(level)}
+                      aria-checked={priority === level}
+                      role="radio"
+                      className={`flex-1 py-3 text-xs font-bold rounded-xl border capitalize transition-all cursor-pointer ${priority === level
+                          ? level === "high"
+                            ? "bg-red-500/10 text-red-500 border-red-500/30 ring-1 ring-red-500/30"
+                            : level === "medium"
+                              ? "bg-amber-500/10 text-amber-550 dark:text-amber-400 border-amber-500/30 ring-1 ring-amber-500/30"
+                              : "bg-emerald-500/10 text-emerald-500 border-emerald-500/30 ring-1 ring-emerald-500/30"
+                          : "bg-zinc-50 dark:bg-white/[0.01] border-zinc-200 dark:border-zinc-800/60 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                        }`}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="description" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">
+                Explain the Issue
+              </label>
+              <textarea
+                id="description"
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Give us details (e.g. Order ID, specific screen, step-by-step description to reproduce)."
+                required
+                className="w-full text-xs bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-zinc-800/60 rounded-xl px-3.5 py-3 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-650 focus:outline-hidden focus:border-[#00bfff] focus:ring-1 focus:ring-[#00bfff] transition-all resize-none"
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3.5 bg-[#00bfff] text-black font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-[#00bfff]/10 hover:shadow-lg hover:shadow-[#00bfff]/20 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Submitting Request...
+                </>
+              ) : (
+                <>
+                  <Send size={14} /> Submit Support Ticket
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Right Hand side: Quick Escalations Contacts */}
+        <div className="space-y-6">
+
+          {/* Quick Direct Contacts */}
+          <div className="bg-white dark:bg-white/[0.02] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 shadow-xs dark:shadow-none space-y-4">
+            <div>
+              <h3 className="text-xs font-bold text-zinc-900 dark:text-white">Direct Assistance</h3>
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Response time is usually under 5 minutes.</p>
+            </div>
+
+            <div className="space-y-3">
+              {/* WhatsApp Card */}
+              <a
+                href="https://wa.me/255760903468"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3.5 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.03] hover:bg-emerald-500/[0.06] text-emerald-600 dark:text-emerald-400 transition-all group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <MessageSquare size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black">WhatsApp Merchant Support</p>
+                  <p className="text-[10px] text-emerald-500/70">Chat live with agent</p>
+                </div>
+              </a>
+
+              {/* Call Card */}
+              <a
+                href="tel:+255760903468"
+                className="flex items-center gap-3 p-3.5 rounded-xl border border-[#00bfff]/15 bg-[#00bfff]/[0.03] hover:bg-[#00bfff]/[0.06] text-[#00bfff] transition-all group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-[#00bfff]/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Phone size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black">Direct Support Hotline</p>
+                  <p className="text-[10px] text-[#00bfff]/70">Call instantly</p>
+                </div>
+              </a>
+
+              {/* Email Card */}
+              <a
+                href="mailto:sosika.app@gmail.com"
+                className="flex items-center gap-3 p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-900/10 hover:bg-zinc-100 dark:hover:bg-zinc-850/30 text-zinc-600 dark:text-zinc-400 transition-all group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-zinc-200/50 dark:bg-zinc-850 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Mail size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black">General Email Support</p>
+                  <p className="text-[10px] text-zinc-500">sosika.app@gmail.com</p>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          {/* Quick FAQ / Guidelines Card */}
+          <div className="bg-white dark:bg-white/[0.02] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 shadow-xs dark:shadow-none">
+            <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-2 flex items-center gap-1.5">
+              <LifeBuoy size={13} className="text-zinc-500" />
+              Quick Troubleshooting
+            </h4>
+            <ul className="space-y-2 text-[10px] text-zinc-500 dark:text-zinc-400 list-disc list-inside">
+              <li>Keep the channel engine toggled <strong className="text-emerald-500">Online</strong> to receive orders.</li>
+              <li>New order chime repeats every 3 seconds until ticket is accepted.</li>
+              <li>Premium subscription grants real-time customer phone number visibility.</li>
+              <li>Clear browser cache or log out and back in if order streams freeze.</li>
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* Bottom Section: Ticket History */}
+      <div className="bg-white dark:bg-white/[0.02] border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 sm:p-6 shadow-xs dark:shadow-none">
+        <div className="flex items-center gap-2 mb-4">
+          <History size={16} className="text-zinc-400" />
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Ticket History</h3>
+        </div>
+
+        {loadingTickets ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 text-[#00bfff] animate-spin" />
+          </div>
+        ) : tickets.length === 0 ? (
+          <div className="text-center py-12 border border-dashed border-zinc-200 dark:border-zinc-800/80 rounded-xl">
+            <p className="text-xs text-zinc-400 dark:text-zinc-550">No support tickets filed yet.</p>
+            <p className="text-[10px] text-zinc-500 mt-1">If you submit a ticket, it will appear here in real-time.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+            {tickets.map((ticket) => {
+              const isExpanded = expandedTicketId === ticket.id;
+              const dateString = ticket.createdAt
+                ? new Date(ticket.createdAt.seconds * 1000).toLocaleString()
+                : "Just now";
+
+              return (
+                <div key={ticket.id} className="py-4 first:pt-0 last:pb-0">
+                  <div
+                    onClick={() => setExpandedTicketId(isExpanded ? null : ticket.id)}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-[#00bfff] transition-colors">
+                          {ticket.subject}
+                        </span>
+                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ${ticket.status === "resolved"
+                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                            : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                          }`}>
+                          {ticket.status}
+                        </span>
+                        <span className="text-[9px] text-zinc-400 font-mono capitalize">
+                          {ticket.category}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-zinc-550 dark:text-zinc-400 line-clamp-1">
+                        {ticket.description}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between sm:justify-end gap-3 text-right">
+                      <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
+                        {dateString}
+                      </span>
+                      <span className="text-zinc-400 dark:text-zinc-600 text-xs hidden sm:inline">
+                        {isExpanded ? "▲" : "▼"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="mt-3 p-4 bg-zinc-50 dark:bg-white/[0.01] border border-zinc-150 dark:border-zinc-800/40 rounded-xl space-y-4 text-xs animate-in slide-in-from-top-1 duration-200">
+
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase text-zinc-500">Description</p>
+                        <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
+                          {ticket.description}
+                        </p>
+                      </div>
+
+                      {ticket.responses && ticket.responses.length > 0 ? (
+                        <div className="space-y-3 pt-3 border-t border-zinc-200/60 dark:border-zinc-800/40">
+                          <p className="text-[10px] font-bold uppercase text-[#00bfff]">Correspondence</p>
+                          {ticket.responses.map((resp: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className={`p-3 rounded-xl border ${resp.sender === "admin"
+                                  ? "bg-[#00bfff]/5 border-[#00bfff]/20 text-zinc-900 dark:text-zinc-100"
+                                  : "bg-zinc-100 dark:bg-zinc-800/30 border-zinc-200 dark:border-zinc-800/40 text-zinc-700 dark:text-zinc-300"
+                                }`}
+                            >
+                              <div className="flex justify-between items-center mb-1 text-[9px] font-bold">
+                                <span className={resp.sender === "admin" ? "text-[#00bfff]" : "text-zinc-500"}>
+                                  {resp.sender === "admin" ? "Sosika support desk" : "You (Merchant)"}
+                                </span>
+                                <span className="text-zinc-400">
+                                  {resp.timestamp ? new Date(resp.timestamp.seconds * 1000).toLocaleString() : ""}
+                                </span>
+                              </div>
+                              <p className="leading-relaxed">{resp.message}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="pt-3 border-t border-zinc-200/60 dark:border-zinc-800/40 text-[10px] text-zinc-450 dark:text-zinc-500 italic">
+                          No replies from support agent yet. Check back soon.
+                        </div>
+                      )}
+
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

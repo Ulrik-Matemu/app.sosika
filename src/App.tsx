@@ -59,6 +59,7 @@ function App() {
 
 
 
+
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
@@ -121,7 +122,7 @@ function App() {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/vendor-onboarding" element={<VendorOnboarding />} />
                     <Route path="/vendor-auth" element={<VendorAuthPortal />} />
-                    
+
                     {/* Protected Vendor Routes */}
                     <Route element={<VendorAuthGuard />}>
                       <Route path="/vendor-dashboard" element={<VendorDashboard />} />

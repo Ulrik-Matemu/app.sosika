@@ -24,7 +24,8 @@ export const normalizeVendorSubscriptions = async () => {
       features_enabled: {
         analytics: sub.features_enabled?.analytics ?? false,
         recommendations: sub.features_enabled?.recommendations ?? false,
-        extended_customer_info: sub.features_enabled?.extended_customer_info ?? false
+        extended_customer_info: sub.features_enabled?.extended_customer_info ?? false,
+        sms_notifications: sub.features_enabled?.sms_notifications ?? false
       }
     };
 

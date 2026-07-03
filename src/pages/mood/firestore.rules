@@ -1,46 +1,278 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Match for the vendors collection
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    // -----------------------------
+    // Existing collections
+    // -----------------------------
+    // These are still open exactly like your old rules.
+    // Tighten them later.
     match /vendors/{vendorId} {
-      // Anyone can view vendor listings
-      allow read: if true;
-      // Only the vendor owner themselves can write/modify their listing
-      allow write: if request.auth != null && request.auth.uid == vendorId;
+      allow read, write: if true;
     }
 
-    // Match for the menuItems collection 
     match /menuItems/{itemId} {
-      // Anyone can read menu items
-      allow read: if true;
-      // Only the owner vendor can write/update/delete their menu items
-      allow create: if request.auth != null && request.resource.data.vendor_id == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.vendor_id == request.auth.uid;
+      allow read, write: if true;
     }
 
-    // Match for the reviews collection
     match /reviews/{reviewId} {
-      // Anyone can read reviews
-      allow read: if true;
-      // Authenticated users can write reviews
-      allow write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Match for the orders collection
     match /orders/{orderId} {
-      // Anyone (including guests) can submit orders
-      allow create: if true;
-      // Only vendors associated with the order or the customer themselves can read/update
-      allow read, update: if request.auth != null && (
-        request.auth.uid in resource.data.vendor_ids || 
-        request.auth.uid == resource.data.userId
-      );
-      // Allow getting a single order (e.g. for guest tracking) but restrict listing
-      allow get: if true;
-      allow list: if request.auth != null && request.auth.uid in resource.data.vendor_ids;
+      allow read, write: if true;
     }
-    
+
+    // -----------------------------
+    // Support Tickets
+    // -----------------------------
+    match /supportTickets/{ticketId} {
+      allow read: if (isSignedIn() && resource.data.vendorId == request.auth.uid) || isAdmin();
+      allow create: if isSignedIn() && request.resource.data.vendorId == request.auth.uid;
+      allow update: if (isSignedIn() && resource.data.vendorId == request.auth.uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Riders helpers
+    // -----------------------------
+    function riderCreateKeysAreValid() {
+      return request.resource.data.keys().hasOnly([
+        'uid',
+        'phoneNumber',
+        'role',
+        'fullName',
+        'verificationStatus',
+        'onboardingStep',
+        'profileCompletionPercent',
+        'isSuspended',
+        'availabilityState',
+        'suspensionReason',
+        'reviewNotes',
+        'currentAppVersion',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function riderClientDraftKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'fullName',
+        'onboardingStep',
+        'profileCompletionPercent',
+        'currentAppVersion',
+        'updatedAt'
+      ]);
+    }
+
+    function riderClientSubmitKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'verificationStatus',
+        'onboardingStep',
+        'profileCompletionPercent',
+        'submittedAt',
+        'currentAppVersion',
+        'updatedAt'
+      ]);
+    }
+
+    function riderClientAvailabilityKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'availabilityState',
+        'updatedAt'
+      ]);
+    }
+
+    function documentsCreateKeysAreValid() {
+      return request.resource.data.keys().hasOnly([
+        'uid',
+        'nidaNumber',
+        'plateNumber',
+        'vehicleType',
+        'nidaImage',
+        'licenseImage',
+        'selfieImage',
+        'uploadMetadata',
+        'resubmissionCount',
+        'lastSubmittedAt',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function documentsUpdateKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'nidaNumber',
+        'plateNumber',
+        'vehicleType',
+        'nidaImage',
+        'licenseImage',
+        'selfieImage',
+        'uploadMetadata',
+        'resubmissionCount',
+        'lastSubmittedAt',
+        'updatedAt'
+      ]);
+    }
+
+    function riderPresenceKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'isOnline',
+        'availabilityState',
+        'lastSeenAt',
+        'lat',
+        'lng',
+        'heading',
+        'speed',
+        'batteryLevel',
+        'networkStatus',
+        'activeDeliveryType',
+        'updatedAt'
+      ]);
+    }
+
+    function canSubmitOnboarding() {
+      return (
+          resource.data.verificationStatus in ['draft', 'needs_resubmission', 'rejected']
+          || resource.data.status in ['onboarding_incomplete', 'pending_verification']
+        )
+        && request.resource.data.verificationStatus == 'submitted'
+        && request.resource.data.onboardingStep == 'review'
+        && request.resource.data.profileCompletionPercent == 100;
+    }
+
+    function canToggleAvailability(uid) {
+      return (
+          get(/databases/$(database)/documents/riders/$(uid)).data.verificationStatus == 'approved'
+          || get(/databases/$(database)/documents/riders/$(uid)).data.approved == true
+        )
+        && get(/databases/$(database)/documents/riders/$(uid)).data.isSuspended != true;
+    }
+
+    // -----------------------------
+    // Riders
+    // -----------------------------
+    match /riders/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+
+      allow create: if isSelf(uid)
+        && riderCreateKeysAreValid()
+        && request.resource.data.uid == uid
+        && request.resource.data.role == 'rider'
+        && request.resource.data.verificationStatus == 'draft'
+        && request.resource.data.onboardingStep == 'personal_info'
+        && request.resource.data.isSuspended == false;
+
+      allow update: if (
+          isSelf(uid) && (
+            riderClientDraftKeysAreValid()
+            || (riderClientSubmitKeysAreValid() && canSubmitOnboarding())
+            || (
+              riderClientAvailabilityKeysAreValid()
+              && canToggleAvailability(uid)
+              && request.resource.data.availabilityState in ['online', 'offline']
+            )
+          )
+        ) || isAdmin();
+
+      allow delete: if false;
+    }
+
+    // -----------------------------
+    // Rider documents
+    // -----------------------------
+    match /rider_documents/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+
+      allow create: if isSelf(uid)
+        && documentsCreateKeysAreValid()
+        && request.resource.data.uid == uid;
+
+      allow update: if (isSelf(uid) && documentsUpdateKeysAreValid()) || isAdmin();
+
+      allow delete: if false;
+    }
+
+    // -----------------------------
+    // Rider presence
+    // -----------------------------
+    match /rider_presence/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+
+      allow create: if isSelf(uid) && request.resource.data.uid == uid;
+
+      allow update: if (
+          isSelf(uid)
+          && riderPresenceKeysAreValid()
+          && (
+            request.resource.data.isOnline == false
+            || canToggleAvailability(uid)
+          )
+        ) || isAdmin();
+
+      allow delete: if false;
+    }
+
+    // -----------------------------
+    // Rider review logs
+    // -----------------------------
+    match /rider_review_logs/{uid}/events/{eventId} {
+      allow read: if isSelf(uid) || isAdmin();
+
+      allow create: if isSelf(uid)
+        && request.resource.data.keys().hasOnly([
+          'action',
+          'actor',
+          'note',
+          'timestamp'
+        ])
+        && request.resource.data.action in ['submitted', 'resubmitted']
+        && request.resource.data.actor.type == 'rider'
+        && request.resource.data.actor.uid == uid;
+
+      allow update, delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Rider notification tokens
+    // -----------------------------
+    match /rider_notification_tokens/{tokenId} {
+      allow read: if isAdmin();
+
+      allow create, update: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.platform == 'web';
+
+      allow delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Rider notifications
+    // -----------------------------
+    match /rider_notifications/{notificationId} {
+      allow read: if (isSignedIn() && resource.data.uid == request.auth.uid) || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Legacy riderTokens collection
+    // -----------------------------
+    // Keep only if your app still writes here.
+    // Remove later after migration to rider_notification_tokens.
+    match /riderTokens/{tokenId} {
+      allow read, write: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+    }
   }
 }

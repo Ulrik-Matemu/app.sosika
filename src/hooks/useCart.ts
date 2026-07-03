@@ -419,7 +419,7 @@ export function useCart() {
         .join(', ');
 
       // B. Send notification to the 2 Admin numbers in one operation
-      const ADMIN_PHONES = '255760903468,255688123103';
+      const ADMIN_PHONES = '255760903468'; // Remember to return Abbas
       const adminSMSMessage = `New Sosika Order!\nOrder ID: ${docRef.id}\nVendor: ${vendorName}\nItems: ${adminItemsText}\nTotal: TZS ${orderTotal}\nCustomer: ${formattedPhone}\nLocation: ${displayLocation}`;
 
       sendMesejiSMS(ADMIN_PHONES, adminSMSMessage);
@@ -428,6 +428,36 @@ export function useCart() {
       const customerSMSMessage = `Habari! Oda yako ya Sosika imepokelewa kwa ufanisi.\nOda ID: ${docRef.id}\nJumla: TZS ${orderTotal}\nTunakujulisha punde itakapothibitishwa. Ahsante!`;
 
       sendMesejiSMS(formattedPhone, customerSMSMessage);
+
+      // D. Send SMS notification to Premium Vendors (subscription-gated)
+      for (const vid of uniqueVendorIds) {
+        try {
+          const vRef = doc(db, 'vendors', vid);
+          const vSnap = await getDoc(vRef);
+          if (vSnap.exists()) {
+            const vData = vSnap.data();
+            const isPremium = vData?.subscription?.tier === 'premium';
+            const hasSmsFeature = vData?.subscription?.features_enabled?.sms_notifications === true;
+
+            if (isPremium || hasSmsFeature) {
+              const vendorPhone = vData?.phone || vData?.listing_data?.phone || vData?.auth_info?.phone_number;
+              if (vendorPhone) {
+                const formattedVendorPhone = formatTZPhoneNumber(vendorPhone);
+                const vendorItemsText = cart
+                  .filter(item => item.vendor_id === vid)
+                  .map(item => `${item.quantity}x ${item.name}`)
+                  .join(', ');
+                const vName = vData?.name || vData?.listing_data?.name || 'Vendor';
+                const vendorSMSMessage = `Sosika: ${vName} unayo Oda Mpya! 🔔\nOda: ${docRef.id}\nBidhaa: ${vendorItemsText}\nJumla: TZS ${orderTotal}\nMteja: ${formattedPhone}\nMahali: ${displayLocation}\nFungua Sosika Console kuthibitisha.`;
+
+                sendMesejiSMS(formattedVendorPhone, vendorSMSMessage);
+              }
+            }
+          }
+        } catch (err) {
+          console.warn(`Failed to send vendor SMS for ${vid}:`, err);
+        }
+      }
 
       // --- END MESEJI SMS NOTIFICATIONS ---
 
