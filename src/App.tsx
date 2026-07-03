@@ -40,6 +40,7 @@ import AppEntryTracker from "./components/my-components/AppEntryTracker";
 import VendorOnboarding from "./pages/vendor-portal/vendor-onboarding";
 import VendorAuthPortal from "./pages/vendor-portal/auth";
 import VendorDashboard from "./pages/vendor-portal/dashboard";
+import VendorAuthGuard from "./components/my-components/VendorAuthGuard";
 
 function App() {
   // const [selectedLocation, setSelectedLocation] = useState<SavedLocation | null>(null);
@@ -120,7 +121,12 @@ function App() {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/vendor-onboarding" element={<VendorOnboarding />} />
                     <Route path="/vendor-auth" element={<VendorAuthPortal />} />
-                    <Route path="/vendor-dashboard" element={<VendorDashboard />} />
+                    
+                    {/* Protected Vendor Routes */}
+                    <Route element={<VendorAuthGuard />}>
+                      <Route path="/vendor-dashboard" element={<VendorDashboard />} />
+                    </Route>
+
                     {/* <Route path="/browse" element={<Browser />} /> */}
                     {/* Private Routes */}
                     <Route element={<PrivateRoutes />}>
