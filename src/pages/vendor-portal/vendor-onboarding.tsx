@@ -313,7 +313,7 @@ export default function VendorOnboarding() {
                                     Continue Form Setup
                                 </button>
                                 <div className="flex items-center justify-center gap-2 mt-20 text-white">
-                                    <p>Already have an account? <a href="/vendor-auth" className="text-[#00bfff] font-bold">Sign In</a></p>
+                                    <p>Already have an account? <span onClick={() => navigate("/vendor-auth")} className="text-[#00bfff] font-bold cursor-pointer">Sign In</span></p>
                                 </div>
                             </motion.div>
                         )}

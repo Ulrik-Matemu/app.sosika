@@ -6,6 +6,7 @@ import { collection, addDoc, serverTimestamp, DocumentData, DocumentReference, u
 import { useLocationStorage } from './useLocationStorage';
 import { calculateDistance, fetchVendorGeolocation } from '../pages/mood/api/mood-api';
 import posthog from './../lib/posthog';
+import { sendMesejiSMS } from '../services/meseji';
 
 emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID);
 
@@ -182,7 +183,19 @@ export function useCart() {
   }, []);
 
   // Global checkout function
- const checkout = async () => {
+  const formatTZPhoneNumber = (rawPhone: string): string => {
+    let cleaned = rawPhone.replace(/\D/g, ''); // Remove non-digits
+
+    if (cleaned.startsWith('0')) {
+      cleaned = '255' + cleaned.substring(1);
+    } else if (/^[678]/.test(cleaned)) {
+      cleaned = '255' + cleaned;
+    }
+
+    return cleaned;
+  };
+
+  const checkout = async () => {
     setLoading(true);
 
     const userId = localStorage.getItem('userId');
@@ -216,15 +229,18 @@ export function useCart() {
       return;
     }
 
-    const phone = phoneResult.value as string;
-    // Persist phone so other parts of the app can access it if needed
-    localStorage.setItem('guestPhone', phone);
-    (window as any).guestPhone = phone;
+    const rawPhone = phoneResult.value as string;
+    // Format the phone number properly for systemic consistency
+    const formattedPhone = formatTZPhoneNumber(rawPhone);
+
+    // Persist formatted phone so other parts of the app can access it if needed
+    localStorage.setItem('guestPhone', formattedPhone);
+    (window as any).guestPhone = formattedPhone;
 
     // Resume loading and continue checkout
     setLoading(true);
 
-    logEvent(analytics, 'reached_checkout', { userId, phone });
+    logEvent(analytics, 'reached_checkout', { userId, phone: formattedPhone });
 
     // 2️⃣ Check if cart is empty
     if (cart.length === 0) {
@@ -299,7 +315,6 @@ export function useCart() {
         const vendorRef = doc(db, 'vendors', cart[0].vendor_id);
         const vendorSnap = await getDoc(vendorRef);
         if (vendorSnap.exists()) {
-          // Fallback to 'name' or 'listing_data.name' depending on structure
           vendorName = vendorSnap.data().name || vendorSnap.data().listing_data?.name || 'Unknown Vendor';
         }
       } catch {
@@ -318,7 +333,7 @@ export function useCart() {
       // Save order to Firestore
       const orderData = {
         userId: userId || 'guest',
-        phone,
+        phone: formattedPhone, // Saved clean version
         cart,
         subtotal: total,
         deliveryFee,
@@ -336,14 +351,14 @@ export function useCart() {
         paymentStatus: 'unpaid',
         deliveryOption: selectedDeliveryOption,
         vendor_name: vendorName,
-        vendor_ids: uniqueVendorIds, // Explicit indexing map allows array-contains rules to run
+        vendor_ids: uniqueVendorIds,
       };
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       await updateDoc(docRef, { orderId: docRef.id });
 
       const templateParams = {
-        customer_phone: localStorage.getItem('guestPhone') || 'Guest',
+        customer_phone: formattedPhone,
         order_id: docRef.id,
         vendor_name: vendorName,
         order_items: `<ul>${orderItemsHtml}</ul>`,
@@ -353,20 +368,20 @@ export function useCart() {
         delivery_eta: deliveryOptionEta,
         total_amount: `TZS ${orderTotal}`,
         admin_email: 'sosika.app@gmail.com',
-        guest_phone: phone,
+        guest_phone: formattedPhone,
         display_location: displayLocation,
         customer_coords: locationCoords,
       };
 
       // 1. Define your IDs
-      const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID; // e.g., 'gmail_service'
-      const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID; // e.g., 'order_notification'
+      const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+      const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 
       // 2. Send admin notification email
       emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
         .catch(err => console.warn('Admin email failed silently:', err));
 
-      // 3. Send vendor notification emails — free alert for each vendor involved in this order
+      // 3. Send vendor notification emails
       for (const vid of uniqueVendorIds) {
         try {
           const vRef = doc(db, 'vendors', vid);
@@ -396,11 +411,32 @@ export function useCart() {
         }
       }
 
+      // --- BEGIN MESEJI SMS NOTIFICATIONS ---
+
+      // A. Prepare line items summary for standard SMS length limit
+      const adminItemsText = cart
+        .map(item => `${item.quantity}x ${item.name}`)
+        .join(', ');
+
+      // B. Send notification to the 2 Admin numbers in one operation
+      const ADMIN_PHONES = '255760903468,255688123103';
+      const adminSMSMessage = `New Sosika Order!\nOrder ID: ${docRef.id}\nVendor: ${vendorName}\nItems: ${adminItemsText}\nTotal: TZS ${orderTotal}\nCustomer: ${formattedPhone}\nLocation: ${displayLocation}`;
+
+      sendMesejiSMS(ADMIN_PHONES, adminSMSMessage);
+
+      // C. Send order confirmation to Customer
+      const customerSMSMessage = `Habari! Oda yako ya Sosika imepokelewa kwa ufanisi.\nOda ID: ${docRef.id}\nJumla: TZS ${orderTotal}\nTunakujulisha punde itakapothibitishwa. Ahsante!`;
+
+      sendMesejiSMS(formattedPhone, customerSMSMessage);
+
+      // --- END MESEJI SMS NOTIFICATIONS ---
+
       await Swal.fire({
         title: 'Order Placed!',
         text: `Your order has been received. We'll notify you once it's confirmed.`,
         icon: 'success'
       });
+
       posthog.capture('order_placed', {
         orderId: docRef.id,
         total: parseFloat(orderTotal),
