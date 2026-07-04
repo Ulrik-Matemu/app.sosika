@@ -17,7 +17,7 @@
  * verification will fail gracefully (subscription won't activate).
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { functions, httpsCallable } from "../../firebase";
 
 // ── Type declarations for the Digital Goods API ──────────────────────────
@@ -62,15 +62,48 @@ export interface UsePlayBillingReturn {
   purchasing: boolean;
   /** Last error message, if any */
   error: string | null;
+  /** Fetched product details from Play Console */
+  productDetails: DigitalGoodsProductDetails | null;
+  /** Loading state of product details */
+  loadingDetails: boolean;
 }
 
 export function usePlayBilling(): UsePlayBillingReturn {
   const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [productDetails, setProductDetails] = useState<DigitalGoodsProductDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   // Feature detection: Digital Goods API is only present in Android TWA/WebView
   const isPlayBillingAvailable =
     typeof window !== "undefined" && "getDigitalGoodsService" in window;
+
+  // Fetch product details automatically on load if billing is available
+  useEffect(() => {
+    if (!isPlayBillingAvailable || typeof window === "undefined" || !window.getDigitalGoodsService) return;
+
+    const getService = window.getDigitalGoodsService;
+    let active = true;
+    const fetchDetails = async () => {
+      setLoadingDetails(true);
+      try {
+        const service = await getService(PLAY_BILLING_PROVIDER);
+        const details = await service.getDetails([VENDOR_PREMIUM_SKU]);
+        if (active && details && details.length > 0) {
+          setProductDetails(details[0]);
+        }
+      } catch (err) {
+        console.warn("[usePlayBilling] Failed to fetch product details:", err);
+      } finally {
+        if (active) setLoadingDetails(false);
+      }
+    };
+
+    fetchDetails();
+    return () => {
+      active = false;
+    };
+  }, [isPlayBillingAvailable]);
 
   const handlePurchase = useCallback(
     async (sku: string = VENDOR_PREMIUM_SKU): Promise<boolean> => {
@@ -174,5 +207,7 @@ export function usePlayBilling(): UsePlayBillingReturn {
     handlePurchase,
     purchasing,
     error,
+    productDetails,
+    loadingDetails,
   };
 }

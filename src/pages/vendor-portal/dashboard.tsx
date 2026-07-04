@@ -135,6 +135,10 @@ export default function VendorDashboard() {
 
   const vendorId = currentUser?.uid;
 
+  // Premium Showcase & Billing Hook Call
+  const [showPremiumShowcase, setShowPremiumShowcase] = useState(false);
+  const playBilling = usePlayBilling();
+
   // In-App Walkthrough Engine States
   const [tourActive, setTourActive] = useState(false);
   const [currentTourStep, setCurrentTourStep] = useState(0);
@@ -736,6 +740,17 @@ export default function VendorDashboard() {
                 </button>
               );
             })}
+
+            {/* Subtle Expanded Upgrade CTA */}
+            {vendorData?.subscription?.tier !== "premium" && (
+              <button
+                onClick={() => setShowPremiumShowcase(true)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap text-zinc-500 dark:text-zinc-400 hover:text-[#00bfff] dark:hover:text-[#00bfff] hover:bg-[#00bfff]/5 dark:hover:bg-[#00bfff]/5 mt-3 border border-dashed border-zinc-200 dark:border-zinc-800/80 hover:border-[#00bfff]/30 cursor-pointer"
+              >
+                <Sparkles size={16} className="text-[#00bfff]" />
+                <span className="mr-auto">Upgrade to Premium</span>
+              </button>
+            )}
           </nav>
         ) : (
           <nav className="flex flex-col gap-2 items-center flex-1 overflow-y-auto py-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" aria-label="Main Navigation">
@@ -769,6 +784,17 @@ export default function VendorDashboard() {
                 </button>
               );
             })}
+
+            {/* Subtle Collapsed Upgrade CTA */}
+            {vendorData?.subscription?.tier !== "premium" && (
+              <button
+                onClick={() => setShowPremiumShowcase(true)}
+                title="Upgrade to Premium"
+                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all text-zinc-500 dark:text-zinc-400 hover:text-[#00bfff] dark:hover:text-[#00bfff] hover:bg-[#00bfff]/5 dark:hover:bg-[#00bfff]/5 border border-dashed border-zinc-200 dark:border-zinc-800/80 hover:border-[#00bfff]/30 mt-3 cursor-pointer"
+              >
+                <Sparkles size={16} className="text-[#00bfff]" />
+              </button>
+            )}
           </nav>
         )}
 
@@ -879,10 +905,17 @@ export default function VendorDashboard() {
             vendorData={vendorData}
             posMode={posMode}
             setPosMode={setPosMode}
+            onRequestUpgrade={() => setShowPremiumShowcase(true)}
           />
         )}
         {activeTab === "menu" && <MenuCatalogueView menuItems={menuItems} vendorId={vendorId!} />}
-        {activeTab === "profile" && <StoreSettingsView vendorData={vendorData} vendorId={vendorId!} />}
+        {activeTab === "profile" && (
+          <StoreSettingsView
+            vendorData={vendorData}
+            vendorId={vendorId!}
+            onRequestUpgrade={() => setShowPremiumShowcase(true)}
+          />
+        )}
         {activeTab === "support" && <HelpSupportView vendorData={vendorData} vendorId={vendorId!} />}
       </main>
 
@@ -950,6 +983,14 @@ export default function VendorDashboard() {
           </div>
         </div>
       )}
+
+      {/* Premium Showcase Modal */}
+      <PremiumShowcaseModal
+        isOpen={showPremiumShowcase}
+        onClose={() => setShowPremiumShowcase(false)}
+        billing={playBilling}
+        vendorData={vendorData}
+      />
     </div>
   );
 }
@@ -957,26 +998,206 @@ export default function VendorDashboard() {
 /* ==========================================================================
    1. INBOUND TICKETS AND WORKFLOW DISPATCH VIEW
    ========================================================================== */
-function BusinessInsights({ vendorData }: { vendorData: any }) {
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const { isPlayBillingAvailable, handlePurchase, purchasing, error: billingError } = usePlayBilling();
-  const { toast } = useToast();
-  const hasAnalytics = vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.analytics === true;
 
-  const onSubscribeClick = async () => {
+interface PremiumShowcaseModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  billing: ReturnType<typeof usePlayBilling>;
+  vendorData: any;
+}
+
+function PremiumShowcaseModal({ isOpen, onClose, billing, vendorData }: PremiumShowcaseModalProps) {
+  const { isPlayBillingAvailable, handlePurchase, purchasing, error: billingError, productDetails, loadingDetails } = billing;
+  const { toast } = useToast();
+
+  if (!isOpen) return null;
+
+  const onActivateClick = async () => {
     if (isPlayBillingAvailable) {
-      // Digital Goods API path (TWA / Android WebView)
       const success = await handlePurchase();
       if (success) {
-        toast({ title: "Subscription Activated!", description: "Premium features are now unlocked. Your dashboard will update momentarily." });
-      } else if (billingError) {
-        toast({ title: "Subscription Failed", description: billingError, variant: "destructive" });
+        toast({
+          title: "Subscription Activated!",
+          description: "Premium features are now unlocked. Your dashboard will update momentarily.",
+        });
+        onClose();
       }
-    } else {
-      // Desktop fallback — show modal with instructions
-      setShowUpgradeModal(true);
     }
   };
+
+  // Determine display price
+  let displayPrice = "50,000 TZS / month";
+  if (productDetails && productDetails.price) {
+    displayPrice = `${parseFloat(productDetails.price.value).toLocaleString()} ${productDetails.price.currency} / month`;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-[#0c0c0e] border border-zinc-200 dark:border-white/[0.08] rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh] text-zinc-900 dark:text-white animate-in zoom-in-95 duration-200">
+
+        {/* Decorative Top Banner */}
+        <div className="h-2 bg-gradient-to-r from-[#00bfff] via-[#00a8e6] to-[#00bfff] shrink-0" />
+
+        {/* Modal Close Button */}
+        <button
+          onClick={onClose}
+          aria-label="Close subscription modal"
+          className="absolute top-5 right-5 p-1.5 rounded-full text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-all cursor-pointer z-10"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Scrollable Container */}
+        <div className="p-6 md:p-8 overflow-y-auto space-y-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-zinc-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+
+          {/* Header Section */}
+          <div className="text-center space-y-2 relative">
+            {/* Sparkling Icon */}
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#00bfff]/20 to-[#00a8e6]/5 border border-[#00bfff]/30 flex items-center justify-center text-[#00bfff] mx-auto shadow-sm relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+              <Sparkles size={28} className="animate-pulse" />
+            </div>
+
+            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#00bfff]/10 border border-[#00bfff]/25 text-[#00bfff] text-[9px] font-black uppercase tracking-widest">
+              Premium Partner
+            </div>
+
+            <h3 className="text-xl font-black tracking-tight mt-1">Elevate {vendorData?.name || "Your Sosika Kitchen"}</h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto leading-relaxed">
+              Unlock advanced tools engineered to help you coordinate deliveries faster, track store performance, and retain student customers.
+            </p>
+          </div>
+
+          {/* Features Checklist */}
+          <div className="space-y-3">
+            {[
+              {
+                icon: Phone,
+                title: "Unmasked Customer Contacts",
+                desc: "Directly view and call customer phone numbers to resolve order details, coordinate pickups, or navigate drivers without communication blocks."
+              },
+              {
+                icon: MapPin,
+                title: "Live Geotargeting Routing",
+                desc: "Access customer coordinates and open them directly in Google Maps for seamless and fast route planning."
+              },
+              {
+                icon: TrendingUp,
+                title: "Advanced Business Insights",
+                desc: "Gain data clarity on peak order hours, most popular food dishes, and customer loyalty retention percentages."
+              },
+              {
+                icon: MessageSquare,
+                title: "Automated SMS Updates",
+                desc: "Provide customers with instant automated SMS notifications as their orders transition through prep and delivery stages."
+              }
+            ].map((feature, idx) => {
+              const Icon = feature.icon;
+              return (
+                <div key={idx} className="flex gap-4 p-3.5 rounded-2xl border border-zinc-100 dark:border-white/[0.02] bg-zinc-50/50 dark:bg-white/[0.01] hover:bg-zinc-50 dark:hover:bg-white/[0.02] hover:border-zinc-200 dark:hover:border-white/[0.05] transition-all duration-200">
+                  <div className="p-2 rounded-xl bg-[#00bfff]/10 text-[#00bfff] shrink-0 h-10 w-10 flex items-center justify-center">
+                    <Icon size={18} />
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white">{feature.title}</h4>
+                    <p className="text-[11px] text-zinc-550 dark:text-zinc-400 leading-relaxed">{feature.desc}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Error display */}
+          {billingError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs flex items-center gap-2">
+              <AlertCircle size={14} className="shrink-0" />
+              <span>{billingError}</span>
+            </div>
+          )}
+
+          {/* Pricing & Billing Terms */}
+          <div className="border-t border-zinc-100 dark:border-white/[0.05] pt-4">
+            {loadingDetails ? (
+              <div className="h-12 bg-zinc-100 dark:bg-zinc-900 animate-pulse rounded-xl" />
+            ) : (
+              <div className="bg-[#00bfff]/5 border border-[#00bfff]/20 p-4 rounded-2xl flex items-center justify-between">
+                <div>
+                  <p className="text-[9px] uppercase tracking-wider font-extrabold text-[#00bfff]">Premium Plan</p>
+                  <p className="text-base font-black tracking-tight text-zinc-955 dark:text-white mt-0.5">{displayPrice}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Google Play Billing</p>
+                  <p className="text-[10px] text-zinc-400 dark:text-zinc-555 font-medium">Cancel anytime</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Action Footer */}
+          <div className="space-y-3 pt-2">
+            {isPlayBillingAvailable ? (
+              <button
+                onClick={onActivateClick}
+                disabled={purchasing}
+                className="w-full bg-gradient-to-r from-[#00bfff] to-[#00a8e6] text-black font-extrabold text-xs py-4 rounded-xl hover:opacity-95 transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-[#00bfff]/10"
+              >
+                {purchasing ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Connecting to Google Play...
+                  </>
+                ) : (
+                  <>
+                    <Smartphone size={14} />
+                    Activate Subscription Now
+                  </>
+                )}
+              </button>
+            ) : (
+              /* Desktop Fallback Instruction Flow */
+              <div className="space-y-4">
+                <div className="border border-amber-500/20 bg-amber-500/5 p-4 rounded-2xl space-y-2">
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">🚨 Action Required on Mobile Device</span>
+                  <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                    To authorize secure payment transactions, subscription billing runs exclusively through Google Play Store billing on our native Android mobile application.
+                  </p>
+                </div>
+
+                <div className="bg-zinc-50 dark:bg-white/[0.01] border border-zinc-150 dark:border-white/[0.04] p-4 rounded-2xl">
+                  <p className="text-[10px] text-zinc-505 uppercase font-black tracking-widest">How to subscribe:</p>
+                  <ol className="text-xs text-zinc-700 dark:text-zinc-300 text-left list-decimal list-inside space-y-2 mt-2 font-medium">
+                    <li>Launch the <strong className="text-zinc-955 dark:text-white">Sosika Hub</strong> app on your Android device.</li>
+                    <li>Navigate to the <strong className="text-zinc-955 dark:text-white">Store Settings</strong> tab in your profile.</li>
+                    <li>Locate <strong className="text-zinc-955 dark:text-white">Subscription Settings</strong> and tap the upgrade button.</li>
+                    <li>Your dashboard features will immediately unlock here in real-time.</li>
+                  </ol>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={onClose}
+              disabled={purchasing}
+              className="w-full text-center text-xs font-bold text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-200 transition-all py-1 cursor-pointer bg-transparent border-none"
+            >
+              Maybe Later
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BusinessInsights({
+  vendorData,
+  onRequestUpgrade
+}: {
+  vendorData: any;
+  onRequestUpgrade: () => void;
+}) {
+  const hasAnalytics = vendorData?.subscription?.tier === "premium" || vendorData?.subscription?.features_enabled?.analytics === true;
 
   return (
     <div className="border border-zinc-200 dark:border-white/[0.05] rounded-2xl bg-white dark:bg-white/[0.01] p-6 relative overflow-hidden mt-8 shadow-xs dark:shadow-none">
@@ -1054,7 +1275,7 @@ function BusinessInsights({ vendorData }: { vendorData: any }) {
                 <path className="text-zinc-200 dark:text-white/[0.04]" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                 <path className="text-[#00bfff]" strokeDasharray="72, 100" strokeWidth="3" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               </svg>
-              <div className="absolute text-xs font-mono font-bold text-zinc-950 dark:text-white">72%</div>
+              <div className="absolute text-xs font-mono font-bold text-zinc-955 dark:text-white">72%</div>
             </div>
             <div className="text-left">
               <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">+4.2%</p>
@@ -1077,89 +1298,13 @@ function BusinessInsights({ vendorData }: { vendorData: any }) {
 
             <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
               Unlock real-time demand analytics, student ordering peaks, and customer loyalty tracking.
-              {isPlayBillingAvailable
-                ? " Tap below to subscribe via Google Play."
-                : " Open the Sosika Vendor app on your Android device to manage your subscription."}
             </p>
 
             <button
-              onClick={onSubscribeClick}
-              disabled={purchasing}
-              className="bg-gradient-to-r from-[#00bfff] to-[#00a8e6] text-black font-bold text-xs px-5 py-2.5 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] pointer-events-auto flex items-center gap-2 mx-auto disabled:opacity-50"
+              onClick={onRequestUpgrade}
+              className="bg-gradient-to-r from-[#00bfff] to-[#00a8e6] text-black font-extrabold text-xs px-5 py-2.5 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] pointer-events-auto flex items-center gap-2 mx-auto shadow-md"
             >
-              {purchasing ? (
-                <><Loader2 size={14} className="animate-spin" /> Processing...</>
-              ) : isPlayBillingAvailable ? (
-                <><Smartphone size={14} /> Subscribe via Google Play</>
-              ) : (
-                <><Monitor size={14} /> How to Subscribe</>
-              )}
-            </button>
-
-            {!isPlayBillingAvailable && (
-              <div className="flex items-start gap-3 bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.04] rounded-xl p-4 text-left pointer-events-auto">
-                <Monitor size={18} className="text-[#00bfff] shrink-0 mt-0.5" />
-                <div className="space-y-1.5">
-                  <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
-                    <strong className="text-zinc-900 dark:text-white">Desktop detected:</strong> Subscription management is handled securely through Google Play Billing on the <strong className="text-[#00bfff]">Sosika Vendor</strong> Android app.
-                  </p>
-                  <p className="text-[10px] text-zinc-400 dark:text-zinc-500">Already subscribed? Your dashboard will update automatically via real-time sync.</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Premium Upgrade Explainer Modal (Desktop fallback) */}
-      {showUpgradeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#0f0f11] border border-zinc-200 dark:border-white/[0.08] rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl relative text-zinc-900 dark:text-white">
-            <div className="w-12 h-12 rounded-full bg-[#00bfff]/10 flex items-center justify-center text-[#00bfff] mx-auto">
-              <TrendingUp size={24} />
-            </div>
-            <div className="text-center space-y-1">
-              <h3 className="text-base font-bold">Subscribe via Sosika Hub</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed text-balance">
-                To activate Premium Console features, subscription management runs directly through the Google Play Store billing portal on your <strong className="text-[#00bfff]">Sosika Hub mobile app</strong>.
-              </p>
-            </div>
-            <div className="border border-[#00bfff]/20 bg-[#00bfff]/5 p-3.5 rounded-xl text-center space-y-2">
-              <span className="text-[10px] font-bold text-[#00bfff] uppercase tracking-wider block">🚨 Action Required on Mobile</span>
-              <p className="text-xs text-zinc-700 dark:text-zinc-300">
-                Play Store subscriptions can <strong className="text-zinc-900 dark:text-white">only</strong> be processed and managed inside our native Android application.
-              </p>
-            </div>
-
-            <div className="bg-zinc-50 dark:bg-white/[0.02] border border-zinc-250 dark:border-white/[0.04] p-3.5 rounded-xl text-center">
-              <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">How to activate on mobile:</p>
-              <ol className="text-xs text-zinc-700 dark:text-zinc-300 text-left list-decimal list-inside space-y-1.5 mt-2">
-                <li>Open the <strong className="text-zinc-900 dark:text-white">Sosika Hub</strong> app on your device</li>
-                <li>Go to <strong className="text-zinc-900 dark:text-white">Account &gt; Subscription</strong></li>
-                <li>Select the Premium Plan and confirm</li>
-              </ol>
-            </div>
-
-            <div className="flex items-center gap-3 bg-zinc-50 dark:bg-white/[0.02] border border-zinc-250 dark:border-white/[0.04] p-3 rounded-xl text-left">
-              <Lock size={14} className="text-zinc-400 shrink-0" />
-              <div>
-                <p className="text-[10px] text-zinc-500">Already subscribed? Manage or cancel:</p>
-                <a
-                  href="https://play.google.com/store/account/subscriptions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-[#00bfff] font-bold hover:underline"
-                >
-                  Open Google Play Subscriptions →
-                </a>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowUpgradeModal(false)}
-              className="w-full bg-zinc-950 dark:bg-white text-white dark:text-black font-bold text-xs py-3 rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all"
-            >
-              Acknowledge
+              <Sparkles size={14} /> Unlock Premium Insights
             </button>
           </div>
         </div>
@@ -1173,13 +1318,15 @@ function LiveOrdersView({
   vendorId,
   vendorData,
   posMode,
-  setPosMode
+  setPosMode,
+  onRequestUpgrade
 }: {
   orders: any[];
   vendorId: string;
   vendorData: any;
   posMode: boolean;
   setPosMode: (val: boolean) => void;
+  onRequestUpgrade: () => void;
 }) {
   const { toast } = useToast();
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -1341,18 +1488,29 @@ function LiveOrdersView({
 
                       {/* Delivery & Customer Info */}
                       <div className="bg-zinc-50 dark:bg-zinc-800/10 p-3.5 rounded-xl border border-zinc-150 dark:border-zinc-800/30 text-xs space-y-2">
-                        <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-                          <Phone size={14} className="text-zinc-400 shrink-0" />
-                          {hasExtendedInfo ? (
+                        {hasExtendedInfo ? (
+                          <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                            <Phone size={14} className="text-zinc-400 shrink-0" />
                             <span className="font-mono font-bold">{order.phone || order.customer_phone || "N/A"}</span>
-                          ) : (
-                            <span className="font-mono text-zinc-400">{maskPhoneNumber(order.phone || order.customer_phone || "")}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-                          <MapPin size={14} className="text-zinc-400 shrink-0" />
-                          {hasExtendedInfo ? (
-                            order.locationCoords && order.locationCoords !== "N/A" ? (
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => onRequestUpgrade()}
+                            className="w-full flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-[#00bfff] transition-colors text-left group cursor-pointer bg-transparent border-none p-0"
+                            title="Unlock Premium to view phone number"
+                          >
+                            <Phone size={14} className="text-zinc-400 group-hover:text-[#00bfff] shrink-0" />
+                            <span className="font-mono text-zinc-500 group-hover:text-[#00bfff] transition-colors flex items-center gap-1.5">
+                              {maskPhoneNumber(order.phone || order.customer_phone || "")}
+                              <span className="text-[9px] bg-[#00bfff]/10 text-[#00bfff] px-1.5 py-0.2 rounded border border-[#00bfff]/20 font-black uppercase">Unlock</span>
+                            </span>
+                          </button>
+                        )}
+
+                        {hasExtendedInfo ? (
+                          <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                            <MapPin size={14} className="text-zinc-400 shrink-0" />
+                            {order.locationCoords && order.locationCoords !== "N/A" ? (
                               <a
                                 href={`https://www.google.com/maps?q=${order.locationCoords}`}
                                 target="_blank"
@@ -1363,11 +1521,21 @@ function LiveOrdersView({
                               </a>
                             ) : (
                               <span className="truncate">{order.displayLocation || "N/A"}</span>
-                            )
-                          ) : (
-                            <span className="text-zinc-450 dark:text-zinc-500 font-medium">🔒 Premium Feature</span>
-                          )}
-                        </div>
+                            )}
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => onRequestUpgrade()}
+                            className="w-full flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-[#00bfff] transition-colors text-left group cursor-pointer bg-transparent border-none p-0"
+                            title="Unlock Premium to view location routing"
+                          >
+                            <MapPin size={14} className="text-zinc-450 group-hover:text-[#00bfff] shrink-0" />
+                            <span className="text-zinc-455 group-hover:text-[#00bfff] transition-colors font-medium flex items-center gap-1.5">
+                              🔒 Geotargeting Locked
+                              <span className="text-[9px] bg-[#00bfff]/10 text-[#00bfff] px-1.5 py-0.2 rounded border border-[#00bfff]/20 font-black uppercase">Unlock</span>
+                            </span>
+                          </button>
+                        )}
                       </div>
 
                       {/* Total & Action Buttons */}
@@ -1566,18 +1734,26 @@ function LiveOrdersView({
                   {/* Customer Contact & Location Info — Gated by extended_customer_info */}
                   <div className="border-t border-zinc-100 dark:border-white/[0.03] pt-3 space-y-2">
                     <div className="flex items-center gap-4 flex-wrap">
-                      <div className="flex items-center gap-1.5">
-                        <Phone size={12} className="text-zinc-400" />
-                        {hasExtendedInfo ? (
+                      {hasExtendedInfo ? (
+                        <div className="flex items-center gap-1.5">
+                          <Phone size={12} className="text-zinc-400" />
                           <span className="text-xs text-zinc-700 dark:text-zinc-300 font-mono font-medium">{order.phone || order.customer_phone || "N/A"}</span>
-                        ) : (
-                          <span className="text-xs text-zinc-500 font-mono">{maskPhoneNumber(order.phone || order.customer_phone || "")}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <MapPin size={12} className="text-zinc-400" />
-                        {hasExtendedInfo ? (
-                          order.locationCoords && order.locationCoords !== "N/A" ? (
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => onRequestUpgrade()}
+                          className="flex items-center gap-1.5 text-zinc-500 hover:text-[#00bfff] transition-colors cursor-pointer bg-transparent border-none p-0 group"
+                        >
+                          <Phone size={12} className="text-zinc-400 group-hover:text-[#00bfff]" />
+                          <span className="text-xs font-mono group-hover:text-[#00bfff]">{maskPhoneNumber(order.phone || order.customer_phone || "")}</span>
+                          <span className="text-[8px] bg-[#00bfff]/10 text-[#00bfff] px-1 rounded border border-[#00bfff]/20 font-black uppercase">Unlock</span>
+                        </button>
+                      )}
+
+                      {hasExtendedInfo ? (
+                        <div className="flex items-center gap-1.5">
+                          <MapPin size={12} className="text-zinc-400" />
+                          {order.locationCoords && order.locationCoords !== "N/A" ? (
                             <a
                               href={`https://www.google.com/maps?q=${order.locationCoords}`}
                               target="_blank"
@@ -1588,19 +1764,29 @@ function LiveOrdersView({
                             </a>
                           ) : (
                             <span className="text-xs text-zinc-500 dark:text-zinc-400">{order.displayLocation || "N/A"}</span>
-                          )
-                        ) : (
-                          <span className="text-xs text-zinc-500">🔒 Premium Feature</span>
-                        )}
-                      </div>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => onRequestUpgrade()}
+                          className="flex items-center gap-1.5 text-zinc-500 hover:text-[#00bfff] transition-colors cursor-pointer bg-transparent border-none p-0 group"
+                        >
+                          <MapPin size={12} className="text-zinc-400 group-hover:text-[#00bfff]" />
+                          <span className="text-xs group-hover:text-[#00bfff]">🔒 Geotargeting Locked</span>
+                          <span className="text-[8px] bg-[#00bfff]/10 text-[#00bfff] px-1 rounded border border-[#00bfff]/20 font-black uppercase">Unlock</span>
+                        </button>
+                      )}
                     </div>
                     {!hasExtendedInfo && (
-                      <p className="text-[10px] text-zinc-500 dark:text-zinc-550 leading-relaxed">
+                      <button
+                        onClick={() => onRequestUpgrade()}
+                        className="text-[10px] text-zinc-500 dark:text-zinc-450 hover:text-[#00bfff] transition-all text-left underline font-medium cursor-pointer bg-transparent border-none p-0"
+                      >
                         {isAndroidWrapper()
                           ? "Upgrade to Premium to reveal full customer contact info and delivery coordinates."
                           : "Open the Sosika Vendor app on Android to upgrade and reveal full buyer details."
                         }
-                      </p>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -1664,7 +1850,12 @@ function LiveOrdersView({
       </div>
 
       {/* Business Insights Block */}
-      {!posMode && <BusinessInsights vendorData={vendorData} />}
+      {!posMode && (
+        <BusinessInsights
+          vendorData={vendorData}
+          onRequestUpgrade={onRequestUpgrade}
+        />
+      )}
     </div>
   );
 }
@@ -1912,7 +2103,15 @@ function MenuCatalogueView({ menuItems, vendorId }: { menuItems: any[]; vendorId
 /* ==========================================================================
    3. STORE SETTINGS SUB-VIEW (DUAL SCHEMA NORMALIZATION WRITER)
    ========================================================================== */
-function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId: string }) {
+function StoreSettingsView({
+  vendorData,
+  vendorId,
+  onRequestUpgrade
+}: {
+  vendorData: any;
+  vendorId: string;
+  onRequestUpgrade: () => void;
+}) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -2319,9 +2518,30 @@ function StoreSettingsView({ vendorData, vendorId }: { vendorData: any; vendorId
           {vendorData?.subscription?.tier === "premium" && vendorData?.subscription?.expires_at && (
             <div className="flex items-center justify-between text-xs px-1 border-t border-zinc-100 dark:border-zinc-800/40 pt-3">
               <span className="text-zinc-500">Subscription Renews / Expires:</span>
-              <span className="font-mono font-bold text-zinc-950 dark:text-white">
+              <span className="font-mono font-bold text-zinc-955 dark:text-white">
                 {new Date(vendorData.subscription.expires_at).toLocaleDateString()}
               </span>
+            </div>
+          )}
+
+          {vendorData?.subscription?.tier !== "premium" && (
+            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-white/[0.02] border border-zinc-150 dark:border-white/[0.04] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                  <Sparkles size={13} className="text-[#00bfff]" />
+                  Sosika Premium Benefits
+                </h4>
+                <p className="text-[11px] text-zinc-505 dark:text-zinc-400 leading-relaxed">
+                  Gain access to unmasked customer contacts, exact Google Map coordinates routing, automated student SMS alerts, and peak order hours analytics.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onRequestUpgrade}
+                className="shrink-0 border border-[#00bfff]/40 hover:bg-[#00bfff]/5 text-[#00bfff] font-bold text-[11px] px-4 py-2 rounded-xl transition-all active:scale-[0.98] cursor-pointer"
+              >
+                View Plan Details
+              </button>
             </div>
           )}
 
