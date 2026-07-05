@@ -31,6 +31,8 @@ export default function Navbar() {
     selectedDeliveryOption,
     setSelectedDeliveryOption,
     calculatingFee,
+    freeDeliveryUsesLeft,
+    freeDeliveryResetDate,
   } = useCartContext();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -119,6 +121,8 @@ export default function Navbar() {
         selectedDeliveryOption={selectedDeliveryOption}
         setSelectedDeliveryOption={setSelectedDeliveryOption}
         calculatingFee={calculatingFee}
+        freeDeliveryUsesLeft={freeDeliveryUsesLeft}
+        freeDeliveryResetDate={freeDeliveryResetDate}
       />
     </>
   );

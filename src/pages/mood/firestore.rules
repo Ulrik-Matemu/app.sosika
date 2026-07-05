@@ -36,6 +36,13 @@ service cloud.firestore {
     }
 
     // -----------------------------
+    // Free Delivery Pass
+    // -----------------------------
+    match /freeDeliveryPass/{phone} {
+      allow read, write: if true;
+    }
+
+    // -----------------------------
     // Support Tickets
     // -----------------------------
     match /supportTickets/{ticketId} {

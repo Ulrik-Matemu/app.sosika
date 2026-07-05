@@ -18,7 +18,13 @@ interface CartDrawerProps {
   selectedDeliveryOption: DeliveryOptionId;
   setSelectedDeliveryOption: (id: DeliveryOptionId) => void;
   calculatingFee: boolean;
+  freeDeliveryUsesLeft: number;
+  freeDeliveryResetDate: number;
 }
+
+const getResetDateString = (resetTimestamp: number) => {
+  return new Date(resetTimestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
 
 const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen,
@@ -35,7 +41,20 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   selectedDeliveryOption,
   setSelectedDeliveryOption,
   calculatingFee,
+  freeDeliveryUsesLeft,
+  freeDeliveryResetDate,
 }) => {
+  const [showBanner, setShowBanner] = React.useState(() => {
+    return localStorage.getItem('sosika_free_delivery_pass_banner_dismissed') !== 'true';
+  });
+
+  const dismissBanner = () => {
+    localStorage.setItem('sosika_free_delivery_pass_banner_dismissed', 'true');
+    setShowBanner(false);
+  };
+
+  const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -139,17 +158,38 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
             {/* Footer Summary */}
             {cart.length > 0 && (
               <div className="p-4 border-t border-white/[0.06] bg-white/[0.01] space-y-4">
+                {/* Intro Banner */}
+                {showBanner && (
+                  <div className="relative p-3 rounded-xl bg-white/[0.02] border border-[#00bfff]/20 text-xs text-zinc-300 space-y-1">
+                    <div className="font-bold text-white flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00bfff] animate-pulse" />
+                      Sosika Free Delivery Pass
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-normal">
+                      Enjoy 3 free scheduled 24hr deliveries every two weeks! The pass resets 14 days after your first usage of each cycle.
+                    </p>
+                    <button
+                      onClick={dismissBanner}
+                      className="mt-1 text-[10px] font-bold text-[#00bfff] hover:text-[#00a6e0] transition-colors"
+                    >
+                      Got it, thanks!
+                    </button>
+                  </div>
+                )}
+
                 {/* Delivery Option Selector */}
                 <div className="space-y-2">
                   <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Delivery Option</span>
                   <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none">
                     {DELIVERY_OPTIONS.map((option) => {
                       const isSelected = selectedDeliveryOption === option.id;
+                      const isFreeOption = option.id === 'free';
+                      const isOutOfFreeUses = isFreeOption && freeDeliveryUsesLeft === 0;
 
                       // Calculate displayed fee
                       let feeDisplay = '';
                       if (option.isFree) {
-                        feeDisplay = 'Free';
+                        feeDisplay = isOutOfFreeUses ? 'Unavailable' : 'Free';
                       } else if (option.isPickup) {
                         feeDisplay = 'You pick up';
                       } else {
@@ -157,23 +197,51 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                         feeDisplay = `${optionFee.toLocaleString()} TZS`;
                       }
 
+                      const labelText = isFreeOption ? 'Free Delivery Pass' : option.label;
+                      const etaText = isFreeOption 
+                        ? (isOutOfFreeUses 
+                            ? `Resets ${getResetDateString(freeDeliveryResetDate)}` 
+                            : `${option.eta} (${freeDeliveryUsesLeft} of 3 left)`)
+                        : option.eta;
+
                       return (
                         <button
                           key={option.id}
-                          onClick={() => setSelectedDeliveryOption(option.id)}
+                          disabled={isOutOfFreeUses}
+                          onClick={() => {
+                            if (!isOutOfFreeUses) {
+                              setSelectedDeliveryOption(option.id);
+                            }
+                          }}
                           className={`flex-shrink-0 text-left p-3 rounded-xl border transition-all duration-200 min-w-[125px] bg-white/[0.01] flex flex-col justify-between ${
-                            isSelected
-                              ? 'border-[#00bfff] text-[#00bfff] bg-white/[0.02]'
-                              : 'border-white/[0.06] text-zinc-400 hover:border-white/[0.12] hover:text-zinc-300'
+                            isOutOfFreeUses
+                              ? 'opacity-40 cursor-not-allowed border-white/[0.04] text-zinc-600'
+                              : isSelected
+                                ? 'border-[#00bfff] text-[#00bfff] bg-white/[0.02]'
+                                : 'border-white/[0.06] text-zinc-400 hover:border-white/[0.12] hover:text-zinc-300'
                           }`}
                         >
                           <div>
-                            <div className={`text-xs font-bold truncate ${isSelected ? 'text-[#00bfff]' : 'text-zinc-200'}`}>
-                              {option.label}
+                            <div className={`text-xs font-bold truncate ${
+                              isOutOfFreeUses 
+                                ? 'text-zinc-600' 
+                                : isSelected 
+                                  ? 'text-[#00bfff]' 
+                                  : 'text-zinc-200'
+                            }`}>
+                              {labelText}
                             </div>
-                            <div className="text-[10px] text-zinc-500 mt-0.5">{option.eta}</div>
+                            <div className={`text-[10px] mt-0.5 ${isOutOfFreeUses ? 'text-red-500/80 font-medium' : 'text-zinc-500'}`}>
+                              {etaText}
+                            </div>
                           </div>
-                          <div className={`text-xs font-semibold mt-2 ${isSelected ? 'text-[#00bfff]' : 'text-zinc-400'}`}>
+                          <div className={`text-xs font-semibold mt-2 ${
+                            isOutOfFreeUses 
+                              ? 'text-zinc-600' 
+                              : isSelected 
+                                ? 'text-[#00bfff]' 
+                                : 'text-zinc-400'
+                          }`}>
                             {feeDisplay}
                           </div>
                         </button>
@@ -183,10 +251,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
 
                 {/* Price summary block */}
-                <div className="space-y-1.5 text-sm pt-2 border-t border-white/[0.04]">
+                <div className="space-y-1.5 text-sm pt-2 border-t border-t-white/[0.04]">
                   <div className="flex justify-between text-zinc-400">
                     <span>Subtotal</span>
-                    <span className="font-medium text-white">{(cartTotal - deliveryFee).toLocaleString()} TZS</span>
+                    <span className="font-medium text-white">{subtotal.toLocaleString()} TZS</span>
+                  </div>
+                  <div className="flex justify-between text-zinc-400">
+                    <span>Service Fee</span>
+                    <span className="font-medium text-white">500 TZS</span>
                   </div>
                   <div className="flex justify-between text-zinc-400">
                     <span>Delivery Fee</span>

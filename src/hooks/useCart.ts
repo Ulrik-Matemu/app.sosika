@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import emailjs from '@emailjs/browser';
 import Swal from 'sweetalert2';
 import { logEvent, analytics, db } from '../firebase';
-import { collection, addDoc, serverTimestamp, DocumentData, DocumentReference, updateDoc as firestoreUpdateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, getDoc, runTransaction, setDoc } from 'firebase/firestore';
 import { useLocationStorage } from './useLocationStorage';
 import { calculateDistance, fetchVendorGeolocation } from '../pages/mood/api/mood-api';
 import posthog from './../lib/posthog';
@@ -64,7 +64,7 @@ export const DELIVERY_OPTIONS: DeliveryOption[] = [
   },
   {
     id: 'free',
-    label: 'Free delivery',
+    label: 'Free Delivery Pass',
     sublabel: 'Scheduled delivery',
     feeMultiplier: 0,
     fixedSurcharge: 0,
@@ -99,6 +99,55 @@ export function useCart() {
   const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<DeliveryOptionId>('bodaboda');
   const [loading, setLoading] = useState<boolean>(false);
   const [calculatingFee, setCalculatingFee] = useState<boolean>(false);
+  const [freeDeliveryUsesLeft, setFreeDeliveryUsesLeft] = useState<number>(3);
+  const [freeDeliveryResetDate, setFreeDeliveryResetDate] = useState<number>(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+  // Fetch free delivery pass details on mount and whenever guestPhone/cart changes
+  useEffect(() => {
+    const fetchPass = async () => {
+      const phone = localStorage.getItem('guestPhone');
+      const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
+
+      if (!phone) {
+        setFreeDeliveryUsesLeft(3);
+        setFreeDeliveryResetDate(now + twoWeeksMs);
+        return;
+      }
+      try {
+        const passRef = doc(db, 'freeDeliveryPass', phone);
+        const passSnap = await getDoc(passRef);
+        
+        if (passSnap.exists()) {
+          const data = passSnap.data();
+          const lastReset = data.lastResetTimestamp ?? now;
+          if (now - lastReset >= twoWeeksMs) {
+            // Lazy reset on read
+            setFreeDeliveryUsesLeft(3);
+            setFreeDeliveryResetDate(now + twoWeeksMs);
+          } else {
+            setFreeDeliveryUsesLeft(typeof data.usesLeft === 'number' ? data.usesLeft : 3);
+            setFreeDeliveryResetDate(lastReset + twoWeeksMs);
+          }
+        } else {
+          setFreeDeliveryUsesLeft(3);
+          setFreeDeliveryResetDate(now + twoWeeksMs);
+        }
+      } catch (err) {
+        console.error("Error fetching free delivery pass:", err);
+        setFreeDeliveryUsesLeft(3);
+        setFreeDeliveryResetDate(now + twoWeeksMs);
+      }
+    };
+    fetchPass();
+  }, [cart]);
+
+  // Fallback to bodaboda if out of uses
+  useEffect(() => {
+    if (freeDeliveryUsesLeft === 0 && selectedDeliveryOption === 'free') {
+      setSelectedDeliveryOption('bodaboda');
+    }
+  }, [freeDeliveryUsesLeft, selectedDeliveryOption]);
 
   // Persist cart to localStorage on change and calculate total and delivery fee
   useEffect(() => {
@@ -111,32 +160,43 @@ export function useCart() {
         let currentDeliveryFee = 0;
         let currentBaseFee = 0;
 
-        if (cart.length > 0 && userLocation) {
+        if (cart.length > 0) {
           const firstItemVendorId = cart[0].vendor_id;
           const vendorGeolocation = await fetchVendorGeolocation(firstItemVendorId);
 
-          if (vendorGeolocation) {
+          if (userLocation && vendorGeolocation) {
             const distance = calculateDistance(
               userLocation,
               vendorGeolocation
             );
-            console.log(distance);
-            // Delivery fee: 1200 TSH per kilometer
-            // Calculate base fee (TZS 1200 per km) then round up to nearest 100 TZS for cash-friendly payment
-            currentBaseFee = Math.ceil(distance * 1200); // base in whole TZS
+            console.log("Calculated distance:", distance);
 
-            const option = DELIVERY_OPTIONS.find(o => o.id === selectedDeliveryOption) || DELIVERY_OPTIONS[1];
-            if (option.isFree || option.isPickup) {
-              currentDeliveryFee = 0;
-            } else {
-              currentDeliveryFee = Math.ceil((currentBaseFee * option.feeMultiplier + option.fixedSurcharge) / 100) * 100;
-            }
+            // Delivery fee: 1200 TSH per kilometer
+            // Calculate base fee (TZS 1200 per km)
+            const calculatedBaseFee = Math.ceil(distance * 1200);
+
+            // Enforce a minimum base fee of 2000 TZS to prevent 0 or unrealistically low delivery fees
+            currentBaseFee = Math.max(calculatedBaseFee, 2000);
+          } else {
+            // Fallback base fee of 2000 TZS if user location or vendor geolocation is unavailable
+            currentBaseFee = 2000;
           }
+
+          const option = DELIVERY_OPTIONS.find(o => o.id === selectedDeliveryOption) || DELIVERY_OPTIONS[1];
+          if (option.isFree || option.isPickup) {
+            currentDeliveryFee = 0;
+          } else {
+            currentDeliveryFee = Math.ceil((currentBaseFee * option.feeMultiplier + option.fixedSurcharge) / 100) * 100;
+          }
+
+          const serviceFee = 500;
+          setCartTotal(subtotal + currentDeliveryFee + serviceFee);
+        } else {
+          setCartTotal(0);
         }
-        console.log(currentDeliveryFee);
+        console.log("Final delivery fee:", currentDeliveryFee);
         setBaseFee(currentBaseFee);
         setDeliveryFee(currentDeliveryFee);
-        setCartTotal(subtotal + currentDeliveryFee);
       } catch (err) {
         console.error("Error calculating totals:", err);
       } finally {
@@ -257,10 +317,12 @@ export function useCart() {
 
     // 1. Calculate the total price
     const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-    const orderTotal = (total + deliveryFee).toFixed(2);
+    const serviceFee = 500;
+    const orderTotal = (total + deliveryFee + serviceFee).toFixed(2);
 
     posthog.capture('checkout_started', {
       delivery_fee: deliveryFee,
+      service_fee: serviceFee,
       platform: 'app',
       total_amount: total,
       deliveryOption: selectedDeliveryOption
@@ -330,6 +392,10 @@ export function useCart() {
       // Extract all distinct vendor IDs present in this purchase payload
       const uniqueVendorIds = [...new Set(cart.map(item => item.vendor_id).filter(Boolean))];
 
+      // Pre-allocate DocumentReference and order ID
+      const orderRef = doc(collection(db, 'orders'));
+      const generatedOrderId = orderRef.id;
+
       // Save order to Firestore
       const orderData = {
         userId: userId || 'guest',
@@ -337,8 +403,9 @@ export function useCart() {
         cart,
         subtotal: total,
         deliveryFee,
+        serviceFee: 500,
         totalAmount: parseFloat(orderTotal),
-        orderId: `ORD-${Date.now()}`,
+        orderId: generatedOrderId,
         displayLocation,
         locationCoords,
         rawCoordinates,
@@ -354,15 +421,81 @@ export function useCart() {
         vendor_ids: uniqueVendorIds,
       };
 
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
-      await updateDoc(docRef, { orderId: docRef.id });
+      let docRef = orderRef;
+
+      if (selectedDeliveryOption === 'free') {
+        const passRef = doc(db, 'freeDeliveryPass', formattedPhone);
+        const now = Date.now();
+        const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+
+        try {
+          await runTransaction(db, async (transaction) => {
+            const passSnap = await transaction.get(passRef);
+            let usesLeft = 3;
+            let lastReset = now;
+
+            if (passSnap.exists()) {
+              const data = passSnap.data();
+              lastReset = data.lastResetTimestamp ?? now;
+              if (now - lastReset >= twoWeeksMs) {
+                usesLeft = 3;
+                lastReset = now;
+              } else {
+                usesLeft = data.usesLeft ?? 0;
+              }
+            }
+
+            if (usesLeft <= 0) {
+              throw new Error("OUT_OF_USES");
+            }
+
+            transaction.set(passRef, {
+              usesLeft: usesLeft - 1,
+              lastResetTimestamp: lastReset,
+              lastUsedAt: serverTimestamp()
+            }, { merge: true });
+
+            transaction.set(orderRef, orderData);
+          });
+
+          // Decrement local state immediately
+          setFreeDeliveryUsesLeft(prev => Math.max(0, prev - 1));
+          setFreeDeliveryResetDate(prev => {
+            if (now - (prev - twoWeeksMs) >= twoWeeksMs) {
+              return now + twoWeeksMs;
+            }
+            return prev;
+          });
+        } catch (err: any) {
+          if (err.message === "OUT_OF_USES") {
+            await Swal.fire({
+              title: 'Limit Reached',
+              text: 'You have used up your 3 free deliveries for this cycle. Please select Bodaboda or ASAP delivery.',
+              icon: 'warning'
+            });
+          } else {
+            console.error("Transaction failed:", err);
+            await Swal.fire({
+              title: 'Checkout Error',
+              text: 'Could not verify your Free Delivery Pass. Please try again.',
+              icon: 'error'
+            });
+          }
+          setLoading(false);
+          return;
+        }
+      } else {
+        // Regular non-free delivery order creation
+        await setDoc(orderRef, orderData);
+      }
 
       const templateParams = {
         customer_phone: formattedPhone,
-        order_id: docRef.id,
+        order_id: generatedOrderId,
         vendor_name: vendorName,
         order_items: `<ul>${orderItemsHtml}</ul>`,
         subtotal_amount: `TZS ${total.toFixed(2)}`,
+        service_fee: `TZS 500.00`,
         delivery_fee: `TZS ${deliveryFee.toFixed(2)}`,
         delivery_option: deliveryOptionLabel,
         delivery_eta: deliveryOptionEta,
@@ -502,15 +635,17 @@ export function useCart() {
     selectedDeliveryOption,
     setSelectedDeliveryOption,
     calculatingFee,
+    freeDeliveryUsesLeft,
+    freeDeliveryResetDate,
   };
 }
 
-async function updateDoc(docRef: DocumentReference<DocumentData, DocumentData>, data: { orderId: string }): Promise<void> {
-  try {
-    // defer to the Firestore SDK's updateDoc (imported as firestoreUpdateDoc)
-    await firestoreUpdateDoc(docRef as DocumentReference<DocumentData>, data);
-  } catch (err) {
-    console.error('Failed to update order document:', err);
-    throw err;
-  }
-}
+// async function updateDoc(docRef: DocumentReference<DocumentData, DocumentData>, data: { orderId: string }): Promise<void> {
+//   try {
+//     // defer to the Firestore SDK's updateDoc (imported as firestoreUpdateDoc)
+//     await firestoreUpdateDoc(docRef as DocumentReference<DocumentData>, data);
+//   } catch (err) {
+//     console.error('Failed to update order document:', err);
+//     throw err;
+//   }
+// }

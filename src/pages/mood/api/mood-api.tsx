@@ -13,14 +13,23 @@ export interface MoodResults {
   isFallback?: boolean;
 }
 
-export const calculateDistance = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+export const calculateDistance = (a: any, b: any) => {
+  const latA = parseFloat(a?.lat);
+  const lngA = parseFloat(a?.lng);
+  const latB = parseFloat(b?.lat);
+  const lngB = parseFloat(b?.lng);
+  
+  if (isNaN(latA) || isNaN(lngA) || isNaN(latB) || isNaN(lngB)) {
+    return 0;
+  }
+
   const R = 6371; // km
-  const dLat = (b.lat - a.lat) * (Math.PI / 180);
-  const dLng = (b.lng - a.lng) * (Math.PI / 180);
+  const dLat = (latB - latA) * (Math.PI / 180);
+  const dLng = (lngB - lngA) * (Math.PI / 180);
   const aVal =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(a.lat * (Math.PI / 180)) *
-      Math.cos(b.lat * (Math.PI / 180)) *
+    Math.cos(latA * (Math.PI / 180)) *
+      Math.cos(latB * (Math.PI / 180)) *
       Math.sin(dLng / 2) *
       Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
@@ -38,15 +47,11 @@ export const fetchVendorGeolocation = async (vendorId: string): Promise<{ lat: n
 
   const vendorData = vendorSnap.data() as any; 
   
-  // Secure structural approval gate
-  const isApproved = vendorData.is_approved ?? vendorData.auth_info?.is_approved ?? false;
-  if (!isApproved) return null;
-
-  // Operational availability gate check
-  const isOpen = vendorData.is_open ?? vendorData.listing_data?.is_open ?? false;
-  if (!isOpen) return null;
-
-  return vendorData.geolocation || null;
+  // Support both root-level and nested listing_data geolocations.
+  // We bypass isApproved and isOpen gates here because the physical location 
+  // is static and needed to compute delivery fees for active/past carts 
+  // even if the vendor's operational status changes.
+  return vendorData.geolocation || vendorData.listing_data?.geolocation || null;
 };
 
 // Map user mood to menu item categories
