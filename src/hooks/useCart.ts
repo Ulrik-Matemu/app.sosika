@@ -84,6 +84,18 @@ export const DELIVERY_OPTIONS: DeliveryOption[] = [
   }
 ];
 
+export const formatTZPhoneNumber = (rawPhone: string): string => {
+  let cleaned = rawPhone.replace(/\D/g, ''); // Remove non-digits
+
+  if (cleaned.startsWith('0')) {
+    cleaned = '255' + cleaned.substring(1);
+  } else if (/^[678]/.test(cleaned)) {
+    cleaned = '255' + cleaned;
+  }
+
+  return cleaned;
+};
+
 export function useCart() {
   const { locations } = useLocationStorage();
   const userLocation = locations[0]; // Assuming the first location is the user's current location
@@ -105,15 +117,17 @@ export function useCart() {
   // Fetch free delivery pass details on mount and whenever guestPhone/cart changes
   useEffect(() => {
     const fetchPass = async () => {
-      const phone = localStorage.getItem('guestPhone');
+      const rawPhone = localStorage.getItem('guestPhone');
       const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
       const now = Date.now();
 
-      if (!phone) {
+      if (!rawPhone) {
         setFreeDeliveryUsesLeft(3);
         setFreeDeliveryResetDate(now + twoWeeksMs);
         return;
       }
+      
+      const phone = formatTZPhoneNumber(rawPhone);
       try {
         const passRef = doc(db, 'freeDeliveryPass', phone);
         const passSnap = await getDoc(passRef);
@@ -241,19 +255,6 @@ export function useCart() {
   const clearCart = useCallback(() => {
     setCart([]);
   }, []);
-
-  // Global checkout function
-  const formatTZPhoneNumber = (rawPhone: string): string => {
-    let cleaned = rawPhone.replace(/\D/g, ''); // Remove non-digits
-
-    if (cleaned.startsWith('0')) {
-      cleaned = '255' + cleaned.substring(1);
-    } else if (/^[678]/.test(cleaned)) {
-      cleaned = '255' + cleaned;
-    }
-
-    return cleaned;
-  };
 
   const checkout = async () => {
     setLoading(true);
@@ -553,7 +554,7 @@ export function useCart() {
 
       // B. Send notification to the 2 Admin numbers in one operation
       const ADMIN_PHONES = '255760903468'; // Remember to return Abbas
-      const adminSMSMessage = `New Sosika Order!\nOrder ID: ${docRef.id}\nVendor: ${vendorName}\nItems: ${adminItemsText}\nTotal: TZS ${orderTotal}\nCustomer: ${formattedPhone}\nLocation: ${displayLocation}`;
+      const adminSMSMessage = `New Sosika Order!\nOrder ID: ${docRef.id}\nVendor: ${vendorName}\nItems: ${adminItemsText}\nTotal: TZS ${orderTotal}\nCustomer: +${formattedPhone}\nLocation: ${displayLocation}`;
 
       sendMesejiSMS(ADMIN_PHONES, adminSMSMessage);
 
@@ -581,7 +582,7 @@ export function useCart() {
                   .map(item => `${item.quantity}x ${item.name}`)
                   .join(', ');
                 const vName = vData?.name || vData?.listing_data?.name || 'Vendor';
-                const vendorSMSMessage = `Sosika: ${vName} unayo Oda Mpya! 🔔\nOda: ${docRef.id}\nBidhaa: ${vendorItemsText}\nJumla: TZS ${orderTotal}\nMteja: ${formattedPhone}\nMahali: ${displayLocation}\nFungua Sosika Console kuthibitisha.`;
+                const vendorSMSMessage = `Sosika: ${vName} unayo Oda Mpya! 🔔\nOda: ${docRef.id}\nBidhaa: ${vendorItemsText}\nJumla: TZS ${orderTotal}\nMteja: +${formattedPhone}\nMahali: ${displayLocation}\nFungua Sosika Console kuthibitisha.`;
 
                 sendMesejiSMS(formattedVendorPhone, vendorSMSMessage);
               }
