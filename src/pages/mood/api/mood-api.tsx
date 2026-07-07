@@ -105,13 +105,32 @@ export const fetchMoodResults = async (req: UserRequest): Promise<MoodResults> =
   
   // Transform and filter vendors instantly based on verification state AND operational channel visibility status
   const allVendors: Vendor[] = vendorSnapshot.docs
-    .map(doc => ({ id: doc.id, ...doc.data() } as any))
+    .map(doc => {
+      const data = doc.data() as any;
+      const hour = new Date().getHours();
+      const isNightClosed = hour >= 22 || hour < 6;
+      
+      const is_open = isNightClosed ? false : (data.is_open === true);
+      const listing_data = data.listing_data ? {
+        ...data.listing_data,
+        is_open: isNightClosed ? false : (data.listing_data.is_open === true)
+      } : undefined;
+
+      return {
+        id: doc.id,
+        ...data,
+        is_open,
+        ...(listing_data ? { listing_data } : {})
+      } as any;
+    })
     .filter(vendor => {
       // 1st Gate: Must be approved by system administration
       const approvedCheck = vendor.is_approved === true || vendor.auth_info?.is_approved === true;
       
-      // 2nd Gate: Channel must be explicitly opened by the merchant 
-      const openCheck = vendor.is_open === true || vendor.listing_data?.is_open === true;
+      // 2nd Gate: Channel must be explicitly opened by the merchant (or it is nighttime closed, so they show up as Closed)
+      const hour = new Date().getHours();
+      const isNightClosed = hour >= 22 || hour < 6;
+      const openCheck = isNightClosed ? true : (vendor.is_open === true || vendor.listing_data?.is_open === true);
       
       return approvedCheck && openCheck;
     });
@@ -181,7 +200,22 @@ export const fetchVendorMenu = async (vendorId: string): Promise<{ vendor: Vendo
     throw new Error("Vendor not found");
   }
 
-  const vendor = { id: vendorSnap.id, ...vendorSnap.data() } as any;
+  const data = vendorSnap.data() as any;
+  const hour = new Date().getHours();
+  const isNightClosed = hour >= 22 || hour < 6;
+  
+  const is_open = isNightClosed ? false : (data.is_open === true);
+  const listing_data = data.listing_data ? {
+    ...data.listing_data,
+    is_open: isNightClosed ? false : (data.listing_data.is_open === true)
+  } : undefined;
+
+  const vendor = {
+    id: vendorSnap.id,
+    ...data,
+    is_open,
+    ...(listing_data ? { listing_data } : {})
+  } as any;
 
   // Protect standalone page requests from showing unapproved vendors
   const isApproved = vendor.is_approved ?? vendor.auth_info?.is_approved ?? false;

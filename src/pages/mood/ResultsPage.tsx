@@ -39,18 +39,21 @@ const MenuItemCard = ({
   item,
   vendorName,
   index,
+  isVendorOpen = true,
 }: {
   item: MenuItem;
   vendorName: string;
   index: number;
+  isVendorOpen?: boolean;
 }) => {
   const { addToCart } = useCartContext();
   const [isAdded, setIsAdded] = useState(false);
 
   const isAvailable = item.is_available !== false;
+  const canAdd = isAvailable && isVendorOpen;
 
   const handleAdd = useCallback(() => {
-    if (!isAvailable) return;
+    if (!canAdd) return;
     addToCart({ ...item, quantity: 1 } as any);
     posthog.capture("order_started", {
       platform: "app",
@@ -60,7 +63,7 @@ const MenuItemCard = ({
     });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1200);
-  }, [item, addToCart, isAvailable]);
+  }, [item, addToCart, canAdd]);
 
   return (
     <motion.div
@@ -68,7 +71,7 @@ const MenuItemCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: Math.min(index * 0.03, 0.2), ease: [0.25, 0.46, 0.45, 0.94] }}
       className={`group bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 transition-all duration-300 ${
-        isAvailable
+        canAdd
           ? "hover:bg-white/[0.05] hover:border-white/[0.1]"
           : "opacity-50"
       }`}
@@ -83,6 +86,11 @@ const MenuItemCard = ({
             {!isAvailable && (
               <span className="text-[9px] font-bold text-zinc-400 bg-white/[0.04] border border-white/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider">
                 Out of Stock
+              </span>
+            )}
+            {!isVendorOpen && isAvailable && (
+              <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                Closed
               </span>
             )}
           </div>
@@ -105,15 +113,15 @@ const MenuItemCard = ({
         {/* Add to cart button */}
         <button
           onClick={handleAdd}
-          disabled={isAdded || !isAvailable}
+          disabled={isAdded || !canAdd}
           className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
             isAdded
               ? "bg-emerald-500/20 border border-emerald-500/30"
-              : !isAvailable
+              : !canAdd
               ? "bg-zinc-800/20 border border-white/[0.02] cursor-not-allowed opacity-40"
               : "bg-white/[0.05] border border-white/[0.08] hover:bg-[#00bfff]/[0.12] hover:border-[#00bfff]/30 active:scale-90"
           }`}
-          aria-label={!isAvailable ? `${item.name} is out of stock` : `Add ${item.name} to cart`}
+          aria-label={!isAvailable ? `${item.name} is out of stock` : !isVendorOpen ? `${item.name} is unavailable (Vendor is closed)` : `Add ${item.name} to cart`}
         >
           <AnimatePresence mode="wait">
             {isAdded ? (
@@ -132,7 +140,7 @@ const MenuItemCard = ({
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
               >
-                <ShoppingBag className={`w-4 h-4 ${!isAvailable ? "text-zinc-600" : "text-zinc-400 group-hover:text-[#00bfff] transition-colors"}`} />
+                <ShoppingBag className={`w-4 h-4 ${!canAdd ? "text-zinc-600" : "text-zinc-400 group-hover:text-[#00bfff] transition-colors"}`} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -298,6 +306,15 @@ const ResultsPage = () => {
     const map: Record<string, string> = {};
     vendors.forEach((v) => {
       map[v.id] = v.name;
+    });
+    return map;
+  }, [vendors]);
+
+  // Build a vendor open status lookup
+  const vendorOpenMap = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    vendors.forEach((v) => {
+      map[v.id] = v.is_open !== false;
     });
     return map;
   }, [vendors]);
@@ -500,6 +517,7 @@ const ResultsPage = () => {
                       item={item}
                       vendorName={vendorNameMap[item.vendor_id] || "Unknown vendor"}
                       index={index}
+                      isVendorOpen={vendorOpenMap[item.vendor_id] !== false}
                     />
                   ))}
                 </AnimatePresence>

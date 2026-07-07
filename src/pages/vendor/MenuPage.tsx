@@ -16,19 +16,20 @@ import posthog from "./../../lib/posthog";
 
 // --- Sub-Components ---
 
-const MenuItemRow = React.memo(({ item }: { item: MenuItem }) => {
+const MenuItemRow = React.memo(({ item, isVendorOpen = true }: { item: MenuItem; isVendorOpen?: boolean }) => {
   const { addToCart } = useCartContext();
   const [isAdding, setIsAdding] = useState(false);
 
   const isAvailable = item.is_available !== false;
+  const canAdd = isAvailable && isVendorOpen;
 
   const handleAddToCart = useCallback(async () => {
-    if (!isAvailable) return;
+    if (!canAdd) return;
     setIsAdding(true);
     addToCart({ ...item, quantity: 1 } as any);
     // Quick visual feedback
     setTimeout(() => setIsAdding(false), 600);
-  }, [item, addToCart, isAvailable]);
+  }, [item, addToCart, canAdd]);
 
   return (
     <motion.div
@@ -47,6 +48,11 @@ const MenuItemRow = React.memo(({ item }: { item: MenuItem }) => {
               Out of Stock
             </span>
           )}
+          {!isVendorOpen && isAvailable && (
+            <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+              Closed
+            </span>
+          )}
         </div>
         {item.description && (
           <p className="text-zinc-400 text-sm mt-1.5 line-clamp-2">{item.description}</p>
@@ -63,7 +69,7 @@ const MenuItemRow = React.memo(({ item }: { item: MenuItem }) => {
       </div>
       <button
         onClick={() => {
-          if (!isAvailable) return;
+          if (!canAdd) return;
           posthog.capture("order_started", {
             platform: 'app',
             item_id: item.id,
@@ -71,19 +77,19 @@ const MenuItemRow = React.memo(({ item }: { item: MenuItem }) => {
           })
           handleAddToCart();
         }}
-        disabled={isAdding || !isAvailable}
+        disabled={isAdding || !canAdd}
         className={`p-3 rounded-full transition-all flex-shrink-0 ${
-          !isAvailable
+          !canAdd
             ? "bg-zinc-900 border border-zinc-850 cursor-not-allowed opacity-40"
             : "bg-zinc-800 hover:bg-zinc-700 active:scale-95 disabled:opacity-50"
         }`}
-        aria-label={!isAvailable ? `${item.name} is out of stock` : `Add ${item.name} to cart`}
+        aria-label={!isAvailable ? `${item.name} is out of stock` : !isVendorOpen ? `${item.name} is unavailable (Vendor is closed)` : `Add ${item.name} to cart`}
       >
         <motion.div
           animate={isAdding ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
           transition={{ duration: 0.4 }}
         >
-          <ShoppingBag className={`w-5 h-5 ${!isAvailable ? "text-zinc-600" : "text-[#00bfff]"}`} />
+          <ShoppingBag className={`w-5 h-5 ${!canAdd ? "text-zinc-600" : "text-[#00bfff]"}`} />
         </motion.div>
       </button>
     </motion.div>
@@ -96,10 +102,12 @@ const CategorySection = React.memo(({
   category,
   items,
   refProp,
+  isVendorOpen = true,
 }: {
   category: string;
   items: MenuItem[];
   refProp: React.RefObject<HTMLDivElement | null>;
+  isVendorOpen?: boolean;
 }) => (
   <div ref={refProp} className="scroll-mt-52">
     <h3 className="text-xl font-bold text-white capitalize mb-4 sticky top-36 bg-zinc-900/95 backdrop-blur-sm py-3 z-10 -mx-4 px-4">
@@ -107,7 +115,7 @@ const CategorySection = React.memo(({
     </h3>
     <div className="space-y-0">
       {items.map((item) => (
-        <MenuItemRow key={item.id} item={item} />
+        <MenuItemRow key={item.id} item={item} isVendorOpen={isVendorOpen} />
       ))}
     </div>
   </div>
@@ -451,7 +459,16 @@ const VendorMenuPage = () => {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-white truncate">{vendor.name}</h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg font-bold text-white truncate">{vendor.name}</h1>
+                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                  vendor.is_open 
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                    : "bg-zinc-800 text-zinc-400 border border-zinc-700/30"
+                }`}>
+                  {vendor.is_open ? "Open" : "Closed"}
+                </span>
+              </div>
               <div className="flex items-center gap-2 text-xs text-zinc-400">
                 <StarRating rating={vendor.averageRating || 0} readOnly size={14} />
                 <span>({vendor.ratingCount || 0})</span>
@@ -538,6 +555,7 @@ const VendorMenuPage = () => {
                     category={category}
                     items={groupedItems[category]}
                     refProp={categoryRefs.current[category]}
+                    isVendorOpen={vendor?.is_open !== false}
                   />
                 ))}
               </div>

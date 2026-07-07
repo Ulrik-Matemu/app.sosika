@@ -193,7 +193,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       } else if (option.isPickup) {
                         feeDisplay = 'You pick up';
                       } else {
-                        const optionFee = Math.ceil((baseFee * option.feeMultiplier + option.fixedSurcharge) / 100) * 100;
+                        let optionFee = Math.ceil((baseFee * option.feeMultiplier + option.fixedSurcharge) / 100) * 100;
+                        const hour = new Date().getHours();
+                        if (hour >= 19 || hour < 6) {
+                          optionFee += 2000;
+                        }
                         feeDisplay = `${optionFee.toLocaleString()} TZS`;
                       }
 
@@ -258,7 +262,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   </div>
                   <div className="flex justify-between text-zinc-400">
                     <span>Service Fee</span>
-                    <span className="font-medium text-white">500 TZS</span>
+                    <span className="font-medium text-white">1000 TZS</span>
                   </div>
                   <div className="flex justify-between text-zinc-400">
                     <span>Delivery Fee</span>

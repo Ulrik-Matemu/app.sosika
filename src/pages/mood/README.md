@@ -1,56 +1,76 @@
-# Mood-Based Recommendation Feature
+# Mood-Based Food Discovery & Recommendation Flow
 
-This directory contains the implementation of the mood-based recommendation feature for Sosika. It allows users to discover food based on their current mood, craving, or time of day, and their location.
+This directory contains the user interface and logic for the **Mood-Based Recommendation** feature of Sosika. It is a client-side Progressive Web App (PWA) feature allowing users to discover dishes and restaurants matching their cravings, mood, or time of day, and location.
 
-## Feature Flow
+---
 
-The user journey is divided into three main steps:
+## 🗺️ User Flow Architecture
 
-1.  **Mood Selection (`/mood`):** The user is presented with a screen to select their "mood". This can be a pre-defined option (e.g., "Breakfast", "Lunch", "Snack") or a custom-entered craving. The component `MoodSelection.tsx` handles this logic.
+The user journey is divided into three key steps:
 
-2.  **Location Selection (`/mood/location`):** After selecting a mood, the user is prompted to specify their location. The `LocationSelection.tsx` component provides several ways to do this:
-    *   **Search:** An autocomplete search bar to find a specific place or address.
-    *   **Geolocation:** A button to automatically detect and use the user's current location.
-    *   **Map Interaction:** Tapping directly on the map to select a location.
-    *   **Recent Locations:** A list of recently used locations for quick access.
+### 1. Mood Selection (`/mood`)
+* **Component:** `MoodSelection.tsx`
+* **Features:**
+  * **Time-aware Suggestions:** Automatically detects the current hour and prioritizes meal types matching the time of day (e.g., *Breakfast* from 05:00 to 11:00, *Lunch* from 11:00 to 16:00, *Dinner* from 16:00 to 23:00).
+  * **Quick Mood Cards:** Features cards for Drinks, Snacks, Nearby, or the current time-aligned meal option.
+  * **Custom Craving Search:** Input bar supporting autocomplete or custom search terms (e.g., "biryani", "coffee") with interactive "Find Food" / "Surprise Me" triggers.
+  * **State Management:** Persists selected mood globally in the `useMood` Zustand store.
 
-3.  **Results Display (`/mood/results`):** The final step is the `ResultsPage.tsx` component, which fetches and displays a curated list of menu items and vendors that match the user's selected mood and location. The results are grouped into logical sections like "Featured for You", "Popular Choices", "Budget Friendly", and by vendor.
+### 2. Location Selection (`/mood/location`)
+* **Component:** `LocationSelection.tsx`
+* **Features:**
+  * **Interactive Google Map:** Integrated map container showing the chosen coordinate marker.
+  * **Google Places Autocomplete:** A search input to lookup addresses and places.
+  * **Browser Geolocation:** "My Location" button automatically retrieves user GPS coords and reverse-geocodes them.
+  * **Recent Locations:** Displays a quick-access list of up to 3 recently used locations persisted in LocalStorage via the `useLocationStorage` custom hook.
+  * **Workflow Redirection:** Supports both normal discovery results forwarding and direct-to-checkout forwarding (`isOfferFlow`).
 
-## Components
+### 3. Food Discovery Results (`/mood/results`)
+* **Component:** `ResultsPage.tsx`
+* **Features:**
+  * **Item-Centric Discovery:** Prioritizes menu item cards over vendor cards to reduce user friction.
+  * **Direct Cart Operations:** Incorporates direct "Add to Cart" capability using the `useCartContext` hook.
+  * **Local Filtering & Search:** Offers search-within-results input and category filter pills dynamically generated from matching items.
+  * **Vendor Scroll:** Displays a horizontal scroll of nearby active restaurants sorted by distance and open/closed status.
+  * **Pagination:** Implements client-side slicing (staggered 15-item chunks) with a "Load More Items" trigger to optimize DOM rendering performance.
 
-*   **`MoodSelection.tsx`:** The entry point of the feature. It allows users to select a mood and navigates them to the location selection screen.
-*   **`LocationSelection.tsx`:** Handles all aspects of location selection, including map interaction, search, and geolocation.
-*   **`ResultsPage.tsx`:** Displays the final list of recommended menu items and vendors. It includes sub-components for rendering the different sections and individual item cards.
-*   **`api/mood-api.tsx`:** Contains the API logic for fetching mood-based results. It fetches data from firebase and includes logic for filtering vendors by location and menu items by category.
-*   **`data/MockData.ts`:** Provides the sample data for vendors and menu items used by the mock API.
-*   **`types/types.ts`:** Defines the TypeScript types for the `Vendor` and `MenuItem` data structures.
+---
 
-## Data Flow
+## ⚙️ Query & Recommendation Engine
 
-1.  The `useMood` hook (likely a Zustand store) is used to store the selected mood and make it available across the different components.
-2.  The `useLocationStorage` hook is used to persist and retrieve the user's location history from local storage.
-3.  On the `ResultsPage.tsx`, the `fetchMoodResults` function is called with the selected mood and location.
-4.  `fetchMoodResults` filters the `vendors` from `MockData.ts` based on proximity and then filters the `menuItems` based on the vendor and the mood-to-category mapping.
-5.  The filtered data is then returned to the `ResultsPage.tsx` and rendered.
+The matching system is defined in `api/mood-api.tsx` and executes the following algorithm when `fetchMoodResults` is invoked:
 
-## Recent Improvements (as of January 2026)
+```mermaid
+graph TD
+    A[User Request: Mood + Location] --> B[Fetch Approved Vendors from Firestore]
+    B --> C[Apply Time-based Auto-Closure 22:00]
+    C --> D[Filter by Distance < 100 km Radius]
+    D --> E[Map Mood to Database Categories]
+    E --> F[Query Menu Items in Chunks of 10]
+    F --> G{Match Categories / Keyword?}
+    G -- Yes --> H[Merge & Deduplicate Items]
+    G -- No --> I[Fallback: Return All Nearby Items]
+    H --> J[Return Results & Render Page]
+    I --> J
+```
 
-The feature has undergone a recent overhaul to improve its user interface, user experience, and performance.
+### 1. Vendor Filtering & Operational Rules
+* **Verification Gate:** Only approved vendors (`is_approved` or `auth_info.is_approved`) are loaded.
+* **Auto-Closure Override:** If the current hour is between **22:00 (10:00 PM)** and **06:00**, all vendors are forced closed (`is_open = false`), regardless of database status.
+* **Proximity Filter:** Calculates distances using the Haversine formula (`calculateDistance`) and filters out vendors further than **100 km** from the user's selected coordinates.
+* **Closed Visibility:** During nighttime closure, vendors are not filtered out of results but appear with a gray **Closed** pill and have their "Add to Cart" triggers disabled.
 
-### UI/UX Enhancements
+### 2. Menu Item Filtering & Fallbacks
+* **Category Mapping:** Cravings/moods map to database category arrays via `mapMoodToCategories` (e.g., `breakfast` -> `["breakfast", "sandwiches"]`).
+* **Chunked Fetching:** Queries Firestore `menuItems` using `where("vendor_id", "in", chunk)` in chunks of **10** to comply with Firestore's `in` query limitation.
+* **Keyword Matching:** Client-side parses item titles containing the lowercase mood keyword.
+* **Dynamic Fallback:** If zero dishes match the specific mood category or keyword, `isFallback` is set to `true` and all dishes from nearby vendors are returned with an warning banner notifying the user.
 
-*   **`MoodSelection.tsx`:**
-    *   Redesigned with a more modern and visually appealing layout, including a background gradient and improved spacing.
-    *   Enhanced with more engaging micro-interactions and animations using `framer-motion`.
-    *   Improved visual hierarchy and a more prominent headline.
+---
 
-*   **`LocationSelection.tsx`:**
-    *   Added a "Use My Location" button for automatic geolocation, which was a significant UX improvement.
-    *   Restructured the layout to group primary actions and make the flow more intuitive.
-    *   Refined the design to be consistent with the new `MoodSelection` screen.
+## 🛠️ Data Types
 
-### Performance Optimizations
-
-*   **`ResultsPage.tsx`:**
-    *   **Memoization:** The `groupedItems` object is now memoized using `useMemo` to prevent expensive recalculations on every render.
-    *   **Lazy Image Loading:** A custom `LazyImage` component has been implemented to show a placeholder while images are loading, improving perceived performance and user experience.
+All data structures are typed in `types/types.ts`:
+* **`Vendor`**: Represents merchant profiles, including name, location, and metadata.
+* **`MenuItem`**: Represents individual dishes, containing price, category, and availability fields.
+* **`Review`**: Type declaration for merchant/dish ratings.

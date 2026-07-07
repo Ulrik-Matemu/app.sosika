@@ -201,9 +201,14 @@ export function useCart() {
             currentDeliveryFee = 0;
           } else {
             currentDeliveryFee = Math.ceil((currentBaseFee * option.feeMultiplier + option.fixedSurcharge) / 100) * 100;
+            // Add nighttime delivery surcharge of 2000 TZS from 19:00 (7 PM) to 6:00 AM
+            const hour = new Date().getHours();
+            if (hour >= 19 || hour < 6) {
+              currentDeliveryFee += 2000;
+            }
           }
 
-          const serviceFee = 500;
+          const serviceFee = 1000;
           setCartTotal(subtotal + currentDeliveryFee + serviceFee);
         } else {
           setCartTotal(0);
@@ -258,6 +263,19 @@ export function useCart() {
 
   const checkout = async () => {
     setLoading(true);
+
+    // Block orders if it is between 22:00 (10 PM) and 6:00 AM
+    const hour = new Date().getHours();
+    if (hour >= 22 || hour < 6) {
+      await Swal.fire({
+        title: 'We Are Closed',
+        text: 'All vendors are closed. Orders can only be placed between 06:00 AM and 10:00 PM.',
+        icon: 'info',
+        confirmButtonColor: '#00bfff'
+      });
+      setLoading(false);
+      return;
+    }
 
     const userId = localStorage.getItem('userId');
 
@@ -318,7 +336,7 @@ export function useCart() {
 
     // 1. Calculate the total price
     const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-    const serviceFee = 500;
+    const serviceFee = 1000;
     const orderTotal = (total + deliveryFee + serviceFee).toFixed(2);
 
     posthog.capture('checkout_started', {
@@ -404,7 +422,7 @@ export function useCart() {
         cart,
         subtotal: total,
         deliveryFee,
-        serviceFee: 500,
+        serviceFee: 1000,
         totalAmount: parseFloat(orderTotal),
         orderId: generatedOrderId,
         displayLocation,
@@ -496,7 +514,7 @@ export function useCart() {
         vendor_name: vendorName,
         order_items: `<ul>${orderItemsHtml}</ul>`,
         subtotal_amount: `TZS ${total.toFixed(2)}`,
-        service_fee: `TZS 500.00`,
+        service_fee: `TZS 1000.00`,
         delivery_fee: `TZS ${deliveryFee.toFixed(2)}`,
         delivery_option: deliveryOptionLabel,
         delivery_eta: deliveryOptionEta,
