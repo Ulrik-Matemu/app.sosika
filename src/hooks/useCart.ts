@@ -156,9 +156,10 @@ export function useCart() {
     fetchPass();
   }, [cart]);
 
-  // Fallback to bodaboda if out of uses
+  // Fallback to bodaboda if out of uses or suspended
   useEffect(() => {
-    if (freeDeliveryUsesLeft === 0 && selectedDeliveryOption === 'free') {
+    const isSuspended = Date.now() < new Date('2026-07-22T00:00:00+03:00').getTime();
+    if ((freeDeliveryUsesLeft === 0 || isSuspended) && selectedDeliveryOption === 'free') {
       setSelectedDeliveryOption('bodaboda');
     }
   }, [freeDeliveryUsesLeft, selectedDeliveryOption]);
@@ -196,7 +197,11 @@ export function useCart() {
             currentBaseFee = 2000;
           }
 
-          const option = DELIVERY_OPTIONS.find(o => o.id === selectedDeliveryOption) || DELIVERY_OPTIONS[1];
+          let option = DELIVERY_OPTIONS.find(o => o.id === selectedDeliveryOption) || DELIVERY_OPTIONS[1];
+          const isSuspended = Date.now() < new Date('2026-07-22T00:00:00+03:00').getTime();
+          if (isSuspended && option.id === 'free') {
+            option = DELIVERY_OPTIONS.find(o => o.id === 'bodaboda') || DELIVERY_OPTIONS[1];
+          }
           if (option.isFree || option.isPickup) {
             currentDeliveryFee = 0;
           } else {
@@ -443,6 +448,17 @@ export function useCart() {
       let docRef = orderRef;
 
       if (selectedDeliveryOption === 'free') {
+        const isSuspended = Date.now() < new Date('2026-07-22T00:00:00+03:00').getTime();
+        if (isSuspended) {
+          await Swal.fire({
+            title: 'Option Unavailable',
+            text: 'Free Delivery Pass is temporarily suspended until 22nd July.',
+            icon: 'error',
+            confirmButtonColor: '#00bfff'
+          });
+          setLoading(false);
+          return;
+        }
         const passRef = doc(db, 'freeDeliveryPass', formattedPhone);
         const now = Date.now();
         const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;

@@ -159,7 +159,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
             {cart.length > 0 && (
               <div className="p-4 border-t border-white/[0.06] bg-white/[0.01] space-y-4">
                 {/* Intro Banner */}
-                {showBanner && (
+                {showBanner && (Date.now() >= new Date('2026-07-22T00:00:00+03:00').getTime()) && (
                   <div className="relative p-3 rounded-xl bg-white/[0.02] border border-[#00bfff]/20 text-xs text-zinc-300 space-y-1">
                     <div className="font-bold text-white flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#00bfff] animate-pulse" />
@@ -181,7 +181,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                 <div className="space-y-2">
                   <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Delivery Option</span>
                   <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none">
-                    {DELIVERY_OPTIONS.map((option) => {
+                    {DELIVERY_OPTIONS.filter(option => {
+                      const isSuspended = Date.now() < new Date('2026-07-22T00:00:00+03:00').getTime();
+                      return !(isSuspended && option.id === 'free');
+                    }).map((option) => {
                       const isSelected = selectedDeliveryOption === option.id;
                       const isFreeOption = option.id === 'free';
                       const isOutOfFreeUses = isFreeOption && freeDeliveryUsesLeft === 0;
