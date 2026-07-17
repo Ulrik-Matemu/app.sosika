@@ -126,12 +126,12 @@ export function useCart() {
         setFreeDeliveryResetDate(now + twoWeeksMs);
         return;
       }
-      
+
       const phone = formatTZPhoneNumber(rawPhone);
       try {
         const passRef = doc(db, 'freeDeliveryPass', phone);
         const passSnap = await getDoc(passRef);
-        
+
         if (passSnap.exists()) {
           const data = passSnap.data();
           const lastReset = data.lastResetTimestamp ?? now;
@@ -587,7 +587,7 @@ export function useCart() {
         .join(', ');
 
       // B. Send notification to the 2 Admin numbers in one operation
-      const ADMIN_PHONES = '255760903468'; // Remember to return Abbas
+      const ADMIN_PHONES = '255778903468, 255688123103'; // Remember to return Abbas
       const adminSMSMessage = `New Sosika Order!\nOrder ID: ${docRef.id}\nVendor: ${vendorName}\nItems: ${adminItemsText}\nTotal: TZS ${orderTotal}\nCustomer: +${formattedPhone}\nLocation: ${displayLocation}`;
 
       sendMesejiSMS(ADMIN_PHONES, adminSMSMessage);
