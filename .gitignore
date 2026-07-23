@@ -32,3 +32,5 @@ src/pages/mood/data/MockData.ts
 .env.test
 .env.production
 .env.example
+
+playstore_subbscription_implementattion.md

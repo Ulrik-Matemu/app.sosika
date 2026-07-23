@@ -78,24 +78,24 @@ const handlePurchase = async (sku: string) => {
 
 ---
 
-## 3. Server-Side Verification (`verifySubscription` Cloud Function)
+## 3. Server-Side Verification (`verifyVendorSubscription` Cloud Function)
 
-All security logic and direct Firestore database updates live strictly on the server to prevent user-side tampering. 
+All security logic and direct Firestore database updates live strictly on the server in [`functions/src/index.ts`](file:///home/ulrik/Desktop/Projects/Personal/Sosika/Sosika/functions/src/index.ts).
 
 ### Dependencies:
-- **`googleapis`**: For interacting with the Google Developer API.
-- **`firebase-admin`**: For writing metadata directly to the user's Firestore record.
+- **`googleapis`**: For interacting with the Google Play Developer API v3 (supporting Play Billing Library v8+).
+- **`firebase-admin`**: For writing subscription metadata directly to the vendor's Firestore record (`vendors/{vendorId}`).
+- **`firebase-functions`**: 2nd Generation Cloud Functions (`onCall`).
 
 ### Key Logic:
 1. **Google OAuth2 authentication**: Load service account credentials to access scope `"https://www.googleapis.com/auth/androidpublisher"`.
-2. **Retrieve receipt details**: Query `androidPublisher.purchases.subscriptions.get` with the `packageName`, `subscriptionId` (sku), and the client's `token` (purchaseToken).
+2. **Retrieve receipt details**: Query `androidPublisher.purchases.subscriptionsv2.get` with `packageName` and `token` (purchaseToken), falling back to `subscriptions.get` for legacy product SKUs.
 3. **Validate Subscription State**: Determine subscription viability by checking:
-   - **Expiry Time**: `expiryTimeMillis` must be in the future.
-   - **Payment State**: Active statuses are `1` (Payment received) or `2` (Free trial).
-   - **Cancel Reason**: If cancelled but not yet expired, allow access until `expiryTimeMillis` passes.
+   - **Subscription State**: `SUBSCRIPTION_STATE_ACTIVE` or `SUBSCRIPTION_STATE_IN_GRACE_PERIOD`.
+   - **Line Item Expiry**: Ensures `expiryTime` is in the future.
 4. **Persist States**:
-   - Write `isPro: true`, `subscriptionExpiry`, `subscriptionSku`, and `lastVerified` to the user's Firestore document.
-   - If validation fails, safely reset `isPro: false`.
+   - Write `subscription.tier = "premium"`, `subscription.status = "active"`, `subscription.purchase_token`, and feature flags (`analytics`, `recommendations`, `sms_notifications`) to the vendor's Firestore document.
+   - If validation fails, safely reset `subscription.tier = "free"`.
 
 ### Active State Validation Rules:
 ```typescript
