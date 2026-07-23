@@ -2,7 +2,8 @@ import { Home, ShoppingCart, Search, Package } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import clsx from "clsx";
 import { useCartContext } from "../../context/cartContext";
-import { useState, useEffect } from "react";
+import { useOrders } from "../../context/OrdersContext";
+import { useState } from "react";
 import CartDrawer from "./CartDrawer";
 
 type NavItem = {
@@ -35,19 +36,8 @@ export default function Navbar() {
     freeDeliveryUsesLeft,
     freeDeliveryResetDate,
   } = useCartContext();
+  const { activeCount: activeOrdersCount } = useOrders();
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("sosika_placed_orders");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        const active = parsed.filter((o: any) => o.status === "pending" || o.status === "preparing" || o.status === "ready_for_pickup");
-        setActiveOrdersCount(active.length);
-      }
-    } catch {}
-  }, []);
 
   const triggerHapticFeedback = () => {
     if (navigator.vibrate) {

@@ -16,6 +16,7 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { analytics, logEvent } from "./firebase";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/cartContext";
+import { OrdersProvider } from "./context/OrdersContext";
 import { HelmetProvider } from "react-helmet-async";
 import PageWrapper from "./services/page-transition";
 // import { AuthRedirect } from "./pages/AuthRedirects";
@@ -103,7 +104,8 @@ function App() {
       <HelmetProvider>
         <MapProvider>
           <CartProvider>
-            <Router>
+            <OrdersProvider>
+              <Router>
               <TooltipProvider>
                 <PageWrapper>
                   <Routes>
@@ -148,7 +150,8 @@ function App() {
                 </PageWrapper>
               </TooltipProvider>
             </Router>
-          </CartProvider>
+          </OrdersProvider>
+        </CartProvider>
         </MapProvider>
       </HelmetProvider>
     </>
