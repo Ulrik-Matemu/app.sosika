@@ -627,7 +627,24 @@ export function useCart() {
         }
       }
 
-      // --- END MESEJI SMS NOTIFICATIONS ---
+      // Save to local device order history
+      try {
+        const rawLocal = localStorage.getItem("sosika_placed_orders");
+        const existingLocal = rawLocal ? JSON.parse(rawLocal) : [];
+        const newLocalRecord = {
+          orderId: docRef.id,
+          phone: formattedPhone,
+          vendor_name: vendorName,
+          totalAmount: parseFloat(orderTotal),
+          status: "pending",
+          timestamp: new Date().toISOString(),
+          cart: cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }))
+        };
+        localStorage.setItem("sosika_placed_orders", JSON.stringify([newLocalRecord, ...existingLocal]));
+        localStorage.setItem("guestPhone", formattedPhone);
+      } catch (err) {
+        console.warn("Failed to persist local order history:", err);
+      }
 
       await Swal.fire({
         title: 'Order Placed!',
@@ -643,6 +660,8 @@ export function useCart() {
       });
       setCart([]);
 
+      return { success: true, orderId: docRef.id };
+
     } catch (error) {
       console.error("Checkout error:", error);
       await Swal.fire({
@@ -650,6 +669,7 @@ export function useCart() {
         text: 'Failed to place order. Please try again.',
         icon: 'error'
       });
+      return { success: false };
     } finally {
       setLoading(false);
     }

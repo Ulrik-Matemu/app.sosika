@@ -41,6 +41,8 @@ import VendorOnboarding from "./pages/vendor-portal/vendor-onboarding";
 import VendorAuthPortal from "./pages/vendor-portal/auth";
 import VendorDashboard from "./pages/vendor-portal/dashboard";
 import VendorAuthGuard from "./components/my-components/VendorAuthGuard";
+import OrdersPage from "./pages/orders/OrdersPage";
+import TrackOrderPage from "./pages/orders/TrackOrderPage";
 
 function App() {
   // const [selectedLocation, setSelectedLocation] = useState<SavedLocation | null>(null);
@@ -122,6 +124,8 @@ function App() {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/vendor-onboarding" element={<VendorOnboarding />} />
                     <Route path="/vendor-auth" element={<VendorAuthPortal />} />
+                    <Route path="/orders" element={<OrdersPage />} />
+                    <Route path="/track/:orderId" element={<TrackOrderPage />} />
 
                     {/* Protected Vendor Routes */}
                     <Route element={<VendorAuthGuard />}>

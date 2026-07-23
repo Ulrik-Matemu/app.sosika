@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, X, Image as ImageIcon, Minus, Plus, Trash2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DeliveryOptionId, DELIVERY_OPTIONS } from '../../hooks/useCart';
@@ -13,7 +14,7 @@ interface CartDrawerProps {
   updateQuantity: (id: string, qty: number) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
-  checkout: () => void;
+  checkout: () => Promise<any>;
   loading: boolean;
   selectedDeliveryOption: DeliveryOptionId;
   setSelectedDeliveryOption: (id: DeliveryOptionId) => void;
@@ -44,6 +45,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   freeDeliveryUsesLeft,
   freeDeliveryResetDate,
 }) => {
+  const navigate = useNavigate();
+
   const [showBanner, setShowBanner] = React.useState(() => {
     return localStorage.getItem('sosika_free_delivery_pass_banner_dismissed') !== 'true';
   });
@@ -51,6 +54,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const dismissBanner = () => {
     localStorage.setItem('sosika_free_delivery_pass_banner_dismissed', 'true');
     setShowBanner(false);
+  };
+
+  const handleCheckoutClick = async () => {
+    const res = await checkout();
+    if (res?.orderId) {
+      onClose();
+      navigate(`/track/${res.orderId}`);
+    }
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
@@ -290,7 +301,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     Clear Cart
                   </button>
                   <button
-                    onClick={checkout}
+                    onClick={handleCheckoutClick}
                     disabled={loading || calculatingFee}
                     className="px-4 py-3 bg-[#00bfff] hover:bg-[#00a6e0] disabled:bg-zinc-800 disabled:text-zinc-600 text-black text-xs font-bold rounded-xl transition-all flex-[2] flex items-center justify-center gap-2 active:scale-98"
                   >

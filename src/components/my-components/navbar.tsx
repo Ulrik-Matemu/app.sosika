@@ -1,8 +1,8 @@
-import { Home, ShoppingCart, Search } from "lucide-react";
+import { Home, ShoppingCart, Search, Package } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import clsx from "clsx";
 import { useCartContext } from "../../context/cartContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CartDrawer from "./CartDrawer";
 
 type NavItem = {
@@ -14,6 +14,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { name: "Home", icon: Home, path: "/" },
   { name: "Search", icon: Search, path: "/mood/results" },
+  { name: "Orders", icon: Package, path: "/orders" },
   { name: "Cart", icon: ShoppingCart, path: "/cart" },
 ];
 
@@ -35,6 +36,18 @@ export default function Navbar() {
     freeDeliveryResetDate,
   } = useCartContext();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("sosika_placed_orders");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const active = parsed.filter((o: any) => o.status === "pending" || o.status === "preparing" || o.status === "ready_for_pickup");
+        setActiveOrdersCount(active.length);
+      }
+    } catch {}
+  }, []);
 
   const triggerHapticFeedback = () => {
     if (navigator.vibrate) {
@@ -54,6 +67,7 @@ export default function Navbar() {
         >
           {navItems.map(({ name, icon: Icon, path }) => {
             const isCart = name === "Cart";
+            const isOrders = name === "Orders";
             return isCart ? (
               <button
                 key={name}
@@ -93,8 +107,13 @@ export default function Navbar() {
                 aria-label={`Go to ${name} page`}
               >
                 {({ isActive }) => (
-                  <div className="flex flex-col items-center">
+                  <div className="relative flex flex-col items-center">
                     <Icon size={22} className={clsx("transition-transform duration-300 active:scale-95", isActive && "scale-105")} />
+                    {isOrders && activeOrdersCount > 0 && (
+                      <span className="absolute -top-1 -right-1.5 bg-[#00bfff] text-black rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-1 text-[8px] font-black border border-zinc-950 animate-pulse">
+                        {activeOrdersCount}
+                      </span>
+                    )}
                     {isActive && (
                       <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-[#00bfff]" />
                     )}
