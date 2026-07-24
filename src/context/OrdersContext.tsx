@@ -24,6 +24,7 @@ interface OrdersContextType {
   userPhone: string | null;
   refreshOrders: () => void;
   setUserPhone: (phone: string) => void;
+  disconnectPhone: () => void;
 }
 
 export const getPhoneVariations = (rawPhone: string): string[] => {
@@ -180,6 +181,18 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCustomPhone(phone);
   };
 
+  const disconnectPhone = () => {
+    try {
+      localStorage.removeItem("guestPhone");
+      localStorage.removeItem("sosika_placed_orders");
+      localStorage.removeItem("placedOrders");
+    } catch (err) {
+      console.warn("[OrdersContext] Failed to purge local storage:", err);
+    }
+    setCustomPhone(null);
+    setOrders([]);
+  };
+
   const activeOrders = orders.filter(
     (o) => o.status === "pending" || o.status === "preparing" || o.status === "ready_for_pickup"
   );
@@ -198,6 +211,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         userPhone: activePhone,
         refreshOrders: fetchOrders,
         setUserPhone,
+        disconnectPhone,
       }}
     >
       {children}

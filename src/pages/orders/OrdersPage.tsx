@@ -33,9 +33,9 @@ import { motion } from "framer-motion";
 
 export default function OrdersPage() {
   const navigate = useNavigate();
-  const { activeOrders, pastOrders, loading, userPhone, refreshOrders, setUserPhone } = useOrders();
+  const { activeOrders, pastOrders, loading, userPhone, refreshOrders, setUserPhone, disconnectPhone } = useOrders();
   const { balance } = useWallet();
-  const { user, sendOTP, confirmOTP, loading: authLoading, error: authError, signOut } = usePhoneAuth();
+  const { sendOTP, confirmOTP, loading: authLoading, error: authError, signOut } = usePhoneAuth();
   const { addToCart } = useCartContext();
 
   const [activeTab, setActiveTab] = useState<"active" | "history" | "account">("active");
@@ -95,6 +95,22 @@ export default function OrdersPage() {
       menuItemName: item.name,
     });
     setPhotoModalOpen(true);
+  };
+
+  // Disconnect phone & purge all local device data
+  const handleDisconnectPhone = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.warn("[OrdersPage] SignOut error:", err);
+    }
+    disconnectPhone();
+    setPhoneInput("");
+    setOtpInput("");
+    setOtpSent(false);
+    setPhoneError(null);
+    setSubmittedKeys(new Set());
+    setActiveTab("account");
   };
 
   // Format local phone input to Tanzanian E.164 format (+255...)
@@ -213,38 +229,38 @@ export default function OrdersPage() {
         {/* Invisible reCAPTCHA container required for Firebase Phone Auth */}
         <div id="recaptcha-container" />
 
-        {/* Top Sticky Header */}
-        <header className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/[0.06] px-4 py-4">
-          <div className="max-w-2xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#00bfff]/20 to-indigo-500/10 border border-[#00bfff]/30 flex items-center justify-center text-[#00bfff] shadow-lg shadow-[#00bfff]/5">
-                <Package size={20} />
+        {/* Top Sticky Responsive Header */}
+        <header className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/[0.06] px-3.5 sm:px-6 py-3.5">
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-[#00bfff]/20 to-indigo-500/10 border border-[#00bfff]/30 flex items-center justify-center text-[#00bfff] shadow-lg shadow-[#00bfff]/5 shrink-0">
+                <Package size={18} />
               </div>
-              <div>
-                <h1 className="text-base font-black tracking-tight text-white flex items-center gap-2">
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-base font-black tracking-tight text-white flex items-center gap-1.5 truncate">
                   <span>My Orders</span>
                   {userPhone && (
-                    <span className="text-[10px] font-mono text-[#00bfff] bg-[#00bfff]/10 px-2 py-0.5 rounded-md border border-[#00bfff]/20">
+                    <span className="text-[9px] sm:text-[10px] font-mono text-[#00bfff] bg-[#00bfff]/10 px-1.5 py-0.5 rounded-md border border-[#00bfff]/20 shrink-0">
                       {userPhone}
                     </span>
                   )}
                 </h1>
-                <p className="text-[11px] text-zinc-400">
-                  Real-time live kitchen tracking & receipts
+                <p className="text-[10px] sm:text-[11px] text-zinc-400 truncate">
+                  Live kitchen tracking & receipts
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
                 onClick={() => setTopUpModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00bfff]/15 to-emerald-500/10 border border-[#00bfff]/30 text-white text-xs font-black shadow-lg shadow-[#00bfff]/5 hover:border-[#00bfff]/60 transition-all cursor-pointer group"
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00bfff]/15 to-emerald-500/10 border border-[#00bfff]/30 text-white text-xs font-black shadow-lg shadow-[#00bfff]/5 hover:border-[#00bfff]/60 transition-all cursor-pointer group"
                 title="Click to Top Up Sosika Cash"
               >
-                <Wallet size={15} className="text-[#00bfff]" />
-                <span className="font-mono text-[#00bfff]">{formatPrice(balance)} TZS</span>
-                <span className="ml-1 text-[9px] bg-[#00bfff] text-black font-extrabold px-1.5 py-0.5 rounded-md group-hover:scale-105 transition-transform">
+                <Wallet size={14} className="text-[#00bfff]" />
+                <span className="font-mono text-[#00bfff] text-[11px] sm:text-xs">{formatPrice(balance)} TZS</span>
+                <span className="hidden sm:inline-block ml-0.5 text-[9px] bg-[#00bfff] text-black font-extrabold px-1.5 py-0.5 rounded-md group-hover:scale-105 transition-transform">
                   + Top Up
                 </span>
               </button>
@@ -252,30 +268,30 @@ export default function OrdersPage() {
               <button
                 onClick={refreshOrders}
                 disabled={loading}
-                className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-zinc-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                className="p-2 sm:p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-zinc-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                 title="Sync Live Orders"
               >
-                <RefreshCw size={16} className={loading ? "animate-spin text-[#00bfff]" : ""} />
+                <RefreshCw size={15} className={loading ? "animate-spin text-[#00bfff]" : ""} />
               </button>
 
-              {user && (
+              {userPhone && (
                 <button
-                  onClick={signOut}
-                  className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 text-zinc-400 transition-all cursor-pointer"
-                  title="Sign Out"
+                  onClick={handleDisconnectPhone}
+                  className="p-2 sm:p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 text-zinc-400 transition-all cursor-pointer"
+                  title="Disconnect Phone & Clear Device Data"
                 >
-                  <LogOut size={16} />
+                  <LogOut size={15} />
                 </button>
               )}
             </div>
           </div>
 
-          {/* Segmented Tab Bar */}
-          <div className="max-w-2xl mx-auto pt-4">
+          {/* Mobile Segmented Tab Bar */}
+          <div className="max-w-2xl mx-auto pt-3">
             <div className="grid grid-cols-3 bg-white/[0.03] p-1 rounded-2xl border border-white/[0.06]">
               <button
                 onClick={() => setActiveTab("active")}
-                className={`relative py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`relative py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   activeTab === "active" ? "text-black" : "text-zinc-400 hover:text-white"
                 }`}
               >
@@ -287,7 +303,7 @@ export default function OrdersPage() {
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-1.5">
-                  <Clock size={14} />
+                  <Clock size={13} />
                   <span>Active</span>
                   {activeOrders.length > 0 && (
                     <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${
@@ -301,7 +317,7 @@ export default function OrdersPage() {
 
               <button
                 onClick={() => setActiveTab("history")}
-                className={`relative py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`relative py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   activeTab === "history" ? "text-black" : "text-zinc-400 hover:text-white"
                 }`}
               >
@@ -313,7 +329,7 @@ export default function OrdersPage() {
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-1.5">
-                  <Receipt size={14} />
+                  <Receipt size={13} />
                   <span>History</span>
                   {pastOrders.length > 0 && (
                     <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono ${
@@ -327,7 +343,7 @@ export default function OrdersPage() {
 
               <button
                 onClick={() => setActiveTab("account")}
-                className={`relative py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`relative py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   activeTab === "account" ? "text-black" : "text-zinc-400 hover:text-white"
                 }`}
               >
@@ -339,8 +355,8 @@ export default function OrdersPage() {
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-1.5">
-                  <ShieldCheck size={14} />
-                  <span>{user ? "Verified" : "Phone Sync"}</span>
+                  <ShieldCheck size={13} />
+                  <span>{userPhone ? "Verified" : "Sync"}</span>
                 </span>
               </button>
             </div>
@@ -348,7 +364,7 @@ export default function OrdersPage() {
         </header>
 
         {/* Main Content Area */}
-        <main className="max-w-2xl mx-auto px-4 pt-6 space-y-6 relative z-10">
+        <main className="max-w-2xl mx-auto px-3.5 sm:px-6 pt-5 space-y-5 relative z-10">
 
           {/* Skeleton Loader during initial load */}
           {loading && (
@@ -373,22 +389,22 @@ export default function OrdersPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         onClick={() => navigate(`/track/${order.orderId}`)}
-                        className="bg-white/[0.03] hover:bg-white/[0.05] border border-[#00bfff]/30 hover:border-[#00bfff]/60 rounded-3xl p-6 transition-all cursor-pointer group space-y-4 shadow-xl shadow-[#00bfff]/5 relative overflow-hidden"
+                        className="bg-white/[0.03] hover:bg-white/[0.05] border border-[#00bfff]/30 hover:border-[#00bfff]/60 rounded-3xl p-5 sm:p-6 transition-all cursor-pointer group space-y-4 shadow-xl shadow-[#00bfff]/5 relative overflow-hidden"
                       >
                         <div className="flex items-start justify-between">
                           <div>
                             <span className="text-[10px] font-mono text-zinc-500 uppercase block">
                               Order #{order.orderId.slice(-6)}
                             </span>
-                            <h3 className="text-lg font-black text-white group-hover:text-[#00bfff] transition-colors mt-0.5">
+                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-[#00bfff] transition-colors mt-0.5">
                               {order.vendor_name || "Sosika Kitchen"}
                             </h3>
                           </div>
 
                           <span
-                            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-sm ${statusMeta.color}`}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider border shadow-sm ${statusMeta.color}`}
                           >
-                            <StatusIcon size={14} className="animate-pulse" />
+                            <StatusIcon size={13} className="animate-pulse" />
                             {statusMeta.label}
                           </span>
                         </div>
@@ -398,10 +414,10 @@ export default function OrdersPage() {
                           <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-2xl text-xs text-zinc-300 space-y-1">
                             {order.cart.map((item, idx) => (
                               <div key={idx} className="flex justify-between items-center text-xs">
-                                <span className="font-semibold text-zinc-200">
+                                <span className="font-semibold text-zinc-200 truncate pr-2">
                                   {item.quantity}x {item.name}
                                 </span>
-                                <span className="font-mono text-zinc-400 text-[11px]">
+                                <span className="font-mono text-zinc-400 text-[11px] shrink-0">
                                   {formatPrice((typeof item.price === "number" ? item.price : parseFloat(item.price as string)) * item.quantity)} TZS
                                 </span>
                               </div>
@@ -417,7 +433,7 @@ export default function OrdersPage() {
                             </span>
                           </div>
 
-                          <button className="bg-[#00bfff] hover:bg-[#00a8e6] text-black font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-[#00bfff]/20 transition-all group-hover:scale-105">
+                          <button className="bg-[#00bfff] hover:bg-[#00a8e6] text-black font-extrabold px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-[#00bfff]/20 transition-all group-hover:scale-105">
                             <span>Track Live</span>
                             <ChevronRight size={14} />
                           </button>
@@ -465,7 +481,7 @@ export default function OrdersPage() {
                         key={order.orderId}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 space-y-4 hover:border-white/[0.12] transition-all"
+                        className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 sm:p-5 space-y-4 hover:border-white/[0.12] transition-all"
                       >
                         <div className="flex items-start justify-between">
                           <div>
@@ -494,27 +510,27 @@ export default function OrdersPage() {
                               return (
                                 <div key={idx} className="flex justify-between items-center text-xs">
                                   <div className="flex items-center gap-2 min-w-0">
-                                    <span className="truncate max-w-[180px] text-zinc-200 font-medium">
+                                    <span className="truncate max-w-[140px] sm:max-w-[180px] text-zinc-200 font-medium">
                                       {i.quantity}x {i.name}
                                     </span>
                                     {isSubmitted ? (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-extrabold border border-emerald-500/20 shrink-0">
-                                        <CheckCircle2 size={11} />
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-extrabold border border-emerald-500/20 shrink-0">
+                                        <CheckCircle2 size={10} />
                                         <span>Submitted</span>
                                       </span>
                                     ) : (
                                       <button
                                         type="button"
                                         onClick={() => openPhotoModal(order, i)}
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#00bfff]/10 hover:bg-[#00bfff]/20 text-[#00bfff] text-[10px] font-extrabold border border-[#00bfff]/20 transition-all cursor-pointer shrink-0"
+                                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-[#00bfff]/10 hover:bg-[#00bfff]/20 text-[#00bfff] text-[10px] font-extrabold border border-[#00bfff]/20 transition-all cursor-pointer shrink-0"
                                         title="Upload photo of this meal to earn 1,000 TZS Sosika Cash"
                                       >
-                                        <Camera size={11} />
+                                        <Camera size={10} />
                                         <span>+1,000 TZS</span>
                                       </button>
                                     )}
                                   </div>
-                                  <span className="font-mono text-zinc-400 text-[11px] shrink-0 ml-2">
+                                  <span className="font-mono text-zinc-400 text-[11px] shrink-0 ml-1">
                                     {formatPrice((typeof i.price === "number" ? i.price : parseFloat(i.price as string)) * i.quantity)} TZS
                                   </span>
                                 </div>
@@ -534,13 +550,13 @@ export default function OrdersPage() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => navigate(`/track/${order.orderId}`)}
-                              className="px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 font-semibold text-[11px] transition-all cursor-pointer"
+                              className="px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 font-semibold text-[11px] transition-all cursor-pointer"
                             >
                               Receipt
                             </button>
                             <button
                               onClick={() => handleReorder(order)}
-                              className="px-3.5 py-2 rounded-xl bg-[#00bfff]/10 hover:bg-[#00bfff]/20 text-[#00bfff] font-extrabold text-[11px] transition-all cursor-pointer border border-[#00bfff]/20"
+                              className="px-3 py-2 rounded-xl bg-[#00bfff]/10 hover:bg-[#00bfff]/20 text-[#00bfff] font-extrabold text-[11px] transition-all cursor-pointer border border-[#00bfff]/20"
                             >
                               Reorder
                             </button>
@@ -569,7 +585,7 @@ export default function OrdersPage() {
           {/* TAB 3: PHONE SYNC & AUTH */}
           {activeTab === "account" && (
             <div className="space-y-4">
-              <div className="bg-gradient-to-tr from-white/[0.03] to-white/[0.01] border border-white/[0.08] rounded-3xl p-6 shadow-2xl backdrop-blur-md space-y-4">
+              <div className="bg-gradient-to-tr from-white/[0.03] to-white/[0.01] border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-md space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="p-3 rounded-2xl bg-[#00bfff]/10 border border-[#00bfff]/20 text-[#00bfff] shrink-0">
                     <ShieldCheck size={24} />
@@ -577,14 +593,14 @@ export default function OrdersPage() {
                   <div className="space-y-1">
                     <h3 className="text-sm font-bold text-white">Firebase Phone Sync</h3>
                     <p className="text-xs text-zinc-400 leading-relaxed">
-                      {user
-                        ? `Your phone ${user.phoneNumber} is authenticated. All orders linked to this number sync automatically.`
+                      {userPhone
+                        ? `Your phone ${userPhone} is authenticated. All orders linked to this number sync automatically.`
                         : "Verify your phone number via Firebase SMS to sync orders across all your devices."}
                     </p>
                   </div>
                 </div>
 
-                {!user && (
+                {!userPhone && (
                   <>
                     {!otpSent ? (
                       <form onSubmit={handleSendOTP} className="space-y-3 pt-2">
@@ -677,14 +693,14 @@ export default function OrdersPage() {
                   </>
                 )}
 
-                {user && (
+                {userPhone && (
                   <div className="pt-2 flex items-center justify-between border-t border-white/[0.06]">
                     <span className="text-xs text-zinc-400">Authenticated Session</span>
                     <button
-                      onClick={signOut}
+                      onClick={handleDisconnectPhone}
                       className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition-all cursor-pointer"
                     >
-                      Disconnect Phone
+                      Disconnect Phone & Clear Device Data
                     </button>
                   </div>
                 )}
