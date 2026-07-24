@@ -68,6 +68,13 @@ service cloud.firestore {
     }
 
     // -----------------------------
+    // System Settings (Global Configs)
+    // -----------------------------
+    match /system_settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    // -----------------------------
     // Support Tickets
     // -----------------------------
     match /supportTickets/{ticketId} {
