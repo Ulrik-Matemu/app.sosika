@@ -5,6 +5,7 @@ import { useCartContext } from "../../context/cartContext";
 import { useOrders } from "../../context/OrdersContext";
 import { useState } from "react";
 import CartDrawer from "./CartDrawer";
+import AddToCartToast from "./AddToCartToast";
 
 type NavItem = {
   name: string;
@@ -114,6 +115,8 @@ export default function Navbar() {
           })}
         </nav>
       </div>
+
+      <AddToCartToast onOpenCart={() => setIsCartOpen(true)} />
 
       <CartDrawer
         updateQuantity={updateQuantity}

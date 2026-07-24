@@ -1,438 +1,133 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { db } from '../../firebase';
-import { collection, addDoc, getDocs, writeBatch, doc } from 'firebase/firestore';
-import { Vendor } from '../mood/types/types';
-import AdminLogin from '../../components/my-components/AdminLogin';
+import { useState } from "react";
+import AdminLogin from "../../components/my-components/AdminLogin";
+import OverviewMetrics from "../../components/admin/OverviewMetrics";
+import LiveOrdersConsole from "../../components/admin/LiveOrdersConsole";
+import VendorManager from "../../components/admin/VendorManager";
+import PhotoModerationConsole from "../../components/admin/PhotoModerationConsole";
+import WalletConsole from "../../components/admin/WalletConsole";
+import {
+  LayoutDashboard,
+  Package,
+  Store,
+  Camera,
+  Wallet,
+  LogOut,
+  ShieldCheck
+} from "lucide-react";
 
-const AdminDashboard = () => {
+type AdminTab = "overview" | "orders" | "vendors" | "photos" | "wallet";
+
+export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [loadingVendors, setLoadingVendors] = useState(true);
-
-  const fetchVendors = async () => {
-    setLoadingVendors(true);
-    try {
-      const vendorsCollection = collection(db, 'vendors');
-      const vendorSnapshot = await getDocs(vendorsCollection);
-      const vendorsList = vendorSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Vendor[];
-      setVendors(vendorsList);
-    } catch (err) {
-      console.error("Error fetching vendors:", err);
-    } finally {
-      setLoadingVendors(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchVendors();
-    }
-  }, [isAuthenticated]);
+  const [activeTab, setActiveTab] = useState<AdminTab>("overview");
 
   if (!isAuthenticated) {
     return <AdminLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-[#00bfff] mb-8">Admin Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <AddVendorForm onVendorAdded={fetchVendors} />
-          <AddMenuItemForm vendors={vendors} loadingVendors={loadingVendors} />
-        </div>
-        <div className="mt-8">
-          <AddMenuItemsInBulkForm vendors={vendors} loadingVendors={loadingVendors} />
-        </div>
-      </div>
-    </div>
-  );
-};
+    <div className="min-h-screen bg-[#0a0a0b] text-white font-sans antialiased pb-24">
+      {/* Admin Top Sticky Navigation Header */}
+      <header className="sticky top-0 z-40 bg-[#0a0a0b]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 py-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Brand & Auth Badge */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#00bfff]/10 border border-[#00bfff]/20 text-[#00bfff] flex items-center justify-center font-bold">
+              <ShieldCheck size={22} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-black text-white tracking-tight">Sosika Control</h1>
+                <span className="text-[10px] font-mono font-bold bg-[#00bfff]/20 text-[#00bfff] px-2 py-0.5 rounded-full border border-[#00bfff]/30 uppercase">
+                  System Admin
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400">Platform Command Center & Live Operations</p>
+            </div>
+          </div>
 
-/* --- ADD VENDOR FORM COMPONENT --- */
-
-const AddVendorForm = ({ onVendorAdded }: { onVendorAdded: () => void }) => {
-  const [name, setName] = useState('');
-  const [ownerName, setOwnerName] = useState('');
-  const [collegeId, setCollegeId] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
-  const [isOpen, setIsOpen] = useState(true);
-  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-  const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-
-  const uploadImage = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      { method: 'POST', body: formData }
-    );
-
-    if (!response.ok) throw new Error('Cloudinary upload failed');
-    const data = await response.json();
-    return data.secure_url;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !ownerName || !collegeId || !lat || !lng || !coverImageFile) {
-      setError('Please fill all fields and select a cover image.');
-      return;
-    }
-    setSubmitting(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const coverImageUrl = await uploadImage(coverImageFile);
-
-      await addDoc(collection(db, 'vendors'), {
-        name,
-        owner_name: ownerName,
-        college_id: Number(collegeId),
-        geolocation: {
-          lat: parseFloat(lat),
-          lng: parseFloat(lng),
-        },
-        is_open: isOpen,
-        cover_image_url: coverImageUrl,
-      });
-      setSuccess('Vendor added successfully!');
-      setName('');
-      setOwnerName('');
-      setCollegeId('');
-      setLat('');
-      setLng('');
-      setIsOpen(true);
-      setCoverImageFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      onVendorAdded();
-    } catch (err) {
-      setError('Failed to add vendor. Check Firestore rules and image upload.');
-      console.error(err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="bg-zinc-800 p-6 rounded-lg h-fit">
-      <h2 className="text-xl font-bold mb-4">Add New Vendor</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input type="text" placeholder="Vendor Name" value={name} onChange={e => setName(e.target.value)} className="w-full bg-zinc-700 rounded p-2" />
-        <input type="text" placeholder="Owner Name" value={ownerName} onChange={e => setOwnerName(e.target.value)} className="w-full bg-zinc-700 rounded p-2" />
-        <input type="number" placeholder="College ID" value={collegeId} onChange={e => setCollegeId(e.target.value)} className="w-full bg-zinc-700 rounded p-2" />
-        <div className="flex gap-4">
-          <input type="number" step="any" placeholder="Lat" value={lat} onChange={e => setLat(e.target.value)} className="w-full bg-zinc-700 rounded p-2" />
-          <input type="number" step="any" placeholder="Lng" value={lng} onChange={e => setLng(e.target.value)} className="w-full bg-zinc-700 rounded p-2" />
-        </div>
-        <div className="space-y-1">
-            <label className="text-sm text-zinc-400">Vendor Cover Image</label>
-            <input 
-                type="file" 
-                accept="image/*"
-                ref={fileInputRef}
-                onChange={e => setCoverImageFile(e.target.files ? e.target.files[0] : null)} 
-                className="w-full bg-zinc-700 rounded p-1 text-sm file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-zinc-600 file:text-white hover:file:bg-zinc-500" 
-            />
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="is_open" checked={isOpen} onChange={e => setIsOpen(e.target.checked)} />
-          <label htmlFor="is_open">Is Open</label>
-        </div>
-        <button type="submit" disabled={submitting} className="w-full bg-[#00bfff] text-black font-bold py-2 rounded disabled:bg-zinc-600">
-          {submitting ? 'Adding...' : 'Add Vendor'}
-        </button>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        {success && <p className="text-green-500 text-sm">{success}</p>}
-      </form>
-    </div>
-  );
-};
-
-/* --- ADD MENU ITEM FORM COMPONENT --- */
-
-const AddMenuItemForm = ({ vendors, loadingVendors }: { vendors: Vendor[], loadingVendors: boolean }) => {
-    const [vendorId, setVendorId] = useState('');
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [category, setCategory] = useState<'breakfast' | 'lunch' | 'dinner' | 'snacks' | 'drinks'>('lunch');
-    const [price, setPrice] = useState('');
-    const [isAvailable, setIsAvailable] = useState(true);
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-
-    // Cloudinary Credentials from your request
-    const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET; 
-    const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME; 
-
-    useEffect(() => {
-        if (vendors.length > 0 && !vendorId) {
-            setVendorId(vendors[0].id);
-        }
-    }, [vendors, vendorId]);
-
-    const uploadImage = async (file: File): Promise<string> => {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-        const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-            { method: 'POST', body: formData }
-        );
-
-        if (!response.ok) throw new Error('Cloudinary upload failed');
-        const data = await response.json();
-        return data.secure_url;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!vendorId || !name || !price || !imageFile) {
-            setError('Please fill all required fields and select an image.');
-            return;
-        }
-
-        setSubmitting(true);
-        setError('');
-        setSuccess('');
-
-        try {
-            const uploadedImageUrl = await uploadImage(imageFile);
-
-            await addDoc(collection(db, 'menuItems'), {
-                vendor_id: vendorId,
-                name,
-                description,
-                category,
-                price: parseFloat(price),
-                is_available: isAvailable,
-                image_url: uploadedImageUrl,
-                created_at: new Date()
-            });
-
-            setSuccess('Menu item added successfully!');
-            setName('');
-            setDescription('');
-            setPrice('');
-            setImageFile(null);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-            setIsAvailable(true);
-            // Reset file input manually if needed via a ref, but state clear is usually enough
-        } catch (err: any) {
-            setError(err.message || 'Failed to add menu item.');
-            console.error(err);
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    return (
-        <div className="bg-zinc-800 p-6 rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Add New Menu Item</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1">
-                    <label className="text-sm text-zinc-400">Select Vendor</label>
-                    <select 
-                        value={vendorId} 
-                        onChange={e => setVendorId(e.target.value)} 
-                        className="w-full bg-zinc-700 rounded p-2" 
-                        disabled={loadingVendors}
-                    >
-                        {loadingVendors ? (
-                            <option>Loading vendors...</option>
-                        ) : (
-                            vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)
-                        )}
-                    </select>
-                </div>
-
-                <input type="text" placeholder="Item Name" value={name} onChange={e => setName(e.target.value)} className="w-full bg-zinc-700 rounded p-2" />
-                
-                <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-zinc-700 rounded p-2 h-20" />
-                
-                <div className="grid grid-cols-2 gap-4">
-                    <select value={category} onChange={e => setCategory(e.target.value as any)} className="bg-zinc-700 rounded p-2">
-                        <option value="breakfast">Breakfast</option>
-                        <option value="lunch">Lunch</option>
-                        <option value="dinner">Dinner</option>
-                        <option value="snacks">Snacks</option>
-                        <option value="drinks">Drinks</option>
-                    </select>
-                    <input type="number" placeholder="Price" value={price} onChange={e => setPrice(e.target.value)} className="bg-zinc-700 rounded p-2" />
-                </div>
-
-                <div className="space-y-1">
-                    <label className="text-sm text-zinc-400">Item Image</label>
-                    <input 
-                        type="file" 
-                        accept="image/*"
-                        ref={fileInputRef}
-                        onChange={e => setImageFile(e.target.files ? e.target.files[0] : null)} 
-                        className="w-full bg-zinc-700 rounded p-1 text-sm file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-zinc-600 file:text-white hover:file:bg-zinc-500" 
-                    />
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <input type="checkbox" id="is_available" checked={isAvailable} onChange={e => setIsAvailable(e.target.checked)} />
-                    <label htmlFor="is_available">Is Available</label>
-                </div>
-
-                <button type="submit" disabled={submitting} className="w-full bg-[#00bfff] text-black font-bold py-2 rounded disabled:bg-zinc-600">
-                    {submitting ? 'Uploading & Saving...' : 'Add Menu Item'}
-                </button>
-                {error && <p className="text-red-500 text-sm">{error}</p>}
-                {success && <p className="text-green-500 text-sm">{success}</p>}
-            </form>
-        </div>
-    );
-};
-
-/* --- ADD MENU ITEMS IN BULK FORM COMPONENT --- */
-
-const AddMenuItemsInBulkForm = ({ vendors, loadingVendors }: { vendors: Vendor[], loadingVendors: boolean }) => {
-  const [vendorId, setVendorId] = useState('');
-  const [jsonFile, setJsonFile] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (vendors.length > 0 && !vendorId) {
-        setVendorId(vendors[0].id);
-    }
-  }, [vendors, vendorId]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setJsonFile(e.target.files[0]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!vendorId || !jsonFile) {
-      setError('Please select a vendor and a JSON file.');
-      return;
-    }
-
-    setSubmitting(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const fileContent = await jsonFile.text();
-      const menuItems = JSON.parse(fileContent);
-
-      if (!Array.isArray(menuItems)) {
-        throw new Error('JSON file must contain an array of menu items.');
-      }
-
-      const batch = writeBatch(db);
-      const menuItemsCollection = collection(db, 'menuItems');
-      let itemCount = 0;
-
-      for (const item of menuItems) {
-        if (!item.name || !item.price || !item.category || !item.image_url) {
-            console.warn('Skipping invalid menu item:', item);
-            continue;
-        }
-        const newItemRef = doc(menuItemsCollection);
-        batch.set(newItemRef, {
-          vendor_id: vendorId,
-          name: item.name,
-          description: item.description || '',
-          category: item.category,
-          price: parseFloat(item.price),
-          is_available: item.is_available !== undefined ? item.is_available : true,
-          image_url: item.image_url,
-          created_at: new Date()
-        });
-        itemCount++;
-      }
-
-      await batch.commit();
-
-      setSuccess(`${itemCount} menu items added successfully!`);
-      setJsonFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to add menu items in bulk.');
-      console.error(err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="bg-zinc-800 p-6 rounded-lg">
-      <h2 className="text-xl font-bold mb-4">Add Menu Items in Bulk (JSON)</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1">
-            <label className="text-sm text-zinc-400">Select Vendor</label>
-            <select 
-                value={vendorId} 
-                onChange={e => setVendorId(e.target.value)} 
-                className="w-full bg-zinc-700 rounded p-2" 
-                disabled={loadingVendors}
+          {/* Module Tab Switcher */}
+          <div className="flex items-center gap-1.5 bg-white/[0.03] p-1.5 rounded-2xl border border-white/[0.08] overflow-x-auto max-w-full">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "overview"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
             >
-                {loadingVendors ? (
-                    <option>Loading vendors...</option>
-                ) : (
-                    vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)
-                )}
-            </select>
-        </div>
+              <LayoutDashboard size={15} />
+              <span>Overview</span>
+            </button>
 
-        <div className="space-y-1">
-            <label className="text-sm text-zinc-400">
-                JSON File (.json)
-                <a href="https://firebasestorage.googleapis.com/v0/b/sosika-a4328.appspot.com/o/misc%2FmenuItems-template.json?alt=media&token=33b68758-f8a3-482f-a39e-969895832b8f" 
-                   target="_blank" 
-                   rel="noopener noreferrer" 
-                   className="text-xs text-[#00bfff] hover:underline ml-2">
-                    (Download Template)
-                </a>
-            </label>
-            <input 
-                type="file" 
-                accept=".json"
-                ref={fileInputRef}
-                onChange={handleFileChange} 
-                className="w-full bg-zinc-700 rounded p-1 text-sm file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:bg-zinc-600 file:text-white hover:file:bg-zinc-500" 
-            />
-        </div>
+            <button
+              onClick={() => setActiveTab("orders")}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "orders"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Package size={15} />
+              <span>Live Orders</span>
+            </button>
 
-        <button type="submit" disabled={submitting || !jsonFile} className="w-full bg-[#00bfff] text-black font-bold py-2 rounded disabled:bg-zinc-600">
-            {submitting ? 'Uploading & Saving...' : 'Add Bulk Items'}
-        </button>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        {success && <p className="text-green-500 text-sm">{success}</p>}
-      </form>
+            <button
+              onClick={() => setActiveTab("vendors")}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "vendors"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Store size={15} />
+              <span>Vendors</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("photos")}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "photos"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Camera size={15} />
+              <span>Photo Rewards</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("wallet")}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "wallet"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Wallet size={15} />
+              <span>Wallet Console</span>
+            </button>
+          </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={() => setIsAuthenticated(false)}
+            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition-all cursor-pointer"
+          >
+            <LogOut size={14} />
+            <span>Lock</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Tab Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+        {activeTab === "overview" && <OverviewMetrics />}
+        {activeTab === "orders" && <LiveOrdersConsole />}
+        {activeTab === "vendors" && <VendorManager />}
+        {activeTab === "photos" && <PhotoModerationConsole />}
+        {activeTab === "wallet" && <WalletConsole />}
+      </main>
     </div>
   );
-};
-
-
-export default AdminDashboard;
+}

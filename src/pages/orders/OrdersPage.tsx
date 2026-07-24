@@ -1,9 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../../firebase";
 import Navbar from "../../components/my-components/navbar";
-import { useOrders, OrderRecord } from "../../context/OrdersContext";
+import { useOrders, OrderRecord, getPhoneVariations } from "../../context/OrdersContext";
+import { useWallet } from "../../context/WalletContext";
 import { usePhoneAuth } from "../../hooks/usePhoneAuth";
 import { useCartContext } from "../../context/cartContext";
+import UploadFoodPhotoModal from "../../components/my-components/UploadFoodPhotoModal";
+import TopUpWalletModal from "../../components/my-components/TopUpWalletModal";
 import {
   Package,
   Clock,
@@ -20,13 +25,16 @@ import {
   ChefHat,
   Bike,
   Receipt,
-  Sparkles
+  Sparkles,
+  Camera,
+  Wallet
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function OrdersPage() {
   const navigate = useNavigate();
   const { activeOrders, pastOrders, loading, userPhone, refreshOrders, setUserPhone } = useOrders();
+  const { balance } = useWallet();
   const { user, sendOTP, confirmOTP, loading: authLoading, error: authError, signOut } = usePhoneAuth();
   const { addToCart } = useCartContext();
 
@@ -36,6 +44,58 @@ export default function OrdersPage() {
   const [otpInput, setOtpInput] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+
+  // Top Up Modal State
+  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
+
+  // Photo Upload Modal State
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
+  const [submittedKeys, setSubmittedKeys] = useState<Set<string>>(new Set());
+  const [targetPhotoItem, setTargetPhotoItem] = useState<{
+    orderId: string;
+    vendorId: string;
+    vendorName: string;
+    menuItemId: string;
+    menuItemName: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!userPhone) return;
+    const fetchSubmissions = async () => {
+      try {
+        const variations = getPhoneVariations(userPhone);
+        if (variations.length === 0) return;
+
+        const q = query(
+          collection(db, "food_photo_submissions"),
+          where("phone", "in", variations.slice(0, 10))
+        );
+        const snap = await getDocs(q);
+        const keys = new Set<string>();
+        snap.forEach((d) => {
+          const data = d.data();
+          if (data.orderId && data.menuItemId) {
+            keys.add(`${data.orderId}_${data.menuItemId}`);
+          }
+        });
+        setSubmittedKeys(keys);
+      } catch (err) {
+        console.warn("[OrdersPage] Failed to fetch photo submissions:", err);
+      }
+    };
+    fetchSubmissions();
+  }, [userPhone, photoModalOpen]);
+
+  const openPhotoModal = (order: OrderRecord, item: any) => {
+    setTargetPhotoItem({
+      orderId: order.orderId,
+      vendorId: (item.vendor_id || (order as any).vendor_id || "vendor_1"),
+      vendorName: order.vendor_name || "Vendor",
+      menuItemId: item.id || "item_1",
+      menuItemName: item.name,
+    });
+    setPhotoModalOpen(true);
+  };
 
   // Format local phone input to Tanzanian E.164 format (+255...)
   const formatPhoneE164 = (raw: string) => {
@@ -153,12 +213,6 @@ export default function OrdersPage() {
         {/* Invisible reCAPTCHA container required for Firebase Phone Auth */}
         <div id="recaptcha-container" />
 
-        {/* Ambient lighting glows */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-72 pointer-events-none">
-          <div className="absolute top-[-30%] left-[20%] w-96 h-96 rounded-full bg-[#00bfff]/5 blur-[140px]" />
-          <div className="absolute top-[10%] right-[10%] w-80 h-80 rounded-full bg-indigo-500/[0.03] blur-[120px]" />
-        </div>
-
         {/* Top Sticky Header */}
         <header className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/[0.06] px-4 py-4">
           <div className="max-w-2xl mx-auto flex items-center justify-between">
@@ -182,6 +236,19 @@ export default function OrdersPage() {
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setTopUpModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00bfff]/15 to-emerald-500/10 border border-[#00bfff]/30 text-white text-xs font-black shadow-lg shadow-[#00bfff]/5 hover:border-[#00bfff]/60 transition-all cursor-pointer group"
+                title="Click to Top Up Sosika Cash"
+              >
+                <Wallet size={15} className="text-[#00bfff]" />
+                <span className="font-mono text-[#00bfff]">{formatPrice(balance)} TZS</span>
+                <span className="ml-1 text-[9px] bg-[#00bfff] text-black font-extrabold px-1.5 py-0.5 rounded-md group-hover:scale-105 transition-transform">
+                  + Top Up
+                </span>
+              </button>
+
               <button
                 onClick={refreshOrders}
                 disabled={loading}
@@ -419,17 +486,40 @@ export default function OrdersPage() {
                         </div>
 
                         {order.cart && order.cart.length > 0 && (
-                          <div className="text-xs text-zinc-400 space-y-1">
-                            {order.cart.map((i, idx) => (
-                              <div key={idx} className="flex justify-between">
-                                <span className="truncate max-w-[220px] text-zinc-300">
-                                  {i.quantity}x {i.name}
-                                </span>
-                                <span className="font-mono text-zinc-500 text-[11px]">
-                                  {formatPrice((typeof i.price === "number" ? i.price : parseFloat(i.price as string)) * i.quantity)} TZS
-                                </span>
-                              </div>
-                            ))}
+                          <div className="text-xs text-zinc-400 space-y-2 bg-white/[0.015] p-3 rounded-xl border border-white/[0.04]">
+                            {order.cart.map((i, idx) => {
+                              const itemKey = `${order.orderId}_${i.id || "item_1"}`;
+                              const isSubmitted = submittedKeys.has(itemKey);
+
+                              return (
+                                <div key={idx} className="flex justify-between items-center text-xs">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="truncate max-w-[180px] text-zinc-200 font-medium">
+                                      {i.quantity}x {i.name}
+                                    </span>
+                                    {isSubmitted ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-extrabold border border-emerald-500/20 shrink-0">
+                                        <CheckCircle2 size={11} />
+                                        <span>Submitted</span>
+                                      </span>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => openPhotoModal(order, i)}
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#00bfff]/10 hover:bg-[#00bfff]/20 text-[#00bfff] text-[10px] font-extrabold border border-[#00bfff]/20 transition-all cursor-pointer shrink-0"
+                                        title="Upload photo of this meal to earn 1,000 TZS Sosika Cash"
+                                      >
+                                        <Camera size={11} />
+                                        <span>+1,000 TZS</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                  <span className="font-mono text-zinc-400 text-[11px] shrink-0 ml-2">
+                                    {formatPrice((typeof i.price === "number" ? i.price : parseFloat(i.price as string)) * i.quantity)} TZS
+                                  </span>
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
 
@@ -604,6 +694,24 @@ export default function OrdersPage() {
 
         </main>
       </div>
+
+      {targetPhotoItem && (
+        <UploadFoodPhotoModal
+          isOpen={photoModalOpen}
+          onClose={() => setPhotoModalOpen(false)}
+          orderId={targetPhotoItem.orderId}
+          phone={userPhone || ""}
+          vendorId={targetPhotoItem.vendorId}
+          vendorName={targetPhotoItem.vendorName}
+          menuItemId={targetPhotoItem.menuItemId}
+          menuItemName={targetPhotoItem.menuItemName}
+        />
+      )}
+
+      <TopUpWalletModal
+        isOpen={topUpModalOpen}
+        onClose={() => setTopUpModalOpen(false)}
+      />
 
       <Navbar />
     </>

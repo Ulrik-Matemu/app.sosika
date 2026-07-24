@@ -84,7 +84,7 @@ export default function MoodSelection() {
       >
         {/* Brand */}
         <motion.div variants={itemVariants} className="text-center mb-2">
-          <h1 className="text-[#00bfff] font-black text-2xl tracking-tight">
+          <h1 className="text-[#00bfff] font-brand font-black text-2xl tracking-tight">
             Sosika
           </h1>
         </motion.div>

@@ -5,11 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { useMood } from "../../hooks/useMood";
 import { useLocationStorage } from "../../hooks/useLocationStorage";
 import { useCartContext } from "../../context/cartContext";
-import { fetchMoodResults } from "./api/mood-api";
+import { fetchMoodResults, peekMoodResultsCache } from "./api/mood-api";
 import { Vendor, MenuItem } from "../mood/types/types";
 import Navbar from "../../components/my-components/navbar";
 import { getDistance } from "../../lib/utils";
 import posthog from "posthog-js";
+import { triggerAddToCartToast } from "../../components/my-components/AddToCartToast";
 
 // --- Skeleton Loader ---
 const SkeletonCard = () => (
@@ -55,6 +56,7 @@ const MenuItemCard = ({
   const handleAdd = useCallback(() => {
     if (!canAdd) return;
     addToCart({ ...item, quantity: 1 } as any);
+    triggerAddToCartToast(item);
     posthog.capture("order_started", {
       platform: "app",
       item_id: item.id,
@@ -271,34 +273,49 @@ const ResultsPage = () => {
   const navigate = useNavigate();
   const { mood } = useMood();
   const { locations } = useLocationStorage();
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const userLocation = locations[0] || { lat: -3.37, lng: 36.7 };
+  const initialReq = { mood: mood || "any", location: { lat: userLocation.lat, lng: userLocation.lng } };
+  const cachedInitial = peekMoodResultsCache(initialReq);
+
+  const [vendors, setVendors] = useState<Vendor[]>(cachedInitial?.vendors || []);
+  const [items, setItems] = useState<MenuItem[]>(cachedInitial?.menuItems || []);
+  const [loading, setLoading] = useState<boolean>(!cachedInitial);
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleCount, setVisibleCount] = useState(15);
-  const [isFallback, setIsFallback] = useState(false);
-
-  const userLocation = locations[0] || { lat: -3.37, lng: 36.7 };
+  const [isFallback, setIsFallback] = useState(!!cachedInitial?.isFallback);
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchMoodResults({
-          mood: mood || "any",
-          location: { lat: userLocation.lat, lng: userLocation.lng },
-        });
+    const req = {
+      mood: mood || "any",
+      location: { lat: userLocation.lat, lng: userLocation.lng },
+    };
+
+    const peek = peekMoodResultsCache(req);
+    if (peek) {
+      setVendors(peek.vendors);
+      setItems(peek.menuItems);
+      setIsFallback(!!peek.isFallback);
+      setLoading(false);
+      // Silent revalidate in background without blocking UI
+      fetchMoodResults(req, true).then((data) => {
         setVendors(data.vendors);
         setItems(data.menuItems);
         setIsFallback(!!data.isFallback);
-      } catch (error) {
-        console.error("Failed to load results:", error);
-      } finally {
+      }).catch(() => {});
+    } else {
+      setLoading(true);
+      fetchMoodResults(req).then((data) => {
+        setVendors(data.vendors);
+        setItems(data.menuItems);
+        setIsFallback(!!data.isFallback);
+      }).catch((err) => {
+        console.error("Failed to load results:", err);
+      }).finally(() => {
         setLoading(false);
-      }
-    };
-    loadData();
+      });
+    }
   }, [mood, userLocation.lat, userLocation.lng]);
 
   // Build a vendor name lookup

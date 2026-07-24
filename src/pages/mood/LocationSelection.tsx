@@ -122,15 +122,42 @@ export default function LocationSelection() {
   };
 
   if (loadError) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b]">
-      <p className="text-red-400 font-medium">Error loading maps</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0b] text-center p-6 space-y-3">
+      <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center">
+        <MapPin size={24} />
+      </div>
+      <h3 className="text-base font-bold text-white">Map Connection Notice</h3>
+      <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
+        Could not load Google Maps. Please check your internet connection or choose a saved address.
+      </p>
     </div>
   );
   
   if (!isLoaded) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0b] gap-3">
-      <Loader2 className="w-8 h-8 text-[#00bfff] animate-spin" />
-      <p className="text-zinc-500 text-sm font-medium">Loading map...</p>
+    <div className="min-h-screen bg-[#0a0a0b] text-white p-4 flex flex-col items-center">
+      <div className="w-full max-w-lg space-y-4">
+        {/* Header Skeleton */}
+        <div className="flex items-center gap-3 py-2 border-b border-white/[0.04] pb-4">
+          <div className="w-9 h-9 rounded-xl bg-white/[0.04] animate-pulse" />
+          <div className="space-y-1 flex-1">
+            <div className="w-20 h-3 bg-white/[0.04] rounded animate-pulse" />
+            <div className="w-36 h-5 bg-white/[0.06] rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Search Bar Skeleton */}
+        <div className="w-full h-12 rounded-2xl bg-white/[0.03] border border-white/[0.06] animate-pulse flex items-center px-4 justify-between">
+          <div className="w-48 h-4 bg-white/[0.05] rounded" />
+          <div className="w-8 h-8 rounded-xl bg-white/[0.05]" />
+        </div>
+
+        {/* Map Frame Skeleton */}
+        <div className="w-full h-72 rounded-3xl bg-white/[0.02] border border-white/[0.06] relative overflow-hidden flex flex-col items-center justify-center gap-3">
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#00bfff]/5 to-transparent animate-pulse" />
+          <Loader2 className="w-8 h-8 text-[#00bfff] animate-spin relative z-10" />
+          <p className="text-xs font-bold text-zinc-400 relative z-10">Initializing Interactive Map...</p>
+        </div>
+      </div>
     </div>
   );
 

@@ -8,6 +8,7 @@ import { useCartContext } from "../../context/cartContext";
 import { getReviews, addReview } from "../../services/reviews-api";
 import Navbar from "../../components/my-components/navbar";
 import StarRating from "../../components/my-components/StarRating";
+import { triggerAddToCartToast } from "../../components/my-components/AddToCartToast";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { Textarea } from "../../components/ui/textarea";
@@ -27,6 +28,7 @@ const MenuItemRow = React.memo(({ item, isVendorOpen = true }: { item: MenuItem;
     if (!canAdd) return;
     setIsAdding(true);
     addToCart({ ...item, quantity: 1 } as any);
+    triggerAddToCartToast(item);
     // Quick visual feedback
     setTimeout(() => setIsAdding(false), 600);
   }, [item, addToCart, canAdd]);

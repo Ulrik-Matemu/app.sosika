@@ -266,7 +266,7 @@ export function useCart() {
     setCart([]);
   }, []);
 
-  const checkout = async () => {
+  const checkout = async (paymentDetails?: { paymentMethod?: string; walletDiscount?: number; cashPayable?: number }) => {
     setLoading(true);
 
     // Block orders if it is between 22:00 (10 PM) and 6:00 AM
@@ -439,7 +439,10 @@ export function useCart() {
         assignedAt: null,
         pickedUpAt: null,
         deliveredAt: null,
-        paymentStatus: 'unpaid',
+        paymentStatus: paymentDetails?.paymentMethod === 'sosika_cash' ? 'paid_via_wallet' : 'unpaid',
+        paymentMethod: paymentDetails?.paymentMethod || 'cash_on_delivery',
+        walletDiscount: paymentDetails?.walletDiscount || 0,
+        cashPayable: paymentDetails?.cashPayable !== undefined ? paymentDetails.cashPayable : parseFloat(orderTotal),
         deliveryOption: selectedDeliveryOption,
         vendor_name: vendorName,
         vendor_ids: uniqueVendorIds,

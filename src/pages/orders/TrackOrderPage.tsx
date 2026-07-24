@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase";
 import {
   ArrowLeft,
   Clock,
   MapPin,
-  Phone,
   CheckCircle2,
   AlertCircle,
   ChefHat,
@@ -14,10 +13,10 @@ import {
   ShoppingBag,
   Copy,
   Check,
-  RefreshCw,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from "lucide-react";
-import { motion } from "framer-motion";
+
 
 interface OrderItem {
   id: string;
@@ -31,49 +30,20 @@ interface OrderItem {
 interface OrderData {
   orderId: string;
   phone: string;
-  cart: OrderItem[];
+  status: "pending" | "preparing" | "ready_for_pickup" | "delivered" | "declined";
+  totalAmount: number;
   subtotal: number;
   deliveryFee: number;
   serviceFee: number;
-  totalAmount: number;
-  displayLocation: string;
-  locationCoords?: string;
-  status: "pending" | "preparing" | "ready_for_pickup" | "delivered" | "declined" | string;
-  deliveryOption: string;
+  displayLocation?: string;
   vendor_name?: string;
+  cart: OrderItem[];
   timestamp?: any;
-  acceptedAt?: any;
-  pickedUpAt?: any;
-  deliveredAt?: any;
-  declinedAt?: any;
+  deliveryOption?: string;
+  paymentMethod?: string;
+  walletDiscount?: number;
+  cashPayable?: number;
 }
-
-const STEPS = [
-  {
-    key: "pending",
-    title: "Order Placed",
-    subtitle: "Sent to kitchen, waiting for confirmation",
-    icon: Clock,
-  },
-  {
-    key: "preparing",
-    title: "Preparing Food",
-    subtitle: "Chef is actively cooking your meal",
-    icon: ChefHat,
-  },
-  {
-    key: "ready_for_pickup",
-    title: "Out for Delivery",
-    subtitle: "Food is ready & driver is on the way",
-    icon: Bike,
-  },
-  {
-    key: "delivered",
-    title: "Delivered",
-    subtitle: "Order complete. Enjoy your food!",
-    icon: CheckCircle2,
-  },
-];
 
 export default function TrackOrderPage() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -124,6 +94,19 @@ export default function TrackOrderPage() {
     }
   };
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/orders");
+    }
+  };
+
+  const getWhatsAppSupportUrl = () => {
+    const text = `Habari Sosika Support! Naomba msaada kuhusu oda yangu #${order?.orderId.slice(-6)} (ID: ${order?.orderId}).`;
+    return `https://wa.me/255760903468?text=${encodeURIComponent(text)}`;
+  };
+
   const getStepIndex = (status?: string) => {
     switch (status) {
       case "pending":
@@ -139,9 +122,6 @@ export default function TrackOrderPage() {
     }
   };
 
-  const currentStepIdx = getStepIndex(order?.status);
-  const isDeclined = order?.status === "declined";
-
   const formatPrice = (val: number | string) => {
     const num = typeof val === "string" ? parseFloat(val) : val;
     return (isNaN(num) ? 0 : num).toLocaleString();
@@ -149,62 +129,54 @@ export default function TrackOrderPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0b] text-white flex flex-col items-center justify-center p-6 selection:bg-[#00bfff]/20 font-sans">
-        <div className="w-16 h-16 rounded-2xl bg-[#00bfff]/10 border border-[#00bfff]/20 flex items-center justify-center text-[#00bfff] mb-4 animate-pulse">
-          <RefreshCw size={28} className="animate-spin" />
-        </div>
-        <p className="text-sm font-bold text-zinc-400 tracking-wider animate-pulse">
-          Connecting to Live Kitchen Stream...
-        </p>
+      <div className="min-h-screen bg-[#0a0a0b] flex flex-col items-center justify-center p-6 space-y-4">
+        <Loader2 className="w-8 h-8 text-[#00bfff] animate-spin" />
+        <p className="text-xs font-mono text-zinc-400">Syncing live kitchen order stream...</p>
       </div>
     );
   }
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-[#0a0a0b] text-white p-4 flex flex-col items-center justify-center font-sans antialiased">
-        <div className="max-w-md w-full bg-white/[0.02] border border-white/[0.08] rounded-3xl p-8 text-center space-y-6 shadow-2xl backdrop-blur-xl">
+      <div className="min-h-screen bg-[#0a0a0b] text-white p-6 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white/[0.02] border border-white/[0.08] rounded-3xl p-8 text-center space-y-5">
           <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto">
             <AlertCircle size={32} />
           </div>
-          <div className="space-y-2">
-            <h1 className="text-xl font-extrabold tracking-tight">Order Not Discovered</h1>
-            <p className="text-xs text-zinc-400 leading-relaxed max-w-xs mx-auto">
-              {error || "We couldn't find an order matching that reference ID."}
+          <div className="space-y-1">
+            <h2 className="text-lg font-black">Order Track Notice</h2>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              {error || "Could not locate order."}
             </p>
           </div>
-          <div className="pt-2 space-y-3">
-            <button
-              onClick={() => navigate("/orders")}
-              className="w-full bg-[#00bfff] hover:bg-[#00a8e6] text-black font-extrabold py-3.5 rounded-xl text-xs transition-all active:scale-[0.99] shadow-lg shadow-[#00bfff]/10"
-            >
-              View My Orders
-            </button>
-            <Link
-              to="/mood/results"
-              className="block w-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 font-semibold py-3 rounded-xl text-xs transition-all"
-            >
-              Explore Restaurants
-            </Link>
-          </div>
+          <button
+            onClick={() => navigate("/orders")}
+            className="w-full bg-[#00bfff] hover:bg-[#00a8e6] text-black font-extrabold py-3.5 rounded-xl text-xs transition-all cursor-pointer"
+          >
+            View All My Orders
+          </button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white selection:bg-[#00bfff]/20 font-sans antialiased pb-24 relative overflow-hidden">
-      {/* Background Lighting Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 pointer-events-none">
-        <div className="absolute top-[-20%] left-[20%] w-96 h-96 rounded-full bg-[#00bfff]/5 blur-[120px]" />
-        <div className="absolute top-[10%] right-[10%] w-80 h-80 rounded-full bg-indigo-500/[0.04] blur-[120px]" />
-      </div>
+  const currentStepIdx = getStepIndex(order.status);
+  const isDeclined = order.status === "declined";
 
+  const STEPS = [
+    { title: "Received", icon: Clock, desc: "Order sent to vendor" },
+    { title: "Cooking", icon: ChefHat, desc: "Preparing your food" },
+    { title: "Dispatched", icon: Bike, desc: "On the way to you" },
+    { title: "Delivered", icon: CheckCircle2, desc: "Order completed" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0b] text-white font-sans antialiased pb-24 relative overflow-hidden">
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/[0.06] px-4 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-zinc-300 transition-all active:scale-95 cursor-pointer"
             aria-label="Back"
           >
@@ -239,7 +211,6 @@ export default function TrackOrderPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 pt-6 space-y-6 relative z-10">
-
         {/* Live Status Hero Card */}
         <div className="bg-white/[0.02] border border-white/[0.08] rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-2xl relative overflow-hidden space-y-6">
           <div className="flex items-start justify-between">
@@ -259,74 +230,45 @@ export default function TrackOrderPage() {
                   ? "Dispatched / Out for Delivery 🛵"
                   : "Order Delivered 🎉"}
               </h2>
-              <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+              <p className="text-xs text-zinc-400 mt-1">
                 {isDeclined
-                  ? "The vendor was unable to fulfill your order request."
-                  : STEPS[currentStepIdx]?.subtitle}
+                  ? "The vendor was unable to accept this order."
+                  : STEPS[currentStepIdx]?.desc || "Real-time updates from vendor"}
               </p>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-gradient-to-tr from-[#00bfff]/20 to-indigo-500/10 border border-[#00bfff]/30 text-[#00bfff] shrink-0">
-              {isDeclined ? (
-                <AlertCircle size={28} className="text-red-400" />
-              ) : currentStepIdx === 3 ? (
-                <CheckCircle2 size={28} className="text-emerald-400" />
-              ) : (
-                <ChefHat size={28} className="animate-bounce" />
-              )}
+            <div className="w-12 h-12 rounded-2xl bg-[#00bfff]/10 border border-[#00bfff]/20 text-[#00bfff] flex items-center justify-center shrink-0">
+              <Clock size={24} />
             </div>
           </div>
 
-          {/* Declined Alert */}
-          {isDeclined && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs text-red-400 space-y-1">
-              <span className="font-bold block">Order Could Not Be Fulfilled</span>
-              <p className="text-zinc-400 text-[11px] leading-relaxed">
-                This order was declined by the restaurant. If you have questions or made a payment, please contact Sosika Customer Support.
-              </p>
-            </div>
-          )}
-
-          {/* Stepper Progress Bar */}
+          {/* Stepper Timeline */}
           {!isDeclined && (
-            <div className="pt-2 space-y-6">
-              {/* Line Bar Indicator */}
-              <div className="relative w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-[#00bfff] via-[#00a8e6] to-emerald-400"
-                  initial={{ width: "0%" }}
-                  animate={{
-                    width: `${((currentStepIdx + 1) / STEPS.length) * 100}%`
-                  }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                />
-              </div>
-
-              {/* Step Items List */}
-              <div className="grid grid-cols-4 gap-2 text-center">
+            <div className="pt-4 border-t border-white/[0.06] space-y-4">
+              <div className="grid grid-cols-4 gap-2 relative">
                 {STEPS.map((step, idx) => {
-                  const isDone = idx <= currentStepIdx;
+                  const IconComp = step.icon;
+                  const isPassed = idx <= currentStepIdx;
                   const isCurrent = idx === currentStepIdx;
-                  const Icon = step.icon;
 
                   return (
-                    <div key={step.key} className="space-y-1.5 flex flex-col items-center">
+                    <div key={idx} className="flex flex-col items-center text-center space-y-2">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
                           isCurrent
-                            ? "bg-[#00bfff] text-black ring-4 ring-[#00bfff]/20 font-bold scale-110 shadow-lg shadow-[#00bfff]/20"
-                            : isDone
-                            ? "bg-[#00bfff]/20 text-[#00bfff] border border-[#00bfff]/40"
-                            : "bg-white/[0.03] text-zinc-600 border border-white/[0.05]"
+                            ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20 scale-105 ring-4 ring-[#00bfff]/20"
+                            : isPassed
+                            ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-400"
+                            : "bg-white/[0.03] border border-white/[0.06] text-zinc-600"
                         }`}
                       >
-                        <Icon size={16} />
+                        <IconComp size={18} />
                       </div>
                       <span
-                        className={`text-[10px] font-extrabold tracking-tight leading-tight block ${
+                        className={`text-[11px] font-bold ${
                           isCurrent
                             ? "text-[#00bfff]"
-                            : isDone
+                            : isPassed
                             ? "text-zinc-200"
                             : "text-zinc-600"
                         }`}
@@ -343,10 +285,21 @@ export default function TrackOrderPage() {
 
         {/* Delivery Location & Contact Card */}
         <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 space-y-4">
-          <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-            <MapPin size={14} className="text-[#00bfff]" />
-            Delivery Destination
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+              <MapPin size={14} className="text-[#00bfff]" />
+              Delivery Destination
+            </h3>
+            <a
+              href={getWhatsAppSupportUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-extrabold border border-emerald-500/20 transition-all cursor-pointer"
+            >
+              <MessageSquare size={13} />
+              <span>WhatsApp Support</span>
+            </a>
+          </div>
           <div className="space-y-1 text-xs">
             <p className="text-white font-semibold leading-normal">
               {order.displayLocation || "Address recorded"}
@@ -367,76 +320,62 @@ export default function TrackOrderPage() {
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
               {order.deliveryOption === "free"
                 ? "Free Pass Delivery"
-                : order.deliveryOption === "pickup"
-                ? "Self Pickup"
                 : "Standard Delivery"}
             </span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {order.cart?.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between text-xs py-1">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-6 h-6 rounded-lg bg-[#00bfff]/10 text-[#00bfff] font-extrabold text-[11px] flex items-center justify-center shrink-0">
-                    {item.quantity}x
-                  </span>
-                  <span className="text-zinc-200 font-semibold truncate">
-                    {item.name}
-                  </span>
-                </div>
-                <span className="font-mono text-zinc-300 font-bold shrink-0 ml-4">
-                  {formatPrice((typeof item.price === "number" ? item.price : parseFloat(item.price as string)) * item.quantity)} TZS
+                <span className="text-zinc-200 font-medium">
+                  {item.quantity}x {item.name}
+                </span>
+                <span className="font-mono text-zinc-400">
+                  {formatPrice(
+                    (typeof item.price === "number" ? item.price : parseFloat(item.price as string)) * item.quantity
+                  )}{" "}
+                  TZS
                 </span>
               </div>
             ))}
           </div>
 
-          {/* Pricing Calculations */}
-          <div className="pt-4 border-t border-white/[0.05] space-y-2 text-xs">
+          {/* Payment Summary */}
+          <div className="pt-3 border-t border-white/[0.05] space-y-1.5 text-xs">
             <div className="flex justify-between text-zinc-400">
               <span>Subtotal</span>
-              <span className="font-mono">{formatPrice(order.subtotal)} TZS</span>
+              <span className="font-mono">{formatPrice(order.subtotal || 0)} TZS</span>
             </div>
             <div className="flex justify-between text-zinc-400">
               <span>Delivery Fee</span>
-              <span className="font-mono">
-                {order.deliveryFee === 0 ? "FREE" : `${formatPrice(order.deliveryFee)} TZS`}
-              </span>
+              <span className="font-mono">{formatPrice(order.deliveryFee || 0)} TZS</span>
             </div>
             <div className="flex justify-between text-zinc-400">
               <span>Service Fee</span>
               <span className="font-mono">{formatPrice(order.serviceFee || 1000)} TZS</span>
             </div>
-            <div className="flex justify-between text-white font-extrabold text-sm pt-2 border-t border-white/[0.05]">
-              <span>Total Amount</span>
-              <span className="font-mono text-[#00bfff]">{formatPrice(order.totalAmount)} TZS</span>
+
+            {order.walletDiscount && order.walletDiscount > 0 && (
+              <div className="flex justify-between text-emerald-400 font-bold">
+                <span>Sosika Cash Discount</span>
+                <span className="font-mono">-{formatPrice(order.walletDiscount)} TZS</span>
+              </div>
+            )}
+
+            <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-white/[0.05]">
+              <span>
+                {order.paymentMethod === "sosika_cash"
+                  ? "Total Paid (Sosika Cash)"
+                  : order.paymentMethod === "hybrid_wallet_cash"
+                  ? "Cash Payable to Driver"
+                  : "Total Amount (Cash)"}
+              </span>
+              <span className="text-[#00bfff] font-mono">
+                {formatPrice(order.cashPayable !== undefined ? order.cashPayable : order.totalAmount)} TZS
+              </span>
             </div>
           </div>
         </div>
-
-        {/* Support & Action Shortcuts */}
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <a
-            href={`https://wa.me/255778903468?text=${encodeURIComponent(
-              `Hello Sosika Support, I need help with my Order #${order.orderId.slice(-6)}`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-[0.99]"
-          >
-            <MessageSquare size={16} />
-            <span>WhatsApp Support</span>
-          </a>
-
-          <a
-            href="tel:+255778903468"
-            className="flex items-center justify-center gap-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 font-bold py-3.5 rounded-xl text-xs transition-all active:scale-[0.99]"
-          >
-            <Phone size={16} />
-            <span>Direct Call</span>
-          </a>
-        </div>
-
       </main>
     </div>
   );

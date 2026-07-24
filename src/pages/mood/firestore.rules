@@ -43,6 +43,31 @@ service cloud.firestore {
     }
 
     // -----------------------------
+    // In-App Wallet & Transactions
+    // -----------------------------
+    match /wallets/{phone} {
+      allow read, write: if true;
+    }
+
+    match /wallet_transactions/{txId} {
+      allow read, write: if true;
+    }
+
+    // -----------------------------
+    // Crowd-Sourced Food Photo Submissions
+    // -----------------------------
+    match /food_photo_submissions/{submissionId} {
+      allow read, write: if true;
+    }
+
+    // -----------------------------
+    // App Entry Telemetry
+    // -----------------------------
+    match /app_entries/{entryId} {
+      allow read, write: if true;
+    }
+
+    // -----------------------------
     // Support Tickets
     // -----------------------------
     match /supportTickets/{ticketId} {
