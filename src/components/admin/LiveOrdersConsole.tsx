@@ -12,8 +12,14 @@ import {
   ChevronDown,
   ChevronUp,
   ShieldAlert,
-  Loader2
+  Loader2,
+  Calendar,
+  Activity,
+  XCircle,
+  TrendingUp
 } from "lucide-react";
+
+type TimeframeOption = "7d" | "14d" | "30d" | "90d" | "180d" | "365d" | "all" | "custom";
 
 export default function LiveOrdersConsole() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -23,6 +29,17 @@ export default function LiveOrdersConsole() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
+  // Timeframe Filter State
+  const [timeframe, setTimeframe] = useState<TimeframeOption>("30d");
+  const [customStartDate, setCustomStartDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split("T")[0];
+  });
+  const [customEndDate, setCustomEndDate] = useState<string>(() => {
+    return new Date().toISOString().split("T")[0];
+  });
+
   useEffect(() => {
     setLoading(true);
     const unsub = onSnapshot(
@@ -31,8 +48,8 @@ export default function LiveOrdersConsole() {
         const list: any[] = [];
         snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
         list.sort((a, b) => {
-          const timeA = a.timestamp?.seconds || 0;
-          const timeB = b.timestamp?.seconds || 0;
+          const timeA = a.timestamp?.seconds ? a.timestamp.seconds * 1000 : new Date(a.timestamp || 0).getTime();
+          const timeB = b.timestamp?.seconds ? b.timestamp.seconds * 1000 : new Date(b.timestamp || 0).getTime();
           return timeB - timeA;
         });
         setOrders(list);
@@ -62,7 +79,59 @@ export default function LiveOrdersConsole() {
     }
   };
 
-  const filteredOrders = orders.filter((o) => {
+  // Compute time boundary timestamp window
+  const getTimeWindow = (): { startMs: number; endMs: number } => {
+    const now = Date.now();
+    let startMs = 0;
+    let endMs = now;
+
+    if (timeframe === "custom") {
+      startMs = customStartDate ? new Date(`${customStartDate}T00:00:00`).getTime() : 0;
+      endMs = customEndDate ? new Date(`${customEndDate}T23:59:59`).getTime() : now;
+    } else if (timeframe === "7d") {
+      startMs = now - 7 * 24 * 60 * 60 * 1000;
+    } else if (timeframe === "14d") {
+      startMs = now - 14 * 24 * 60 * 60 * 1000;
+    } else if (timeframe === "30d") {
+      startMs = now - 30 * 24 * 60 * 60 * 1000;
+    } else if (timeframe === "90d") {
+      startMs = now - 90 * 24 * 60 * 60 * 1000;
+    } else if (timeframe === "180d") {
+      startMs = now - 180 * 24 * 60 * 60 * 1000;
+    } else if (timeframe === "365d") {
+      startMs = now - 365 * 24 * 60 * 60 * 1000;
+    } else {
+      // all time
+      startMs = 0;
+    }
+
+    return { startMs, endMs };
+  };
+
+  const { startMs, endMs } = getTimeWindow();
+
+  // Filter orders by timeframe
+  const timeframeOrders = orders.filter((o) => {
+    if (!o.timestamp) return true;
+    const time = o.timestamp.seconds
+      ? o.timestamp.seconds * 1000
+      : new Date(o.timestamp).getTime();
+    return time >= startMs && time <= endMs;
+  });
+
+  // Calculate Summary Metrics for Timeframe
+  const totalTimeframeOrdersCount = timeframeOrders.length;
+  const activeOrdersCount = timeframeOrders.filter(
+    (o) => o.status === "pending" || o.status === "preparing" || o.status === "ready_for_pickup"
+  ).length;
+  const deliveredOrdersCount = timeframeOrders.filter((o) => o.status === "delivered").length;
+  const declinedOrdersCount = timeframeOrders.filter((o) => o.status === "declined").length;
+  const timeframeVolume = timeframeOrders
+    .filter((o) => o.status !== "declined")
+    .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+  // Apply Status & Search Filters on Timeframe Orders
+  const filteredOrders = timeframeOrders.filter((o) => {
     const matchesStatus = filterStatus === "all" || o.status === filterStatus;
     const search = searchTerm.toLowerCase().trim();
     const matchesSearch =
@@ -81,16 +150,157 @@ export default function LiveOrdersConsole() {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Console Header & Search Bar */}
+      {/* Timeframe Filter Bar */}
+      <div className="bg-white/[0.02] border border-white/[0.08] rounded-3xl p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+              <Calendar size={18} className="text-[#00bfff]" />
+              <span>Live Orders Dispatch Timeframe</span>
+            </h3>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Filter order stream volume, active dispatches, and historical order status records
+            </p>
+          </div>
+
+          {/* Timeframe Preset Pills */}
+          <div className="flex items-center gap-1 bg-white/[0.03] p-1.5 rounded-2xl border border-white/[0.08] overflow-x-auto max-w-full">
+            {[
+              { id: "7d", label: "7 Days" },
+              { id: "14d", label: "14 Days" },
+              { id: "30d", label: "30 Days" },
+              { id: "90d", label: "90 Days" },
+              { id: "180d", label: "180 Days" },
+              { id: "365d", label: "365 Days" },
+              { id: "all", label: "All Time" },
+              { id: "custom", label: "Custom Range" }
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => setTimeframe(opt.id as TimeframeOption)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  timeframe === opt.id
+                    ? "bg-[#00bfff] text-black shadow-md shadow-[#00bfff]/20"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom Range Picker */}
+        {timeframe === "custom" && (
+          <div className="pt-3 border-t border-white/[0.06] flex flex-wrap items-center gap-4 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-400 font-bold">Start Date:</span>
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5 text-white outline-none focus:border-[#00bfff] font-mono"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-400 font-bold">End Date:</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-1.5 text-white outline-none focus:border-[#00bfff] font-mono"
+              />
+            </div>
+
+            <span className="text-emerald-400 font-mono text-[11px] font-bold">
+              Active Window Applied
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Metrics Summary Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Total Orders in Window */}
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+              Total Orders
+            </span>
+            <Package size={16} className="text-[#00bfff]" />
+          </div>
+          <div className="text-xl font-black text-white font-mono">
+            {totalTimeframeOrdersCount}
+          </div>
+          <span className="text-[10px] text-zinc-500 block">In selected timeframe</span>
+        </div>
+
+        {/* Live Active Orders */}
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+              Active Dispatches
+            </span>
+            <Activity size={16} className="text-[#00bfff]" />
+          </div>
+          <div className="text-xl font-black text-[#00bfff] font-mono flex items-baseline gap-2">
+            <span>{activeOrdersCount}</span>
+            <span className="text-[9px] font-bold text-emerald-400 animate-pulse">Live</span>
+          </div>
+          <span className="text-[10px] text-zinc-500 block">Pending / Preparing / Ready</span>
+        </div>
+
+        {/* Delivered Orders */}
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+              Delivered
+            </span>
+            <CheckCircle2 size={16} className="text-emerald-400" />
+          </div>
+          <div className="text-xl font-black text-emerald-400 font-mono">
+            {deliveredOrdersCount}
+          </div>
+          <span className="text-[10px] text-zinc-500 block">Completed deliveries</span>
+        </div>
+
+        {/* Declined Orders */}
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+              Declined
+            </span>
+            <XCircle size={16} className="text-red-400" />
+          </div>
+          <div className="text-xl font-black text-red-400 font-mono">
+            {declinedOrdersCount}
+          </div>
+          <span className="text-[10px] text-zinc-500 block">Rejected or cancelled</span>
+        </div>
+
+        {/* Volume TZS */}
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+              Order Volume
+            </span>
+            <TrendingUp size={16} className="text-emerald-400" />
+          </div>
+          <div className="text-xl font-black text-white font-mono">
+            {timeframeVolume.toLocaleString()} TZS
+          </div>
+          <span className="text-[10px] text-zinc-500 block">Gross order value</span>
+        </div>
+      </div>
+
+      {/* Search & Status Controls Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/[0.02] border border-white/[0.08] rounded-3xl p-5">
         <div>
-          <h2 className="text-lg font-black text-white flex items-center gap-2">
-            <Package size={20} className="text-[#00bfff]" />
-            <span>Live Orders Dispatch & Control</span>
+          <h2 className="text-base font-black text-white flex items-center gap-2">
+            <Package size={18} className="text-[#00bfff]" />
+            <span>Orders Dispatch Table ({filteredOrders.length})</span>
           </h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Real-time platform orders stream with emergency admin status override
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -136,7 +346,7 @@ export default function LiveOrdersConsole() {
           <Package size={32} className="text-zinc-600 mx-auto" />
           <h3 className="text-sm font-bold text-zinc-300">No Orders Found</h3>
           <p className="text-xs text-zinc-500 max-w-xs mx-auto">
-            No customer orders match the selected filter query.
+            No customer orders match the selected timeframe and filter query.
           </p>
         </div>
       ) : (
