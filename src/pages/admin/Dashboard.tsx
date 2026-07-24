@@ -5,17 +5,19 @@ import LiveOrdersConsole from "../../components/admin/LiveOrdersConsole";
 import VendorManager from "../../components/admin/VendorManager";
 import PhotoModerationConsole from "../../components/admin/PhotoModerationConsole";
 import WalletConsole from "../../components/admin/WalletConsole";
+import FreeDeliveryManager from "../../components/admin/FreeDeliveryManager";
 import {
   LayoutDashboard,
   Package,
   Store,
   Camera,
   Wallet,
+  Gift,
   LogOut,
   ShieldCheck
 } from "lucide-react";
 
-type AdminTab = "overview" | "orders" | "vendors" | "photos" | "wallet";
+type AdminTab = "overview" | "orders" | "vendors" | "photos" | "wallet" | "freepass";
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -85,6 +87,18 @@ export default function AdminDashboard() {
             </button>
 
             <button
+              onClick={() => setActiveTab("freepass")}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "freepass"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Gift size={15} />
+              <span>Free Delivery</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab("photos")}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "photos"
@@ -125,6 +139,7 @@ export default function AdminDashboard() {
         {activeTab === "overview" && <OverviewMetrics />}
         {activeTab === "orders" && <LiveOrdersConsole />}
         {activeTab === "vendors" && <VendorManager />}
+        {activeTab === "freepass" && <FreeDeliveryManager />}
         {activeTab === "photos" && <PhotoModerationConsole />}
         {activeTab === "wallet" && <WalletConsole />}
       </main>

@@ -3,14 +3,13 @@ import { db } from "../../firebase";
 import { collection, onSnapshot, getDocs, query, limit } from "firebase/firestore";
 import {
   TrendingUp,
-  Store,
-  Wallet,
   Camera,
-  Activity,
   Smartphone,
   RefreshCw,
   Calendar,
-  DollarSign
+  Bike,
+  Receipt,
+  Utensils
 } from "lucide-react";
 
 type TimeframeOption = "7d" | "14d" | "30d" | "90d" | "180d" | "365d" | "all" | "custom";
@@ -121,8 +120,15 @@ export default function OverviewMetrics() {
     return time >= startMs && time <= endMs;
   });
 
-  // Calculate Period Analytics
+  // Calculate Granular Financial Revenue Breakdown
   const periodRevenue = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+  const periodDeliveryFees = filteredOrders.reduce((sum, o) => sum + (o.deliveryFee || 0), 0);
+  const periodServiceFees = filteredOrders.reduce((sum, o) => sum + (typeof o.serviceFee === "number" ? o.serviceFee : 1000), 0);
+  const periodVendorSubtotal = filteredOrders.reduce((sum, o) => {
+    const sub = typeof o.subtotal === "number" ? o.subtotal : (o.totalAmount || 0) - (o.deliveryFee || 0) - (typeof o.serviceFee === "number" ? o.serviceFee : 1000);
+    return sum + (sub > 0 ? sub : 0);
+  }, 0);
+
   const periodOrdersCount = filteredOrders.length;
   const periodAOV = periodOrdersCount > 0 ? Math.round(periodRevenue / periodOrdersCount) : 0;
 
@@ -131,9 +137,7 @@ export default function OverviewMetrics() {
     (o) => o.status === "pending" || o.status === "preparing" || o.status === "ready_for_pickup"
   ).length;
 
-  const deliveredOrdersCount = orders.filter((o) => o.status === "delivered").length;
   const approvedVendorsCount = vendors.filter((v) => v.is_approved || v.auth_info?.is_approved).length;
-
   const totalWalletLiability = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
   const approvedPhotoRewardsCount = submissions.filter((s) => s.status === "approved").length;
   const totalRewardsPayout = approvedPhotoRewardsCount * 1000;
@@ -158,7 +162,7 @@ export default function OverviewMetrics() {
               <span>Revenue & Analytics Timeframe</span>
             </h3>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Filter platform GMV revenue, completed orders, and average order value (AOV)
+              Filter platform GMV, delivery fees, service fees, and vendor subtotals
             </p>
           </div>
 
@@ -219,13 +223,13 @@ export default function OverviewMetrics() {
         )}
       </div>
 
-      {/* Top Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Period GMV Revenue */}
+      {/* Top Granular Revenue Breakdown Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total GMV Revenue */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 space-y-2 relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              {timeframe === "all" ? "Total Revenue" : `Revenue (${timeframe.toUpperCase()})`}
+              {timeframe === "all" ? "Total Platform GMV" : `GMV (${timeframe.toUpperCase()})`}
             </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
               <TrendingUp size={16} />
@@ -239,82 +243,102 @@ export default function OverviewMetrics() {
           </p>
         </div>
 
-        {/* Average Order Value - AOV */}
+        {/* Vendor Food Subtotal */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 space-y-2 relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              Avg Order Value
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center">
-              <DollarSign size={16} />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-blue-400 font-mono">
-            {periodAOV.toLocaleString()} TZS
-          </div>
-          <p className="text-[11px] text-zinc-500">
-            Average ticket size
-          </p>
-        </div>
-
-        {/* Live Active Orders */}
-        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 space-y-2 relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              Active Orders Now
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-[#00bfff]/10 text-[#00bfff] border border-[#00bfff]/20 flex items-center justify-center">
-              <Activity size={16} />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-[#00bfff] font-mono">
-              {activeOrdersCount}
-            </span>
-            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              Live Stream
-            </span>
-          </div>
-          <p className="text-[11px] text-zinc-500">
-            {deliveredOrdersCount} delivered overall
-          </p>
-        </div>
-
-        {/* Verified Vendors */}
-        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 space-y-2 relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              Verified Vendors
+              Vendor Food Sales
             </span>
             <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center">
-              <Store size={16} />
+              <Utensils size={16} />
             </div>
           </div>
-          <div className="text-2xl font-black text-white font-mono">
-            {approvedVendorsCount} / {vendors.length}
+          <div className="text-2xl font-black text-purple-400 font-mono">
+            {periodVendorSubtotal.toLocaleString()} TZS
           </div>
           <p className="text-[11px] text-zinc-500">
-            {vendors.filter((v) => v.is_open).length} open for orders
+            Gross food subtotal paid to merchants
           </p>
         </div>
 
-        {/* Sosika Cash Wallet Ecosystem */}
+        {/* Delivery Fees Earned */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 space-y-2 relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              Wallet Liabilities
+              Delivery Fees Earned
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-[#00bfff]/10 text-[#00bfff] border border-[#00bfff]/20 flex items-center justify-center">
+              <Bike size={16} />
+            </div>
+          </div>
+          <div className="text-2xl font-black text-[#00bfff] font-mono">
+            {periodDeliveryFees.toLocaleString()} TZS
+          </div>
+          <p className="text-[11px] text-zinc-500">
+            Total delivery charges collected
+          </p>
+        </div>
+
+        {/* Service Fees Earned */}
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 space-y-2 relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+              Platform Service Fees
             </span>
             <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
-              <Wallet size={16} />
+              <Receipt size={16} />
             </div>
           </div>
           <div className="text-2xl font-black text-amber-400 font-mono">
-            {totalWalletLiability.toLocaleString()} TZS
+            {periodServiceFees.toLocaleString()} TZS
           </div>
           <p className="text-[11px] text-zinc-500">
-            Across {wallets.length} customer wallets
+            Total platform service fee earnings
           </p>
+        </div>
+      </div>
+
+      {/* Secondary Operational Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Average Order Value - AOV */}
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 space-y-1.5">
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+            Avg Order Value (AOV)
+          </span>
+          <div className="text-lg font-black text-blue-400 font-mono">
+            {periodAOV.toLocaleString()} TZS
+          </div>
+        </div>
+
+        {/* Active Orders Right Now */}
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 space-y-1.5">
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+            Active Orders Now
+          </span>
+          <div className="text-lg font-black text-[#00bfff] font-mono flex items-baseline gap-2">
+            <span>{activeOrdersCount}</span>
+            <span className="text-[10px] font-bold text-emerald-400">Live</span>
+          </div>
+        </div>
+
+        {/* Verified Vendors */}
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 space-y-1.5">
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+            Verified Vendors
+          </span>
+          <div className="text-lg font-black text-white font-mono">
+            {approvedVendorsCount} / {vendors.length}
+          </div>
+        </div>
+
+        {/* Wallet Liabilities */}
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 space-y-1.5">
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+            Wallet Liabilities
+          </span>
+          <div className="text-lg font-black text-amber-400 font-mono">
+            {totalWalletLiability.toLocaleString()} TZS
+          </div>
         </div>
       </div>
 

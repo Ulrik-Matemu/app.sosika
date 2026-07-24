@@ -121,6 +121,23 @@ export function useCart() {
       const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
       const now = Date.now();
 
+      // 1. Check Global Free Delivery Setting
+      let globalEnabled = true;
+      try {
+        const globalSnap = await getDoc(doc(db, 'system_settings', 'global'));
+        if (globalSnap.exists() && globalSnap.data().freeDeliveryEnabled === false) {
+          globalEnabled = false;
+        }
+      } catch (e) {
+        console.warn('Error reading global free delivery settings:', e);
+      }
+
+      if (!globalEnabled) {
+        setFreeDeliveryUsesLeft(0);
+        setFreeDeliveryResetDate(now + twoWeeksMs);
+        return;
+      }
+
       if (!rawPhone) {
         setFreeDeliveryUsesLeft(3);
         setFreeDeliveryResetDate(now + twoWeeksMs);
@@ -134,6 +151,14 @@ export function useCart() {
 
         if (passSnap.exists()) {
           const data = passSnap.data();
+
+          // Check if specific user pass is disabled by admin
+          if (data.enabled === false) {
+            setFreeDeliveryUsesLeft(0);
+            setFreeDeliveryResetDate(now + twoWeeksMs);
+            return;
+          }
+
           const lastReset = data.lastResetTimestamp ?? now;
           if (now - lastReset >= twoWeeksMs) {
             // Lazy reset on read
@@ -156,10 +181,9 @@ export function useCart() {
     fetchPass();
   }, [cart]);
 
-  // Fallback to bodaboda if out of uses or suspended
+  // Fallback to bodaboda if out of uses
   useEffect(() => {
-    const isSuspended = Date.now() < new Date('2026-07-22T00:00:00+03:00').getTime();
-    if ((freeDeliveryUsesLeft === 0 || isSuspended) && selectedDeliveryOption === 'free') {
+    if (freeDeliveryUsesLeft === 0 && selectedDeliveryOption === 'free') {
       setSelectedDeliveryOption('bodaboda');
     }
   }, [freeDeliveryUsesLeft, selectedDeliveryOption]);
