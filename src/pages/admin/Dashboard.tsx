@@ -7,6 +7,8 @@ import PhotoModerationConsole from "../../components/admin/PhotoModerationConsol
 import WalletConsole from "../../components/admin/WalletConsole";
 import FreeDeliveryManager from "../../components/admin/FreeDeliveryManager";
 import GeoInsightsConsole from "../../components/admin/GeoInsightsConsole";
+import PricingConsole from "../../components/admin/PricingConsole";
+import MenuItemManager from "../../components/admin/MenuItemManager";
 import {
   LayoutDashboard,
   Package,
@@ -16,10 +18,12 @@ import {
   Gift,
   Compass,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  DollarSign,
+  UtensilsCrossed
 } from "lucide-react";
 
-type AdminTab = "overview" | "orders" | "vendors" | "geomap" | "freepass" | "photos" | "wallet";
+type AdminTab = "overview" | "orders" | "vendors" | "geomap" | "freepass" | "photos" | "wallet" | "pricing" | "menu";
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -32,119 +36,146 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-white font-sans antialiased pb-24">
       {/* Admin Top Sticky Navigation Header */}
-      <header className="sticky top-0 z-40 bg-[#0a0a0b]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Brand & Auth Badge */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#00bfff]/10 border border-[#00bfff]/20 text-[#00bfff] flex items-center justify-center font-bold">
-              <ShieldCheck size={22} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black text-white tracking-tight">Sosika Control</h1>
-                <span className="text-[10px] font-mono font-bold bg-[#00bfff]/20 text-[#00bfff] px-2 py-0.5 rounded-full border border-[#00bfff]/30 uppercase">
-                  System Admin
-                </span>
+      <header className="sticky top-0 z-40 bg-[#0a0a0b]/95 backdrop-blur-xl border-b border-white/[0.08] px-3 sm:px-6 py-3.5">
+        <div className="max-w-7xl mx-auto flex flex-col gap-3">
+          {/* Top Row: Brand & Lock Button */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#00bfff]/10 border border-[#00bfff]/20 text-[#00bfff] flex items-center justify-center font-bold shrink-0">
+                <ShieldCheck size={20} className="sm:w-[22px] sm:h-[22px]" />
               </div>
-              <p className="text-xs text-zinc-400">Platform Command Center & Live Operations</p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-base sm:text-lg font-black text-white tracking-tight truncate">Sosika Control</h1>
+                  <span className="text-[9px] sm:text-[10px] font-mono font-bold bg-[#00bfff]/20 text-[#00bfff] px-2 py-0.5 rounded-full border border-[#00bfff]/30 uppercase shrink-0">
+                    Admin
+                  </span>
+                </div>
+                <p className="text-[11px] sm:text-xs text-zinc-400 truncate">Platform Command Center & Operations</p>
+              </div>
             </div>
+
+            {/* Lock Button */}
+            <button
+              onClick={() => setIsAuthenticated(false)}
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition-all cursor-pointer shrink-0"
+              title="Lock Admin Console"
+            >
+              <LogOut size={14} />
+              <span className="hidden sm:inline">Lock Session</span>
+            </button>
           </div>
 
-          {/* Module Tab Switcher */}
-          <div className="flex items-center gap-1.5 bg-white/[0.03] p-1.5 rounded-2xl border border-white/[0.08] overflow-x-auto max-w-full">
+          {/* Bottom Row: Module Tab Switcher with Scroll */}
+          <div className="flex items-center gap-1.5 bg-white/[0.03] p-1.5 rounded-2xl border border-white/[0.08] overflow-x-auto max-w-full scrollbar-none">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === "overview"
                   ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              <LayoutDashboard size={15} />
+              <LayoutDashboard size={14} />
               <span>Overview</span>
             </button>
 
             <button
               onClick={() => setActiveTab("orders")}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === "orders"
                   ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Package size={15} />
+              <Package size={14} />
               <span>Live Orders</span>
             </button>
 
             <button
               onClick={() => setActiveTab("vendors")}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === "vendors"
                   ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Store size={15} />
+              <Store size={14} />
               <span>Vendors</span>
             </button>
 
             <button
+              onClick={() => setActiveTab("menu")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "menu"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <UtensilsCrossed size={14} />
+              <span>Menu Items</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("pricing")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "pricing"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <DollarSign size={14} />
+              <span>Pricing Tariffs</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab("geomap")}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === "geomap"
                   ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Compass size={15} />
+              <Compass size={14} />
               <span>Geo Map</span>
             </button>
 
             <button
               onClick={() => setActiveTab("freepass")}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === "freepass"
                   ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Gift size={15} />
+              <Gift size={14} />
               <span>Free Delivery</span>
             </button>
 
             <button
               onClick={() => setActiveTab("photos")}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === "photos"
                   ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Camera size={15} />
+              <Camera size={14} />
               <span>Photo Rewards</span>
             </button>
 
             <button
               onClick={() => setActiveTab("wallet")}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === "wallet"
                   ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              <Wallet size={15} />
+              <Wallet size={14} />
               <span>Wallet Console</span>
             </button>
           </div>
-
-          {/* Logout Button */}
-          <button
-            onClick={() => setIsAuthenticated(false)}
-            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition-all cursor-pointer"
-          >
-            <LogOut size={14} />
-            <span>Lock</span>
-          </button>
         </div>
       </header>
 
@@ -153,6 +184,8 @@ export default function AdminDashboard() {
         {activeTab === "overview" && <OverviewMetrics />}
         {activeTab === "orders" && <LiveOrdersConsole />}
         {activeTab === "vendors" && <VendorManager />}
+        {activeTab === "menu" && <MenuItemManager />}
+        {activeTab === "pricing" && <PricingConsole />}
         {activeTab === "geomap" && <GeoInsightsConsole />}
         {activeTab === "freepass" && <FreeDeliveryManager />}
         {activeTab === "photos" && <PhotoModerationConsole />}

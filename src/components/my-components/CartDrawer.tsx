@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DeliveryOptionId, DELIVERY_OPTIONS } from '../../hooks/useCart';
 import { useWallet } from '../../context/WalletContext';
 import TopUpWalletModal from './TopUpWalletModal';
+import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -51,9 +52,11 @@ export default function CartDrawer({
   selectedDeliveryOption,
   setSelectedDeliveryOption,
   calculatingFee,
+  freeDeliveryUsesLeft = 3,
 }: CartDrawerProps) {
   const navigate = useNavigate();
   const { balance: walletBalance, deductWalletBalance } = useWallet();
+  const platformConfig = usePlatformConfig();
 
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'wallet'>('cash');
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
@@ -234,20 +237,37 @@ export default function CartDrawer({
                   <div className="grid grid-cols-2 gap-2">
                     {DELIVERY_OPTIONS.map((option) => {
                       const isSelected = selectedDeliveryOption === option.id;
+                      const isFreeOption = option.id === 'free';
+                      const isFreeDisabled = isFreeOption && (platformConfig.freeDeliveryEnabled === false || freeDeliveryUsesLeft <= 0);
+
                       return (
                         <button
                           key={option.id}
                           type="button"
-                          onClick={() => setSelectedDeliveryOption(option.id as DeliveryOptionId)}
-                          className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-[#00bfff] bg-[#00bfff]/10 ring-1 ring-[#00bfff]/30'
-                              : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
+                          disabled={isFreeDisabled}
+                          onClick={() => {
+                            if (!isFreeDisabled) {
+                              setSelectedDeliveryOption(option.id as DeliveryOptionId);
+                            }
+                          }}
+                          className={`p-3 rounded-2xl border text-left transition-all relative ${
+                            isFreeDisabled
+                              ? 'opacity-40 cursor-not-allowed bg-white/[0.01] border-white/[0.04]'
+                              : isSelected
+                              ? 'border-[#00bfff] bg-[#00bfff]/10 ring-1 ring-[#00bfff]/30 cursor-pointer'
+                              : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] cursor-pointer'
                           }`}
                         >
-                          <span className={`text-xs font-extrabold block ${isSelected ? 'text-[#00bfff]' : 'text-zinc-200'}`}>
-                            {option.label}
-                          </span>
+                          <div className="flex items-center justify-between gap-1">
+                            <span className={`text-xs font-extrabold block truncate ${isSelected ? 'text-[#00bfff]' : 'text-zinc-200'}`}>
+                              {option.label}
+                            </span>
+                            {isFreeDisabled && (
+                              <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 shrink-0">
+                                {platformConfig.freeDeliveryEnabled === false ? 'Disabled' : '0 Left'}
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[10px] text-zinc-400 block mt-0.5">{option.eta}</span>
                         </button>
                       );
@@ -361,7 +381,7 @@ export default function CartDrawer({
                   </div>
                   <div className="flex justify-between text-zinc-400">
                     <span>Service Fee</span>
-                    <span className="font-mono text-zinc-200">1,000 TZS</span>
+                    <span className="font-mono text-zinc-200">{(cartTotal > 0 ? (cartTotal - subtotal - deliveryFee) : 1000).toLocaleString()} TZS</span>
                   </div>
                   <div className="flex justify-between text-zinc-400">
                     <span>Delivery Fee</span>

@@ -7,6 +7,7 @@ import { useLocationStorage } from './useLocationStorage';
 import { calculateDistance, fetchVendorGeolocation } from '../pages/mood/api/mood-api';
 import posthog from './../lib/posthog';
 import { sendMesejiSMS } from '../services/meseji';
+import { usePlatformConfig } from './usePlatformConfig';
 
 emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID);
 
@@ -99,6 +100,7 @@ export const formatTZPhoneNumber = (rawPhone: string): string => {
 export function useCart() {
   const { locations } = useLocationStorage();
   const userLocation = locations[0]; // Assuming the first location is the user's current location
+  const platformConfig = usePlatformConfig();
 
   // Load cart from localStorage if available
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -132,7 +134,7 @@ export function useCart() {
         console.warn('Error reading global free delivery settings:', e);
       }
 
-      if (!globalEnabled) {
+      if (!globalEnabled || !platformConfig.freeDeliveryEnabled) {
         setFreeDeliveryUsesLeft(0);
         setFreeDeliveryResetDate(now + twoWeeksMs);
         return;
@@ -179,7 +181,7 @@ export function useCart() {
       }
     };
     fetchPass();
-  }, [cart]);
+  }, [cart, platformConfig.freeDeliveryEnabled]);
 
   // Fallback to bodaboda if out of uses
   useEffect(() => {
@@ -187,6 +189,15 @@ export function useCart() {
       setSelectedDeliveryOption('bodaboda');
     }
   }, [freeDeliveryUsesLeft, selectedDeliveryOption]);
+
+  // Dynamic delivery options array incorporating platformConfig.asapSurcharge
+  const activeDeliveryOptions: DeliveryOption[] = [
+    {
+      ...DELIVERY_OPTIONS[0],
+      fixedSurcharge: platformConfig.asapSurcharge,
+    },
+    ...DELIVERY_OPTIONS.slice(1),
+  ];
 
   // Persist cart to localStorage on change and calculate total and delivery fee
   useEffect(() => {
@@ -210,34 +221,34 @@ export function useCart() {
             );
             console.log("Calculated distance:", distance);
 
-            // Delivery fee: 1200 TSH per kilometer
-            // Calculate base fee (TZS 1200 per km)
-            const calculatedBaseFee = Math.ceil(distance * 1200);
+            // Dynamic base fee formula using platformConfig
+            const calculatedBaseFee = Math.ceil(distance * platformConfig.pricePerKm);
 
-            // Enforce a minimum base fee of 2000 TZS to prevent 0 or unrealistically low delivery fees
-            currentBaseFee = Math.max(calculatedBaseFee, 2000);
+            // Enforce admin-configured minimum base fee floor
+            currentBaseFee = Math.max(calculatedBaseFee, platformConfig.minBaseFee);
           } else {
-            // Fallback base fee of 2000 TZS if user location or vendor geolocation is unavailable
-            currentBaseFee = 2000;
+            // Fallback base fee if user location or vendor geolocation is unavailable
+            currentBaseFee = platformConfig.minBaseFee;
           }
 
-          let option = DELIVERY_OPTIONS.find(o => o.id === selectedDeliveryOption) || DELIVERY_OPTIONS[1];
+          let option = activeDeliveryOptions.find(o => o.id === selectedDeliveryOption) || activeDeliveryOptions[1];
           const isSuspended = Date.now() < new Date('2026-07-22T00:00:00+03:00').getTime();
           if (isSuspended && option.id === 'free') {
-            option = DELIVERY_OPTIONS.find(o => o.id === 'bodaboda') || DELIVERY_OPTIONS[1];
+            option = activeDeliveryOptions.find(o => o.id === 'bodaboda') || activeDeliveryOptions[1];
           }
           if (option.isFree || option.isPickup) {
             currentDeliveryFee = 0;
           } else {
-            currentDeliveryFee = Math.ceil((currentBaseFee * option.feeMultiplier + option.fixedSurcharge) / 100) * 100;
-            // Add nighttime delivery surcharge of 2000 TZS from 19:00 (7 PM) to 6:00 AM
+            const roundUnit = platformConfig.roundingUnit || 100;
+            currentDeliveryFee = Math.ceil((currentBaseFee * option.feeMultiplier + option.fixedSurcharge) / roundUnit) * roundUnit;
+            // Add nighttime delivery surcharge from 19:00 (7 PM) to 6:00 AM
             const hour = new Date().getHours();
             if (hour >= 19 || hour < 6) {
-              currentDeliveryFee += 2000;
+              currentDeliveryFee += platformConfig.nighttimeSurcharge;
             }
           }
 
-          const serviceFee = 1000;
+          const serviceFee = platformConfig.serviceFee;
           setCartTotal(subtotal + currentDeliveryFee + serviceFee);
         } else {
           setCartTotal(0);
@@ -253,7 +264,7 @@ export function useCart() {
     };
 
     calculateTotals();
-  }, [cart, userLocation, selectedDeliveryOption]);
+  }, [cart, userLocation, selectedDeliveryOption, platformConfig]);
 
   const addToCart = useCallback((item: MenuItem) => {
     if (!item.id || !item.price) {
@@ -365,7 +376,7 @@ export function useCart() {
 
     // 1. Calculate the total price
     const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-    const serviceFee = 1000;
+    const serviceFee = platformConfig.serviceFee;
     const orderTotal = (total + deliveryFee + serviceFee).toFixed(2);
 
     posthog.capture('checkout_started', {
@@ -432,7 +443,7 @@ export function useCart() {
       }
     }
 
-    const chosenOption = DELIVERY_OPTIONS.find(o => o.id === selectedDeliveryOption);
+    const chosenOption = activeDeliveryOptions.find(o => o.id === selectedDeliveryOption);
     const deliveryOptionLabel = chosenOption?.label ?? selectedDeliveryOption;
     const deliveryOptionEta = chosenOption?.eta ?? 'N/A';
 
@@ -451,7 +462,7 @@ export function useCart() {
         cart,
         subtotal: total,
         deliveryFee,
-        serviceFee: 1000,
+        serviceFee: platformConfig.serviceFee,
         totalAmount: parseFloat(orderTotal),
         orderId: generatedOrderId,
         displayLocation,
@@ -557,7 +568,7 @@ export function useCart() {
         vendor_name: vendorName,
         order_items: `<ul>${orderItemsHtml}</ul>`,
         subtotal_amount: `TZS ${total.toFixed(2)}`,
-        service_fee: `TZS 1000.00`,
+        service_fee: `TZS ${platformConfig.serviceFee.toFixed(2)}`,
         delivery_fee: `TZS ${deliveryFee.toFixed(2)}`,
         delivery_option: deliveryOptionLabel,
         delivery_eta: deliveryOptionEta,
@@ -714,6 +725,7 @@ export function useCart() {
     loading,
     deliveryFee,
     baseFee,
+    serviceFee: platformConfig.serviceFee,
     selectedDeliveryOption,
     setSelectedDeliveryOption,
     calculatingFee,
