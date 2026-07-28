@@ -10,6 +10,8 @@ export interface PlatformConfig {
   roundingUnit: number;
   serviceFee: number;
   freeDeliveryEnabled: boolean;
+  featuredCarouselVisible: boolean;
+  promotionsCarouselVisible: boolean;
   loaded: boolean;
 }
 
@@ -21,6 +23,8 @@ export const DEFAULT_PLATFORM_CONFIG: Omit<PlatformConfig, 'loaded'> = {
   roundingUnit: 100,
   serviceFee: 1000,
   freeDeliveryEnabled: true,
+  featuredCarouselVisible: true,
+  promotionsCarouselVisible: true,
 };
 
 export function usePlatformConfig(): PlatformConfig {
@@ -43,6 +47,8 @@ export function usePlatformConfig(): PlatformConfig {
             roundingUnit: data.delivery?.roundingUnit ?? DEFAULT_PLATFORM_CONFIG.roundingUnit,
             serviceFee: data.serviceFee ?? DEFAULT_PLATFORM_CONFIG.serviceFee,
             freeDeliveryEnabled: data.freeDeliveryEnabled !== false,
+            featuredCarouselVisible: data.featuredCarouselVisible !== false,
+            promotionsCarouselVisible: data.promotionsCarouselVisible !== false,
             loaded: true,
           });
         } else {

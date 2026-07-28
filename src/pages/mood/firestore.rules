@@ -75,6 +75,13 @@ service cloud.firestore {
     }
 
     // -----------------------------
+    // Promotions & Event Banners
+    // -----------------------------
+    match /promotions/{promoId} {
+      allow read, write: if true;
+    }
+
+    // -----------------------------
     // Support Tickets
     // -----------------------------
     match /supportTickets/{ticketId} {

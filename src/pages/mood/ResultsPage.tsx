@@ -11,6 +11,10 @@ import Navbar from "../../components/my-components/navbar";
 import { getDistance } from "../../lib/utils";
 import posthog from "posthog-js";
 import { triggerAddToCartToast } from "../../components/my-components/AddToCartToast";
+import { useFeaturedCarouselVisibility } from "../../hooks/useFeaturedItems";
+import { usePromotions } from "../../hooks/usePromotions";
+import { FeaturedItemsCarousel } from "../../components/carousels/FeaturedItemsCarousel";
+import { PromoBannerCarousel } from "../../components/carousels/PromoBannerCarousel";
 
 // --- Skeleton Loader ---
 const SkeletonCard = () => (
@@ -273,6 +277,8 @@ const ResultsPage = () => {
   const navigate = useNavigate();
   const { mood } = useMood();
   const { locations } = useLocationStorage();
+  const { visible: featuredVisible } = useFeaturedCarouselVisibility();
+  const { promotions, visible: promoVisible } = usePromotions();
 
   const userLocation = locations[0] || { lat: -3.37, lng: 36.7 };
   const initialReq = { mood: mood || "any", location: { lat: userLocation.lat, lng: userLocation.lng } };
@@ -285,6 +291,14 @@ const ResultsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleCount, setVisibleCount] = useState(15);
   const [isFallback, setIsFallback] = useState(!!cachedInitial?.isFallback);
+
+  // Derive featured items from mood-filtered & location-filtered results
+  const featuredItems = useMemo(() => {
+    if (!featuredVisible) return [];
+    return items
+      .filter((item) => item.is_featured === true)
+      .sort((a, b) => (a.featured_rank ?? 999) - (b.featured_rank ?? 999));
+  }, [items, featuredVisible]);
 
   useEffect(() => {
     const req = {
@@ -493,6 +507,31 @@ const ResultsPage = () => {
                 />
               </div>
             )}
+
+            {/* Featured & Promotions Square Carousels (Side by Side) */}
+            {(() => {
+              const showFeatured = featuredVisible && featuredItems && featuredItems.length > 0;
+              const showPromo = promoVisible && promotions && promotions.length > 0;
+              if (!showFeatured && !showPromo) return null;
+              return (
+                <div className="mb-6 grid grid-cols-2 gap-3"> 
+                  {showPromo && (
+                    <PromoBannerCarousel
+                      promotions={promotions}
+                      isFullWidth={!showFeatured}
+                    />
+                  )}
+                  {showFeatured && (
+                    <FeaturedItemsCarousel
+                      items={featuredItems}
+                      vendorNameMap={vendorNameMap}
+                      vendorOpenMap={vendorOpenMap}
+                      isFullWidth={!showPromo}
+                    />
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Vendors section */}
             {sortedVendors.length > 0 && (

@@ -22,6 +22,19 @@ export interface MenuItem {
   image_url: string;
   averageRating?: number;
   ratingCount?: number;
+  is_featured?: boolean;
+  featured_rank?: number;
+}
+
+export interface Promotion {
+  id: string;
+  title: string;
+  subtitle?: string;
+  image_url: string;
+  link_url?: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at?: any;
 }
 
 export interface Review {

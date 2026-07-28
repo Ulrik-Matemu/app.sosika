@@ -98,14 +98,14 @@ export default function CartDrawer({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-[100] flex justify-end">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md"
           />
 
           {/* Drawer Panel */}
@@ -427,6 +427,11 @@ export default function CartDrawer({
                       </>
                     )}
                   </button>
+                </div>
+
+                {/* Footer Security Note */}
+                <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-500 font-medium pt-1">
+                  <span>🔒 256-Bit Encrypted • Guaranteed Delivery</span>
                 </div>
               </div>
             )}

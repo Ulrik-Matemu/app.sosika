@@ -61,8 +61,8 @@ export default function TopUpWalletModal({ isOpen, onClose }: TopUpWalletModalPr
 
   return (
     <AnimatePresence>
-      {/* Highest Z-Index Layering (z-[9999]) to rise on top of everything including bottom navbar */}
-      <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md">
+      {/* High-trust Backdrop (z-[100]) ensuring full coverage above floating navbar */}
+      <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md">
         {/* Backdrop click to close */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -72,13 +72,13 @@ export default function TopUpWalletModal({ isOpen, onClose }: TopUpWalletModalPr
           className="absolute inset-0 bg-transparent"
         />
 
-        {/* Sleek Professional Bottom Rising Sheet Drawer */}
+        {/* Sleek Minimalist Fintech Drawer */}
         <motion.div
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 28, stiffness: 320 }}
-          className="w-full sm:max-w-md bg-[#0b0b0f] border-t border-white/[0.12] rounded-t-[28px] p-5 sm:p-6 shadow-2xl space-y-4 text-white relative overflow-hidden font-sans max-h-[90vh] overflow-y-auto z-10"
+          className="w-full sm:max-w-md bg-[#0b0b0f] border-t border-white/[0.12] rounded-t-[32px] p-5 sm:p-6 pb-8 sm:pb-6 shadow-2xl space-y-4 text-white relative overflow-hidden font-sans max-h-[88vh] overflow-y-auto z-10 select-none"
         >
           {/* Top Drag Handle Bar */}
           <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-1 cursor-grab" />

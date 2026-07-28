@@ -9,6 +9,8 @@ import FreeDeliveryManager from "../../components/admin/FreeDeliveryManager";
 import GeoInsightsConsole from "../../components/admin/GeoInsightsConsole";
 import PricingConsole from "../../components/admin/PricingConsole";
 import MenuItemManager from "../../components/admin/MenuItemManager";
+import { FeaturedItemsManager } from "../../components/admin/FeaturedItemsManager";
+import { PromotionsManager } from "../../components/admin/PromotionsManager";
 import {
   LayoutDashboard,
   Package,
@@ -20,10 +22,12 @@ import {
   LogOut,
   ShieldCheck,
   DollarSign,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Flame,
+  Megaphone,
 } from "lucide-react";
 
-type AdminTab = "overview" | "orders" | "vendors" | "geomap" | "freepass" | "photos" | "wallet" | "pricing" | "menu";
+type AdminTab = "overview" | "orders" | "vendors" | "menu" | "featured" | "promotions" | "pricing" | "geomap" | "freepass" | "photos" | "wallet";
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -117,6 +121,30 @@ export default function AdminDashboard() {
             </button>
 
             <button
+              onClick={() => setActiveTab("featured")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "featured"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Flame size={14} />
+              <span>Featured Picks</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("promotions")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "promotions"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Megaphone size={14} />
+              <span>Promotions</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab("pricing")}
               className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === "pricing"
@@ -185,6 +213,8 @@ export default function AdminDashboard() {
         {activeTab === "orders" && <LiveOrdersConsole />}
         {activeTab === "vendors" && <VendorManager />}
         {activeTab === "menu" && <MenuItemManager />}
+        {activeTab === "featured" && <FeaturedItemsManager />}
+        {activeTab === "promotions" && <PromotionsManager />}
         {activeTab === "pricing" && <PricingConsole />}
         {activeTab === "geomap" && <GeoInsightsConsole />}
         {activeTab === "freepass" && <FreeDeliveryManager />}

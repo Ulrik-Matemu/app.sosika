@@ -9,6 +9,7 @@ import {
   arrayUnion
 } from "firebase/firestore";
 import { Vendor, MenuItem } from "../../pages/mood/types/types";
+import { uploadToCloudinary } from "../../services/cloudinary";
 import {
   UtensilsCrossed,
   Search,
@@ -22,7 +23,10 @@ import {
   AlertTriangle,
   RefreshCw,
   Eye,
-  Store
+  Store,
+  Upload,
+  Image as ImageIcon,
+  Loader2
 } from "lucide-react";
 
 export interface MenuItemWithHistory extends MenuItem {
@@ -58,8 +62,11 @@ export default function MenuItemManager() {
   const [editDescription, setEditDescription] = useState("");
   const [editCategory, setEditCategory] = useState<any>("lunch");
   const [editPrice, setEditPrice] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
   const [editAvailable, setEditAvailable] = useState(true);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // History Modal State
   const [historyItem, setHistoryItem] = useState<MenuItemWithHistory | null>(null);
@@ -169,7 +176,24 @@ export default function MenuItemManager() {
     setEditDescription(item.description || "");
     setEditCategory(item.category || "lunch");
     setEditPrice(String(item.price));
+    setEditImageUrl(item.image_url || (item as any).imageUrl || "");
     setEditAvailable(item.is_available !== false);
+  };
+
+  // Upload image to Cloudinary
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setEditImageUrl(url);
+    } catch (err: any) {
+      alert(err?.message || "Failed to upload image to Cloudinary.");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   // Save Single Item Edit with Price History Tracking
@@ -189,6 +213,7 @@ export default function MenuItemManager() {
         description: editDescription,
         category: editCategory,
         price: newPriceNum,
+        image_url: editImageUrl,
         is_available: editAvailable,
         updated_at: new Date(),
       };
@@ -757,6 +782,61 @@ export default function MenuItemManager() {
                   onChange={(e) => setEditDescription(e.target.value)}
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl p-3 text-white outline-none focus:border-[#00bfff] h-20"
                 />
+              </div>
+
+              {/* Dish Image Upload (Cloudinary Integration) */}
+              <div className="space-y-2 bg-white/[0.02] border border-white/[0.06] p-3 rounded-2xl">
+                <label className="text-zinc-300 font-bold block flex items-center gap-1.5">
+                  <ImageIcon size={14} className="text-[#00bfff]" />
+                  <span>Dish Image (Cloudinary)</span>
+                </label>
+
+                <div className="flex items-center gap-3">
+                  {editImageUrl ? (
+                    <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-white/10 shrink-0">
+                      <img src={editImageUrl} alt="Dish preview" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-white/[0.04] border border-dashed border-white/20 flex items-center justify-center text-zinc-500 shrink-0">
+                      <ImageIcon size={20} />
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-1.5">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      className="w-full py-2 px-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-bold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                    >
+                      {uploadingImage ? (
+                        <>
+                          <Loader2 size={13} className="animate-spin text-[#00bfff]" />
+                          <span>Uploading to Cloudinary...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={13} className="text-[#00bfff]" />
+                          <span>{editImageUrl ? "Change Image" : "Upload Image to Cloudinary"}</span>
+                        </>
+                      )}
+                    </button>
+                    <input
+                      type="text"
+                      placeholder="Or paste direct image URL (https://...)"
+                      value={editImageUrl}
+                      onChange={(e) => setEditImageUrl(e.target.value)}
+                      className="w-full bg-black/40 border border-white/[0.08] rounded-lg p-2 text-[11px] text-zinc-300 outline-none focus:border-[#00bfff]"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

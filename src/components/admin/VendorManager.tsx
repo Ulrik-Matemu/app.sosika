@@ -9,17 +9,21 @@ import {
   updateDoc
 } from "firebase/firestore";
 import { Vendor } from "../../pages/mood/types/types";
+import EditVendorModal from "./EditVendorModal";
 import {
   Store,
   Plus,
   FileJson,
-  Download
+  Download,
+  Edit2,
+  Phone
 } from "lucide-react";
 
 export default function VendorManager() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loadingVendors, setLoadingVendors] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState<"directory" | "add_vendor" | "add_item" | "bulk_item">("directory");
+  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
 
   const fetchVendors = async () => {
     setLoadingVendors(true);
@@ -133,6 +137,8 @@ export default function VendorManager() {
                 const vAny = v as any;
                 const isApproved = vAny.is_approved === true || vAny.auth_info?.is_approved === true;
                 const isOpen = v.is_open === true || vAny.listing_data?.is_open === true;
+                const phoneNum = vAny.auth_info?.phone_number || vAny.phone || vAny.listing_data?.phone || "No phone";
+                const subTier = vAny.subscription?.tier || "free";
 
                 return (
                   <div
@@ -152,8 +158,8 @@ export default function VendorManager() {
                         </div>
                       )}
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h4 className="font-extrabold text-sm text-white truncate">{v.name}</h4>
                           <span
                             className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border ${
@@ -164,35 +170,63 @@ export default function VendorManager() {
                           >
                             {isApproved ? "Approved" : "Pending"}
                           </span>
+
+                          <span
+                            className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border ${
+                              subTier === "premium"
+                                ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                                : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                            }`}
+                          >
+                            {subTier}
+                          </span>
                         </div>
-                        <p className="text-xs text-zinc-400 mt-0.5">
-                          Owner: <span className="text-zinc-200">{v.owner_name || "N/A"}</span>
+
+                        <p className="text-xs text-zinc-400">
+                          Owner: <span className="text-zinc-200">{v.owner_name || vAny.auth_info?.owner_name || "N/A"}</span>
                         </p>
-                        <p className="text-[11px] text-zinc-500 font-mono">ID: {v.id}</p>
+
+                        <div className="flex items-center gap-3 text-[11px] text-zinc-400 font-mono flex-wrap">
+                          <span className="flex items-center gap-1">
+                            <Phone size={11} className="text-[#00bfff]" />
+                            <span>+{phoneNum}</span>
+                          </span>
+                          <span className="text-zinc-600">|</span>
+                          <span>ID: {v.id.substring(0, 10)}...</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2 text-xs">
+                    <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2 text-xs flex-wrap sm:flex-nowrap">
                       <button
                         onClick={() => toggleVendorApproval(v.id, isApproved)}
-                        className={`flex-1 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                        className={`flex-1 py-1.5 px-2 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${
                           isApproved
                             ? "bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20"
                             : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20"
                         }`}
                       >
-                        {isApproved ? "Deactivate Vendor" : "Approve Vendor"}
+                        {isApproved ? "Deactivate" : "Approve"}
                       </button>
 
                       <button
                         onClick={() => toggleVendorOpenState(v.id, isOpen)}
-                        className={`flex-1 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                        className={`flex-1 py-1.5 px-2 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${
                           isOpen
                             ? "bg-[#00bfff]/10 hover:bg-[#00bfff]/20 text-[#00bfff] border border-[#00bfff]/20"
                             : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                         }`}
                       >
-                        {isOpen ? "Open (Online)" : "Closed (Offline)"}
+                        {isOpen ? "Online" : "Offline"}
+                      </button>
+
+                      <button
+                        onClick={() => setEditingVendor(v)}
+                        className="py-1.5 px-3 rounded-xl font-extrabold bg-purple-500 hover:bg-purple-400 text-black transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                        title="Edit vendor profile, auth credentials, and geolocation"
+                      >
+                        <Edit2 size={13} />
+                        <span>Edit Data</span>
                       </button>
                     </div>
                   </div>
@@ -216,6 +250,15 @@ export default function VendorManager() {
       {/* Bulk JSON Import Tab */}
       {activeSubTab === "bulk_item" && (
         <AddMenuItemsInBulkForm vendors={vendors} />
+      )}
+
+      {/* Edit Vendor Modal */}
+      {editingVendor && (
+        <EditVendorModal
+          vendor={editingVendor}
+          onClose={() => setEditingVendor(null)}
+          onVendorUpdated={fetchVendors}
+        />
       )}
     </div>
   );

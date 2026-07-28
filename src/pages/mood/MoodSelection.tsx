@@ -99,6 +99,35 @@ export default function MoodSelection() {
           </p>
         </motion.div>
 
+        {/* Friday Biryani Special Banner */}
+        <motion.div variants={itemVariants} className="mb-4">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate("/biryani")}
+            className="cursor-pointer relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/20 via-zinc-900 to-black border border-amber-500/30 p-3.5 flex items-center justify-between shadow-lg shadow-amber-500/5 group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-xl shrink-0">
+                🍛
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-extrabold text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    {new Date().getDay() === 5 ? "Friday Special LIVE" : "Friday Pre-Orders Open"}
+                  </span>
+                </div>
+                <h3 className="text-xs font-bold text-white mt-0.5 group-hover:text-amber-300 transition-colors">
+                  Friday Swahili Biryani Special
+                </h3>
+              </div>
+            </div>
+            <div className="text-zinc-400 group-hover:text-white group-hover:translate-x-1 transition-all">
+              ➔
+            </div>
+          </motion.div>
+        </motion.div>
+
         {/* Mood cards */}
         <motion.div variants={itemVariants}>
           <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-2xl p-4 sm:p-5">

@@ -303,7 +303,7 @@ export default function WalletConsole() {
               <label className="text-zinc-300 font-bold block mb-1">Note / Description</label>
               <input
                 type="text"
-                placeholder="e.g. Top-up via Lipa Namba 656313666"
+                placeholder="e.g. Top-up via Lipa Namba 353438054"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl p-3 text-white outline-none focus:border-[#00bfff]"
