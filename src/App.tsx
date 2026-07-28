@@ -35,6 +35,7 @@ import VendorAuthGuard from "./components/my-components/VendorAuthGuard";
 import OrdersPage from "./pages/orders/OrdersPage";
 import TrackOrderPage from "./pages/orders/TrackOrderPage";
 import BiryaniPage from "./pages/biryani/BiryaniPage";
+import SosikaCashPage from "./pages/wallet/SosikaCashPage";
 
 import ScrollToTop from "./components/my-components/ScrollToTop";
 import { AnimatePresence } from "framer-motion";
@@ -58,6 +59,7 @@ function AnimatedRoutes() {
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/track/:orderId" element={<TrackOrderPage />} />
           <Route path="/biryani" element={<BiryaniPage />} />
+          <Route path="/sosika-cash" element={<SosikaCashPage />} />
 
           {/* Protected Vendor Routes */}
           <Route element={<VendorAuthGuard />}>

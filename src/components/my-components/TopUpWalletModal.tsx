@@ -231,10 +231,23 @@ export default function TopUpWalletModal({ isOpen, onClose }: TopUpWalletModalPr
             </a>
           </div>
 
-          {/* Footer Security Note */}
-          <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-500 font-medium pt-1">
-            <ShieldCheck size={11} className="text-emerald-400" />
-            <span>Escrow Protected • 100% Instant Credit</span>
+          {/* Footer Security & Learn More Note */}
+          <div className="flex flex-col items-center justify-center gap-1.5 pt-1 text-[10px] text-zinc-500 font-medium">
+            <div className="flex items-center gap-1">
+              <ShieldCheck size={11} className="text-emerald-400" />
+              <span>Escrow Protected • 100% Instant Credit</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                window.location.href = "/sosika-cash";
+              }}
+              className="text-[#00bfff] hover:underline font-semibold flex items-center gap-1"
+            >
+              <span>Learn about Sosika Cash benefits & Terms</span>
+              <span>➔</span>
+            </button>
           </div>
         </motion.div>
       </div>
