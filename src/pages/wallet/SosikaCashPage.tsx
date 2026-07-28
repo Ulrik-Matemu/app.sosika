@@ -309,7 +309,7 @@ export default function SosikaCashPage() {
           </div>
         </motion.div>
 
-        {/* CAMPUS LIFE FEATURED BANNER */}
+        {/* CAMPUS LIFE FEATURED BANNER dns */}
         <motion.div
           variants={itemVariants}
           className="rounded-3xl bg-gradient-to-br from-purple-500/10 via-zinc-900 to-black border border-purple-500/20 p-5 space-y-3"
