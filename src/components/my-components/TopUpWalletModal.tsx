@@ -26,8 +26,8 @@ export default function TopUpWalletModal({ isOpen, onClose }: TopUpWalletModalPr
   const [customAmount, setCustomAmount] = useState<string>("5000");
   const [copiedLipa, setCopiedLipa] = useState(false);
 
-  const LIPA_NUMBER = "656313666";
-  const ADMIN_PHONE = "+255760903468";
+  const LIPA_NUMBER = "353438054";
+  const ADMIN_PHONE = "+255778903468";
 
   // Amount calculation synchronized with input field
   const targetAmount = parseFloat(customAmount) || 0;
@@ -170,18 +170,18 @@ export default function TopUpWalletModal({ isOpen, onClose }: TopUpWalletModalPr
             </div>
           </div>
 
-          {/* Lipa Namba (Airtel Money Merchant Till) Section */}
+          {/* Lipa Namba (Mpesa Merchant Till) Section */}
           <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl p-3.5 space-y-2">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-extrabold text-red-400 uppercase tracking-wider block">
-                  Airtel Money Merchant Till
+                  M-PESA Merchant Till
                 </span>
                 <span className="text-lg font-black font-mono text-white tracking-wider block mt-0.5">
                   {LIPA_NUMBER}
                 </span>
                 <span className="text-[10px] text-zinc-400 block font-medium">
-                  Name: ULRIK MATEMU
+                  Name: LIPA SOSIKA STORE
                 </span>
               </div>
 
@@ -206,7 +206,7 @@ export default function TopUpWalletModal({ isOpen, onClose }: TopUpWalletModalPr
 
             {/* Cross-Network Guidance Badge */}
             <p className="text-[10px] text-zinc-500 pt-1 border-t border-white/[0.04]">
-              <span className="text-zinc-400 font-bold">M-Pesa / Tigo / Halopesa:</span> Lipa Namba ➔ Kwenda Airtel Money (`656313666`).
+              <span className="text-zinc-400 font-bold">M-Pesa / Tigo / Halopesa:</span> Lipa Namba ➔ M-Pesa (`656313666`).
             </p>
           </div>
 
