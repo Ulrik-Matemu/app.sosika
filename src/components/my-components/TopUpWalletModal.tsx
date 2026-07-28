@@ -206,7 +206,7 @@ export default function TopUpWalletModal({ isOpen, onClose }: TopUpWalletModalPr
 
             {/* Cross-Network Guidance Badge */}
             <p className="text-[10px] text-zinc-500 pt-1 border-t border-white/[0.04]">
-              <span className="text-zinc-400 font-bold">M-Pesa / Tigo / Halopesa:</span> Lipa Namba ➔ M-Pesa (`656313666`).
+              <span className="text-zinc-400 font-bold">M-Pesa / Tigo / Halopesa:</span> Lipa Namba ➔ M-Pesa (`353438054`).
             </p>
           </div>
 
