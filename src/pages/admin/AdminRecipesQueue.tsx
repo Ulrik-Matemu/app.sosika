@@ -23,7 +23,6 @@ import {
   RefreshCw,
   AlertTriangle,
   History,
-  Info,
   Layers,
   Image as ImageIcon,
   RotateCcw,
