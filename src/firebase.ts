@@ -15,6 +15,8 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
   };
 
+import { getStorage } from "firebase/storage";
+
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 const analytics = getAnalytics(app);
@@ -22,6 +24,7 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(app);
 const functions = getFunctions(app);
+const storage = getStorage(app);
 
 export const onMessageListener = () =>
   new Promise((resolve) => {
@@ -40,5 +43,5 @@ export const onMessageListener = () =>
     });
   });
 
-export { messaging, getToken, onMessage, auth, provider, analytics, logEvent, db, functions, httpsCallable };
+export { messaging, getToken, onMessage, auth, provider, analytics, logEvent, db, functions, httpsCallable, storage };
 

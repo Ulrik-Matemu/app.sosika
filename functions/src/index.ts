@@ -170,3 +170,108 @@ export const verifyVendorSubscription = onCall(
     }
   }
 );
+
+interface SendNotificationData {
+  title: string;
+  body: string;
+  icon?: string;
+  url?: string;
+  targetType: "all" | "user" | "topic";
+  targetValue?: string;
+}
+
+/**
+ * sendNotification
+ *
+ * Callable Cloud Function triggered from Admin Dashboard to send FCM push notifications.
+ */
+export const sendNotification = onCall(async (request) => {
+  const { title, body, icon, url, targetType, targetValue } = request.data as SendNotificationData;
+
+  if (!title || !body) {
+    throw new HttpsError("invalid-argument", "Both 'title' and 'body' are required fields.");
+  }
+
+  const notificationPayload: admin.messaging.Notification = {
+    title,
+    body,
+    ...(icon ? { imageUrl: icon } : {}),
+  };
+
+  const dataPayload: Record<string, string> = {};
+  if (url) dataPayload.url = url;
+  if (icon) dataPayload.icon = icon;
+
+  let successCount = 0;
+  let failureCount = 0;
+
+  try {
+    // 1. Record in Firestore notification history
+    await admin.firestore().collection("notifications").add({
+      title,
+      body,
+      icon: icon || null,
+      url: url || null,
+      targetType,
+      targetValue: targetValue || null,
+      sentBy: request.auth?.uid || "admin",
+      sentAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // 2. Dispatch based on audience targeting
+    if (targetType === "all") {
+      const tokensSnapshot = await admin.firestore().collection("fcm_tokens").get();
+      const tokens = tokensSnapshot.docs
+        .map((doc) => doc.data()?.token)
+        .filter((t): t is string => Boolean(t));
+
+      if (tokens.length > 0) {
+        const batchSize = 500;
+        for (let i = 0; i < tokens.length; i += batchSize) {
+          const batch = tokens.slice(i, i + batchSize);
+          const response = await admin.messaging().sendEachForMulticast({
+            tokens: batch,
+            notification: notificationPayload,
+            data: dataPayload,
+          });
+          successCount += response.successCount;
+          failureCount += response.failureCount;
+        }
+      }
+    } else if (targetType === "user" && targetValue) {
+      const tokenDoc = await admin.firestore().collection("fcm_tokens").doc(targetValue).get();
+      if (tokenDoc.exists) {
+        const token = tokenDoc.data()?.token;
+        if (token) {
+          await admin.messaging().send({
+            token,
+            notification: notificationPayload,
+            data: dataPayload,
+          });
+          successCount = 1;
+        }
+      }
+    } else if (targetType === "topic" && targetValue) {
+      await admin.messaging().send({
+        topic: targetValue,
+        notification: notificationPayload,
+        data: dataPayload,
+      });
+      successCount = 1;
+    }
+
+    return {
+      success: true,
+      successCount,
+      failureCount,
+      message: `Notification processed. ${successCount} delivered, ${failureCount} failed.`,
+    };
+  } catch (error: any) {
+    console.error("[sendNotification] Error sending FCM message:", error);
+    throw new HttpsError("internal", `FCM delivery error: ${error?.message || error}`);
+  }
+});
+
+// Export Daily AI Recipe Generator Cloud Functions
+export { generateDailyRecipes, triggerDailyRecipeGeneration } from "./generateDailyRecipes";
+

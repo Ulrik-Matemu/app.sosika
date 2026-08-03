@@ -20,6 +20,7 @@ export default defineConfig({
       strategies: "generateSW", // Changed back to generateSW ok
       manifest: false,
       workbox: {
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === "document",

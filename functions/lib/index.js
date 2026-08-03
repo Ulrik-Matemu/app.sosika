@@ -39,7 +39,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyVendorSubscription = void 0;
+exports.triggerDailyRecipeGeneration = exports.generateDailyRecipes = exports.sendNotification = exports.verifyVendorSubscription = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const params_1 = require("firebase-functions/params");
 const admin = __importStar(require("firebase-admin"));
@@ -163,4 +163,96 @@ exports.verifyVendorSubscription = (0, https_1.onCall)({ secrets: [playServiceAc
         throw new https_1.HttpsError("internal", `Failed to verify purchase with Google Play Developer API: ${err?.message || err}`);
     }
 });
+/**
+ * sendNotification
+ *
+ * Callable Cloud Function triggered from Admin Dashboard to send FCM push notifications.
+ */
+exports.sendNotification = (0, https_1.onCall)(async (request) => {
+    const { title, body, icon, url, targetType, targetValue } = request.data;
+    if (!title || !body) {
+        throw new https_1.HttpsError("invalid-argument", "Both 'title' and 'body' are required fields.");
+    }
+    const notificationPayload = {
+        title,
+        body,
+        ...(icon ? { imageUrl: icon } : {}),
+    };
+    const dataPayload = {};
+    if (url)
+        dataPayload.url = url;
+    if (icon)
+        dataPayload.icon = icon;
+    let successCount = 0;
+    let failureCount = 0;
+    try {
+        // 1. Record in Firestore notification history
+        await admin.firestore().collection("notifications").add({
+            title,
+            body,
+            icon: icon || null,
+            url: url || null,
+            targetType,
+            targetValue: targetValue || null,
+            sentBy: request.auth?.uid || "admin",
+            sentAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        // 2. Dispatch based on audience targeting
+        if (targetType === "all") {
+            const tokensSnapshot = await admin.firestore().collection("fcm_tokens").get();
+            const tokens = tokensSnapshot.docs
+                .map((doc) => doc.data()?.token)
+                .filter((t) => Boolean(t));
+            if (tokens.length > 0) {
+                const batchSize = 500;
+                for (let i = 0; i < tokens.length; i += batchSize) {
+                    const batch = tokens.slice(i, i + batchSize);
+                    const response = await admin.messaging().sendEachForMulticast({
+                        tokens: batch,
+                        notification: notificationPayload,
+                        data: dataPayload,
+                    });
+                    successCount += response.successCount;
+                    failureCount += response.failureCount;
+                }
+            }
+        }
+        else if (targetType === "user" && targetValue) {
+            const tokenDoc = await admin.firestore().collection("fcm_tokens").doc(targetValue).get();
+            if (tokenDoc.exists) {
+                const token = tokenDoc.data()?.token;
+                if (token) {
+                    await admin.messaging().send({
+                        token,
+                        notification: notificationPayload,
+                        data: dataPayload,
+                    });
+                    successCount = 1;
+                }
+            }
+        }
+        else if (targetType === "topic" && targetValue) {
+            await admin.messaging().send({
+                topic: targetValue,
+                notification: notificationPayload,
+                data: dataPayload,
+            });
+            successCount = 1;
+        }
+        return {
+            success: true,
+            successCount,
+            failureCount,
+            message: `Notification processed. ${successCount} delivered, ${failureCount} failed.`,
+        };
+    }
+    catch (error) {
+        console.error("[sendNotification] Error sending FCM message:", error);
+        throw new https_1.HttpsError("internal", `FCM delivery error: ${error?.message || error}`);
+    }
+});
+// Export Daily AI Recipe Generator Cloud Functions
+var generateDailyRecipes_1 = require("./generateDailyRecipes");
+Object.defineProperty(exports, "generateDailyRecipes", { enumerable: true, get: function () { return generateDailyRecipes_1.generateDailyRecipes; } });
+Object.defineProperty(exports, "triggerDailyRecipeGeneration", { enumerable: true, get: function () { return generateDailyRecipes_1.triggerDailyRecipeGeneration; } });
 //# sourceMappingURL=index.js.map

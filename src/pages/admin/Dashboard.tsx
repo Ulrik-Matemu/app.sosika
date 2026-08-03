@@ -11,6 +11,8 @@ import PricingConsole from "../../components/admin/PricingConsole";
 import MenuItemManager from "../../components/admin/MenuItemManager";
 import { FeaturedItemsManager } from "../../components/admin/FeaturedItemsManager";
 import { PromotionsManager } from "../../components/admin/PromotionsManager";
+import NotificationConsole from "../../components/admin/NotificationConsole";
+import AdminRecipesQueue from "./AdminRecipesQueue";
 import {
   LayoutDashboard,
   Package,
@@ -25,9 +27,11 @@ import {
   UtensilsCrossed,
   Flame,
   Megaphone,
+  BookOpen,
+  Bell,
 } from "lucide-react";
 
-type AdminTab = "overview" | "orders" | "vendors" | "menu" | "featured" | "promotions" | "pricing" | "geomap" | "freepass" | "photos" | "wallet";
+type AdminTab = "overview" | "orders" | "vendors" | "menu" | "featured" | "promotions" | "notifications" | "pricing" | "geomap" | "freepass" | "photos" | "wallet" | "recipes";
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -97,6 +101,18 @@ export default function AdminDashboard() {
             </button>
 
             <button
+              onClick={() => setActiveTab("recipes")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "recipes"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <BookOpen size={14} />
+              <span>Recipe Review</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab("vendors")}
               className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === "vendors"
@@ -142,6 +158,18 @@ export default function AdminDashboard() {
             >
               <Megaphone size={14} />
               <span>Promotions</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("notifications")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "notifications"
+                  ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Bell size={14} />
+              <span>Notifications</span>
             </button>
 
             <button
@@ -211,10 +239,12 @@ export default function AdminDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
         {activeTab === "overview" && <OverviewMetrics />}
         {activeTab === "orders" && <LiveOrdersConsole />}
+        {activeTab === "recipes" && <AdminRecipesQueue embedded />}
         {activeTab === "vendors" && <VendorManager />}
         {activeTab === "menu" && <MenuItemManager />}
         {activeTab === "featured" && <FeaturedItemsManager />}
         {activeTab === "promotions" && <PromotionsManager />}
+        {activeTab === "notifications" && <NotificationConsole />}
         {activeTab === "pricing" && <PricingConsole />}
         {activeTab === "geomap" && <GeoInsightsConsole />}
         {activeTab === "freepass" && <FreeDeliveryManager />}

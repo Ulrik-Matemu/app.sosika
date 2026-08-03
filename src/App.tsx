@@ -36,7 +36,14 @@ import OrdersPage from "./pages/orders/OrdersPage";
 import TrackOrderPage from "./pages/orders/TrackOrderPage";
 import BiryaniPage from "./pages/biryani/BiryaniPage";
 import SosikaCashPage from "./pages/wallet/SosikaCashPage";
-
+import RecipesHub from "./pages/recipes/RecipesHub";
+import RecipeCountryPage from "./pages/recipes/RecipeCountryPage";
+import RecipeSubcategoryPage from "./pages/recipes/RecipeSubcategoryPage";
+import RecipeDetailPage from "./pages/recipes/RecipeDetailPage";
+import RecipeSubmitPage from "./pages/recipes/RecipeSubmitPage";
+import AdminRecipesQueue from "./pages/admin/AdminRecipesQueue";
+import NotificationHandler from "./components/my-components/notification-handler";
+import { useNotifications } from "./hooks/useNotifications";
 import ScrollToTop from "./components/my-components/ScrollToTop";
 import { AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
@@ -54,12 +61,20 @@ function AnimatedRoutes() {
           <Route path="/mood/results" element={<ResultsPage />} />
           <Route path="/vendor/:vendorId/menu" element={<VendorMenuPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/recipes" element={<AdminRecipesQueue />} />
           <Route path="/vendor-onboarding" element={<VendorOnboarding />} />
           <Route path="/vendor-auth" element={<VendorAuthPortal />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/track/:orderId" element={<TrackOrderPage />} />
           <Route path="/biryani" element={<BiryaniPage />} />
           <Route path="/sosika-cash" element={<SosikaCashPage />} />
+
+          {/* Recipes Module Routes */}
+          <Route path="/recipes" element={<RecipesHub />} />
+          <Route path="/recipes/submit" element={<RecipeSubmitPage />} />
+          <Route path="/recipes/:country" element={<RecipeCountryPage />} />
+          <Route path="/recipes/:country/:subcategory" element={<RecipeSubcategoryPage />} />
+          <Route path="/recipes/:country/:subcategory/:slug" element={<RecipeDetailPage />} />
 
           {/* Protected Vendor Routes */}
           <Route element={<VendorAuthGuard />}>
@@ -72,6 +87,8 @@ function AnimatedRoutes() {
 }
 
 function App() {
+  useNotifications();
+
   useEffect(() => {
     const sessionStart = Date.now();
 
@@ -93,6 +110,7 @@ function App() {
   return (
     <>
       <AppEntryTracker />
+      <NotificationHandler />
       <HelmetProvider>
         <MapProvider>
           <CartProvider>

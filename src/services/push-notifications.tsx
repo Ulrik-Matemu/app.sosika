@@ -1,76 +1,71 @@
-import { messaging } from "../firebase";
-import axios from "axios";
-import { getToken } from 'firebase/messaging';
+import { messaging, getToken, db } from "../firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
-export const setupPushNotifications = async () => {
+/**
+ * Initialize push notifications:
+ * 1. Register the FCM service worker
+ * 2. Request notification permission
+ * 3. Get FCM token
+ * 4. Save token to Firestore
+ */
+export const initializeNotifications = async (userId: string): Promise<string | null> => {
   try {
-    // Check if service workers are supported
-    if ('serviceWorker' in navigator) {
-      // First, unregister any existing firebase-messaging-sw.js
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (const registration of registrations) {
-        if (registration.scope.includes('firebase-messaging-sw.js')) {
-          await registration.unregister();
-        }
-      }
-
-      // Register Firebase messaging service worker
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-
-      // Request notification permission
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        throw new Error('Notification permission not granted');
-      }
-
-      // Get FCM token with the registered service worker
-      const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-
-      const token = await getToken(messaging, {
-        vapidKey: vapidKey,
-        serviceWorkerRegistration: registration
-      });
-
-      localStorage.setItem('fcmToken', token);
-      // Save this token to your server for sending notifications
-      submitFcmToken(token);
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      console.warn("Push notifications not supported in this browser");
+      return null;
     }
-  } catch (error) {
-    console.error('Error setting up push notifications:', error);
-  }
-}
 
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      console.warn("Notification permission denied");
+      return null;
+    }
 
-export const submitFcmToken = async (fcmToken: string) => {
-  const userId = localStorage.getItem("userId");
-  const role = 'user';
-  
-  if (!userId || !role) {
-    console.error("User ID or role not found");
-    return;
-  }
+    // Register service worker
+    const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
 
-  try {
-    const response = await axios.post(`${API_URL}/auth/fcm-token`, {
-      userId,
-      fcmToken,
-      role,
-    }, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const token = await getToken(messaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: registration,
     });
 
-    console.log("FCM token updated successfully:", response.data);
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Error updating FCM token:", error.response?.data || error.message);
-    } else {
-      console.error("Unexpected error:", error);
+    if (token) {
+      await saveTokenToFirestore(userId, token);
+      localStorage.setItem("fcmToken", token);
     }
+
+    return token;
+  } catch (error) {
+    console.error("Error initializing notifications:", error);
+    return null;
   }
-}
+};
 
+/**
+ * Save FCM token to Firestore for server-side targeting
+ */
+export const saveTokenToFirestore = async (userId: string, token: string) => {
+  try {
+    await setDoc(
+      doc(db, "fcm_tokens", userId),
+      {
+        token,
+        userId,
+        updatedAt: serverTimestamp(),
+        platform: "web",
+        userAgent: navigator.userAgent,
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.error("Error saving FCM token to Firestore:", error);
+  }
+};
 
+// Legacy compatibility export
+export const setupPushNotifications = async () => {
+  const userId = localStorage.getItem("userId") || "anonymous";
+  return initializeNotifications(userId);
+};
