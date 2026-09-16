@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { db } from "../../firebase";
+import { db, functions, httpsCallable } from "../../firebase";
 import {
   collection,
   doc,
   getDoc,
   getDocs,
-  writeBatch,
   query,
   where,
   limit
@@ -28,7 +27,7 @@ export default function WalletConsole() {
   // Manual Credit Form
   const [creditPhone, setCreditPhone] = useState("");
   const [creditAmount, setCreditAmount] = useState("");
-  const [creditType, setCreditType] = useState<"manual_topup" | "refund" | "adjustment">("manual_topup");
+  const [creditType, setCreditType] = useState<"manual_topup" | "refund" | "admin_adjustment">("manual_topup");
   const [description, setDescription] = useState("Manual Lipa Namba Top-Up");
   const [submitting, setSubmitting] = useState(false);
 
@@ -111,33 +110,24 @@ export default function WalletConsole() {
 
     setSubmitting(true);
     try {
-      const batch = writeBatch(db);
+      // Wallet writes are server-authoritative — see functions/src/wallet.ts.
+      // This console can no longer write `wallets`/`wallet_transactions`
+      // directly (Firestore rules deny it), so the credit goes through the
+      // adminCreditWallet callable, which re-validates the amount and is
+      // gated on the `admin` custom claim.
+      const adminCreditWalletFn = httpsCallable<
+        { phone: string; amount: number; description: string; type: typeof creditType },
+        { success: boolean; phone: string; balance: number }
+      >(functions, "adminCreditWallet");
 
-      // 1. Get current balance
-      const walletRef = doc(db, "wallets", formatted);
-      const walletSnap = await getDoc(walletRef);
-      const currentBal = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
-      const newBal = currentBal + amountNum;
-
-      // 2. Set updated balance
-      batch.set(
-        walletRef,
-        { phone: formatted, balance: newBal, updatedAt: new Date() },
-        { merge: true }
-      );
-
-      // 3. Log transaction ledger record
-      const txRef = doc(collection(db, "wallet_transactions"));
-      batch.set(txRef, {
-        id: txRef.id,
+      const result = await adminCreditWalletFn({
         phone: formatted,
         amount: amountNum,
-        type: creditType,
         description: description || "Admin Wallet Adjustment",
-        timestamp: new Date(),
+        type: creditType,
       });
 
-      await batch.commit();
+      const newBal = result.data.balance;
       alert(`Success! Credited TZS ${amountNum.toLocaleString()} to ${formatted}. New balance: TZS ${newBal.toLocaleString()}`);
 
       setCreditPhone("");
@@ -148,9 +138,9 @@ export default function WalletConsole() {
       if (searchedWallet && searchedWallet.phone === formatted) {
         setSearchedWallet({ phone: formatted, balance: newBal });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Admin wallet credit error:", err);
-      alert("Failed to credit wallet.");
+      alert(err?.message || "Failed to credit wallet.");
     } finally {
       setSubmitting(false);
     }
@@ -294,7 +284,7 @@ export default function WalletConsole() {
                 >
                   <option value="manual_topup" className="bg-zinc-900">Manual Lipa Top-Up</option>
                   <option value="refund" className="bg-zinc-900">Order Refund</option>
-                  <option value="adjustment" className="bg-zinc-900">Admin Adjustment</option>
+                  <option value="admin_adjustment" className="bg-zinc-900">Admin Adjustment</option>
                 </select>
               </div>
             </div>

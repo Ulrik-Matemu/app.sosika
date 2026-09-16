@@ -25,6 +25,7 @@ import PageWrapper from "./services/page-transition";
 import MoodSelection from "./pages/mood/MoodSelection";
 import LocationSelection from "./pages/mood/LocationSelection";
 import ResultsPage from "./pages/mood/ResultsPage";
+import SearchPage from "./pages/search/SearchPage";
 import AdminDashboard from "./pages/admin/Dashboard";
 import VendorMenuPage from "./pages/vendor/MenuPage";
 import AppEntryTracker from "./components/my-components/AppEntryTracker";
@@ -42,11 +43,15 @@ import RecipeSubcategoryPage from "./pages/recipes/RecipeSubcategoryPage";
 import RecipeDetailPage from "./pages/recipes/RecipeDetailPage";
 import RecipeSubmitPage from "./pages/recipes/RecipeSubmitPage";
 import AdminRecipesQueue from "./pages/admin/AdminRecipesQueue";
+import AdminAuthGuard from "./components/my-components/AdminAuthGuard";
 import NotificationHandler from "./components/my-components/notification-handler";
 import { useNotifications } from "./hooks/useNotifications";
 import ScrollToTop from "./components/my-components/ScrollToTop";
 import { AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import SettingsPage from "./pages/settings/SettingsPage";
+import PreferencesSync from "./components/PreferencesSync";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -59,12 +64,19 @@ function AnimatedRoutes() {
           <Route path="/mood" element={<MoodSelection />} />
           <Route path="/mood/location" element={<LocationSelection />} />
           <Route path="/mood/results" element={<ResultsPage />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/vendor/:vendorId/menu" element={<VendorMenuPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/recipes" element={<AdminRecipesQueue />} />
+          <Route
+            path="/admin/recipes"
+            element={
+              <AdminAuthGuard>{() => <AdminRecipesQueue />}</AdminAuthGuard>
+            }
+          />
           <Route path="/vendor-onboarding" element={<VendorOnboarding />} />
           <Route path="/vendor-auth" element={<VendorAuthPortal />} />
           <Route path="/orders" element={<OrdersPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
           <Route path="/track/:orderId" element={<TrackOrderPage />} />
           <Route path="/biryani" element={<BiryaniPage />} />
           <Route path="/sosika-cash" element={<SosikaCashPage />} />
@@ -114,7 +126,9 @@ function App() {
       <HelmetProvider>
         <MapProvider>
           <CartProvider>
-            <OrdersProvider>
+            <AuthProvider>
+              <OrdersProvider>
+                <PreferencesSync />
               <WalletProvider>
                 <Router>
                   <ScrollToTop />
@@ -124,6 +138,7 @@ function App() {
                 </Router>
               </WalletProvider>
             </OrdersProvider>
+            </AuthProvider>
           </CartProvider>
         </MapProvider>
       </HelmetProvider>

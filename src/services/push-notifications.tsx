@@ -3,24 +3,37 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
+export const notificationsSupported = () =>
+  typeof window !== "undefined" && "Notification" in window && "serviceWorker" in navigator;
+
+/** What the browser currently allows, without prompting for anything. */
+export const notificationPermission = (): NotificationPermission | "unsupported" =>
+  notificationsSupported() ? Notification.permission : "unsupported";
+
 /**
- * Initialize push notifications:
- * 1. Register the FCM service worker
- * 2. Request notification permission
- * 3. Get FCM token
- * 4. Save token to Firestore
+ * Register this device for push.
+ *
+ * `promptIfNeeded` exists because this used to call requestPermission() on app
+ * load, before the user had any idea what Sosika was — the browser's own
+ * guidance is to ask in response to a deliberate action, and a denied prompt is
+ * effectively permanent. Settings passes true; the boot path passes false and
+ * so only re-registers a device that already granted permission.
  */
-export const initializeNotifications = async (userId: string): Promise<string | null> => {
+export const initializeNotifications = async (
+  userId: string,
+  promptIfNeeded = false
+): Promise<string | null> => {
   try {
-    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+    if (!notificationsSupported()) {
       console.warn("Push notifications not supported in this browser");
       return null;
     }
 
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      console.warn("Notification permission denied");
-      return null;
+    if (Notification.permission === "denied") return null;
+    if (Notification.permission !== "granted") {
+      if (!promptIfNeeded) return null;
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") return null;
     }
 
     // Register service worker
@@ -46,10 +59,19 @@ export const initializeNotifications = async (userId: string): Promise<string | 
 /**
  * Save FCM token to Firestore for server-side targeting
  */
+/**
+ * Store the registration under the TOKEN, not the user id.
+ *
+ * It used to key on `localStorage.userId`, which is written by nothing on the
+ * customer side and so resolved to the literal "guest_user" for every device —
+ * meaning all customers shared, and repeatedly overwrote, a single document.
+ * A token is already unique per device+browser, which is exactly the grain
+ * push targeting needs.
+ */
 export const saveTokenToFirestore = async (userId: string, token: string) => {
   try {
     await setDoc(
-      doc(db, "fcm_tokens", userId),
+      doc(db, "fcm_tokens", token),
       {
         token,
         userId,

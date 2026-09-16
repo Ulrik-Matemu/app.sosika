@@ -1,24 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { doc, onSnapshot, collection, query, where, runTransaction, serverTimestamp, getDocs } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { useOrders } from "./OrdersContext";
+import { toE164 } from "../lib/phone";
 
-export const normalizePhone = (raw: string): string => {
-  if (!raw) return "";
-  let digits = raw.replace(/\D/g, "").trim();
-  if (digits.startsWith("0")) {
-    digits = "255" + digits.substring(1);
-  } else if (/^[678]/.test(digits)) {
-    digits = "255" + digits;
-  }
-  return `+${digits}`;
-};
+/**
+ * E.164 form, `+255…` — the shape `wallets/{phone}` document ids use.
+ * Parsing is shared with the rest of the app via src/lib/phone.ts.
+ */
+export const normalizePhone = (raw: string): string => toE164(raw);
 
 export interface WalletTransaction {
   id: string;
   phone: string;
   amount: number;
-  type: "photo_reward" | "manual_topup" | "gateway_topup" | "order_payment" | "admin_adjustment";
+  type: "photo_reward" | "manual_topup" | "gateway_topup" | "order_payment" | "admin_adjustment" | "refund";
   description: string;
   referenceId?: string;
   timestamp?: any;
@@ -29,8 +25,6 @@ interface WalletContextType {
   transactions: WalletTransaction[];
   loading: boolean;
   phone: string | null;
-  deductWalletBalance: (amount: number, description: string, referenceId?: string) => Promise<boolean>;
-  creditWalletBalance: (targetPhone: string, amount: number, description: string, referenceId?: string, type?: WalletTransaction["type"]) => Promise<boolean>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -105,46 +99,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     );
 
-    // 3. Automatic Photo Reward Reconciliation
-    // Checks if any food_photo_submissions were approved (even in Firestore console) without a credited transaction
-    const syncApprovedRewards = async () => {
-      try {
-        const photoQ = query(
-          collection(db, "food_photo_submissions"),
-          where("phone", "in", phonesToMatch),
-          where("status", "==", "approved")
-        );
-        const photoSnap = await getDocs(photoQ);
-
-        photoSnap.forEach(async (subDoc) => {
-          const subData = subDoc.data();
-          const subId = subDoc.id;
-
-          // Check if transaction log already exists for this submission
-          const txCheckQ = query(
-            collection(db, "wallet_transactions"),
-            where("referenceId", "==", subId)
-          );
-          const txCheckSnap = await getDocs(txCheckQ);
-
-          if (txCheckSnap.empty) {
-            // Auto-credit reward for this approved submission
-            const rewardAmt = subData.rewardAmount || 1000;
-            await creditWalletBalance(
-              formattedPhone,
-              rewardAmt,
-              `Reward for approved food photo (${subData.menuItemName || "Meal"})`,
-              subId,
-              "photo_reward"
-            );
-          }
-        });
-      } catch (err) {
-        console.warn("[WalletContext] Sync approved rewards warning:", err);
-      }
-    };
-
-    syncApprovedRewards();
+    // Photo-reward crediting now happens server-side: the
+    // onFoodPhotoApproved Cloud Function trigger (functions/src/wallet.ts)
+    // credits the wallet the moment an admin approves a submission, reading
+    // the reward amount from system_settings rather than trusting the
+    // submission's own (client-writable) rewardAmount field. There is
+    // nothing left for the client to reconcile here.
 
     return () => {
       unsubWallet();
@@ -152,77 +112,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, [formattedPhone, rawDigitsPhone]);
 
-  // Helper: Atomic deduction
-  const deductWalletBalance = async (amount: number, description: string, referenceId?: string): Promise<boolean> => {
-    if (!formattedPhone || amount <= 0) return false;
-    const walletRef = doc(db, "wallets", formattedPhone);
-    const txRef = doc(collection(db, "wallet_transactions"));
-
-    try {
-      await runTransaction(db, async (transaction) => {
-        const walletSnap = await transaction.get(walletRef);
-        const currentBal = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
-
-        if (currentBal < amount) {
-          throw new Error("Insufficient wallet balance.");
-        }
-
-        const newBal = currentBal - amount;
-        transaction.set(walletRef, { phone: formattedPhone, balance: newBal, updatedAt: serverTimestamp() }, { merge: true });
-        transaction.set(txRef, {
-          id: txRef.id,
-          phone: formattedPhone,
-          amount: -amount,
-          type: "order_payment",
-          description,
-          referenceId: referenceId || "",
-          timestamp: serverTimestamp(),
-        });
-      });
-      return true;
-    } catch (err) {
-      console.error("[WalletContext] Deduct balance failed:", err);
-      return false;
-    }
-  };
-
-  // Helper: Credit wallet balance (for Admin / Rewards)
-  const creditWalletBalance = async (
-    targetPhone: string,
-    amount: number,
-    description: string,
-    referenceId?: string,
-    type: WalletTransaction["type"] = "admin_adjustment"
-  ): Promise<boolean> => {
-    const cleanTargetPhone = normalizePhone(targetPhone);
-    if (!cleanTargetPhone || amount <= 0) return false;
-    const walletRef = doc(db, "wallets", cleanTargetPhone);
-    const txRef = doc(collection(db, "wallet_transactions"));
-
-    try {
-      await runTransaction(db, async (transaction) => {
-        const walletSnap = await transaction.get(walletRef);
-        const currentBal = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
-        const newBal = currentBal + amount;
-
-        transaction.set(walletRef, { phone: cleanTargetPhone, balance: newBal, updatedAt: serverTimestamp() }, { merge: true });
-        transaction.set(txRef, {
-          id: txRef.id,
-          phone: cleanTargetPhone,
-          amount: amount,
-          type,
-          description,
-          referenceId: referenceId || "",
-          timestamp: serverTimestamp(),
-        });
-      });
-      return true;
-    } catch (err) {
-      console.error("[WalletContext] Credit balance failed:", err);
-      return false;
-    }
-  };
-
+  // Wallet writes (debiting at checkout, crediting rewards/top-ups/refunds)
+  // are server-authoritative — see functions/src/wallet.ts. This context is
+  // now read-only: it streams the balance and transaction history and lets
+  // the rest of the app react to them.
   return (
     <WalletContext.Provider
       value={{
@@ -230,8 +123,6 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         transactions,
         loading,
         phone: formattedPhone,
-        deductWalletBalance,
-        creditWalletBalance,
       }}
     >
       {children}

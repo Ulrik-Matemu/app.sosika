@@ -1,4 +1,3 @@
-import { Home, ShoppingCart, Search, Package } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import clsx from "clsx";
 import { useCartContext } from "../../context/cartContext";
@@ -9,15 +8,14 @@ import AddToCartToast from "./AddToCartToast";
 
 type NavItem = {
   name: string;
-  icon: React.ElementType;
   path: string;
 };
 
 const navItems: NavItem[] = [
-  { name: "Home", icon: Home, path: "/" },
-  { name: "Search", icon: Search, path: "/mood/results" },
-  { name: "Orders", icon: Package, path: "/orders" },
-  { name: "Cart", icon: ShoppingCart, path: "/cart" },
+  { name: "Home", path: "/" },
+  { name: "Search", path: "/search" },
+  { name: "Orders", path: "/orders" },
+  { name: "Cart", path: "/cart" },
 ];
 
 export default function Navbar() {
@@ -54,9 +52,9 @@ export default function Navbar() {
         <nav
           role="navigation"
           aria-label="Main navigation"
-          className="pointer-events-auto flex items-center justify-around w-full max-w-xs bg-zinc-950/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_10px_30px_-5px_rgba(0,0,0,0.5)] rounded-full px-2 py-1.5"
+          className="pointer-events-auto flex items-center justify-around w-full max-w-xs bg-surface-2 backdrop-blur-xl border border-edge-2 rounded-full px-2.5 py-[15px]"
         >
-          {navItems.map(({ name, icon: Icon, path }) => {
+          {navItems.map(({ name, path }) => {
             const isCart = name === "Cart";
             const isOrders = name === "Orders";
             return isCart ? (
@@ -64,51 +62,46 @@ export default function Navbar() {
                 key={name}
                 aria-label="Open cart drawer"
                 className={clsx(
-                  "relative flex flex-col items-center justify-center p-2.5 rounded-full transition-all duration-300",
-                  cartItemCount > 0
-                    ? "text-[#00bfff]"
-                    : "text-zinc-500 hover:text-zinc-300"
+                  "relative flex items-center justify-center px-2 font-semibold text-xs transition-colors",
+                  cartItemCount > 0 ? "text-accent-ink" : "text-content-faint hover:text-content-secondary"
                 )}
                 onClick={() => {
                   setIsCartOpen(true);
                   triggerHapticFeedback();
                 }}
               >
-                <div className="relative">
-                  <Icon size={22} className="transition-transform duration-300 active:scale-95" />
-                  {cartItemCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full min-w-[15px] h-[15px] flex items-center justify-center px-1 text-[9px] font-bold border border-zinc-950">
-                      {cartItemCount}
-                    </span>
-                  )}
-                </div>
+                {name}
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full min-w-[15px] h-[15px] flex items-center justify-center px-1 text-[9px] font-bold border border-sosika-ground">
+                    {cartItemCount}
+                  </span>
+                )}
               </button>
             ) : (
               <NavLink
                 key={name}
                 to={path}
+                end={path === "/"}
                 className={({ isActive }) =>
                   clsx(
-                    "relative flex flex-col items-center justify-center p-2.5 rounded-full transition-all duration-300",
-                    isActive
-                      ? "text-[#00bfff]"
-                      : "text-zinc-500 hover:text-zinc-300"
+                    "relative flex items-center justify-center px-2 font-semibold text-xs transition-colors",
+                    isActive ? "text-accent-ink" : "text-content-faint hover:text-content-secondary"
                   )
                 }
                 aria-label={`Go to ${name} page`}
               >
                 {({ isActive }) => (
-                  <div className="relative flex flex-col items-center">
-                    <Icon size={22} className={clsx("transition-transform duration-300 active:scale-95", isActive && "scale-105")} />
+                  <>
+                    {name}
                     {isOrders && activeOrdersCount > 0 && (
-                      <span className="absolute -top-1 -right-1.5 bg-[#00bfff] text-black rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-1 text-[8px] font-black border border-zinc-950 animate-pulse">
+                      <span className="absolute -top-2 -right-2.5 bg-sosika-cyan text-on-accent rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-1 text-[8px] font-bold border border-sosika-ground">
                         {activeOrdersCount}
                       </span>
                     )}
                     {isActive && (
-                      <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-[#00bfff]" />
+                      <span className="absolute -bottom-2 w-1 h-1 rounded-full bg-sosika-cyan" />
                     )}
-                  </div>
+                  </>
                 )}
               </NavLink>
             );

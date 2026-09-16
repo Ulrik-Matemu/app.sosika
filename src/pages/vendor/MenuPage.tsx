@@ -7,6 +7,8 @@ import { Vendor, MenuItem, Review } from "../mood/types/types";
 import { useCartContext } from "../../context/cartContext";
 import { getReviews, addReview } from "../../services/reviews-api";
 import Navbar from "../../components/my-components/navbar";
+import CartSummaryBar from "../../components/my-components/CartSummaryBar";
+import CartDrawer from "../../components/my-components/CartDrawer";
 import StarRating from "../../components/my-components/StarRating";
 import { triggerAddToCartToast } from "../../components/my-components/AddToCartToast";
 import { Input } from "../../components/ui/input";
@@ -38,62 +40,71 @@ const MenuItemRow = React.memo(({ item, isVendorOpen = true }: { item: MenuItem;
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={`flex items-start justify-between py-4 border-b border-zinc-800 last:border-b-0 gap-3 transition-all duration-300 ${
+      className={`flex gap-3.5 items-center py-[15px] border-b border-edge-1 last:border-b-0 transition-opacity ${
         isAvailable ? "" : "opacity-50"
       }`}
     >
+      <div className="flex-none w-14 h-14 rounded-[15px] overflow-hidden bg-[repeating-linear-gradient(135deg,#17171A_0_7px,#131316_7px_14px)]">
+        {item.image_url && (
+          <img src={item.image_url} alt="" className="w-full h-full object-cover" />
+        )}
+      </div>
+
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap mb-1">
-          <h4 className="font-semibold text-white text-base leading-snug">{item.name}</h4>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h4 className="font-semibold text-content text-[15px] tracking-[-0.01em] truncate">{item.name}</h4>
           {!isAvailable && (
-            <span className="text-[9px] font-bold text-zinc-400 bg-white/[0.04] border border-white/[0.08] px-1.5 py-0.5 rounded uppercase tracking-wider">
-              Out of Stock
+            <span className="text-[9px] font-bold text-content-tertiary bg-surface-3 border border-edge-2 px-1.5 py-0.5 rounded uppercase tracking-wider">
+              Out of stock
             </span>
           )}
           {!isVendorOpen && isAvailable && (
-            <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[9px] font-bold text-amber-ink bg-sosika-amber/10 border border-sosika-amber/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
               Closed
             </span>
           )}
         </div>
         {item.description && (
-          <p className="text-zinc-400 text-sm mt-1.5 line-clamp-2">{item.description}</p>
+          <p className="text-xs text-content-muted mt-1 truncate">{item.description}</p>
         )}
-        <p className="text-[#00bfff] font-bold text-base mt-2">
-          {Number(item.price).toLocaleString()} TZS
-        </p>
         {item.ratingCount ? (
-          <div className="flex items-center gap-2 mt-2">
-            <StarRating rating={item.averageRating || 0} readOnly size={14} />
-            <span className="text-xs text-zinc-500">({item.ratingCount})</span>
+          <div className="flex items-center gap-1.5 mt-1">
+            <StarRating rating={item.averageRating || 0} readOnly size={12} />
+            <span className="text-[11px] text-content-faint">({item.ratingCount})</span>
           </div>
         ) : null}
       </div>
-      <button
-        onClick={() => {
-          if (!canAdd) return;
-          posthog.capture("order_started", {
-            platform: 'app',
-            item_id: item.id,
-            item_name: item.name,
-          })
-          handleAddToCart();
-        }}
-        disabled={isAdding || !canAdd}
-        className={`p-3 rounded-full transition-all flex-shrink-0 ${
-          !canAdd
-            ? "bg-zinc-900 border border-zinc-850 cursor-not-allowed opacity-40"
-            : "bg-zinc-800 hover:bg-zinc-700 active:scale-95 disabled:opacity-50"
-        }`}
-        aria-label={!isAvailable ? `${item.name} is out of stock` : !isVendorOpen ? `${item.name} is unavailable (Vendor is closed)` : `Add ${item.name} to cart`}
-      >
-        <motion.div
-          animate={isAdding ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
-          transition={{ duration: 0.4 }}
+
+      <div className="flex-none flex flex-col items-end gap-2">
+        <span className="font-mono text-sm font-bold text-content">
+          {Number(item.price).toLocaleString()}
+        </span>
+        <button
+          onClick={() => {
+            if (!canAdd) return;
+            posthog.capture("order_started", {
+              platform: 'app',
+              item_id: item.id,
+              item_name: item.name,
+            })
+            handleAddToCart();
+          }}
+          disabled={isAdding || !canAdd}
+          className={`w-[30px] h-[30px] rounded-full flex items-center justify-center flex-shrink-0 transition-all border ${
+            !canAdd
+              ? "border-edge-2 cursor-not-allowed opacity-40"
+              : "border-edge-3 active:scale-90"
+          }`}
+          aria-label={!isAvailable ? `${item.name} is out of stock` : !isVendorOpen ? `${item.name} is unavailable (Vendor is closed)` : `Add ${item.name} to cart`}
         >
-          <ShoppingBag className={`w-5 h-5 ${!canAdd ? "text-zinc-600" : "text-[#00bfff]"}`} />
-        </motion.div>
-      </button>
+          <motion.div
+            animate={isAdding ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
+            transition={{ duration: 0.4 }}
+          >
+            <ShoppingBag className={`w-3.5 h-3.5 ${!canAdd ? "text-content-faint" : "text-content-secondary"}`} />
+          </motion.div>
+        </button>
+      </div>
     </motion.div>
   );
 });
@@ -111,11 +122,11 @@ const CategorySection = React.memo(({
   refProp: React.RefObject<HTMLDivElement | null>;
   isVendorOpen?: boolean;
 }) => (
-  <div ref={refProp} className="scroll-mt-52">
-    <h3 className="text-xl font-bold text-white capitalize mb-4 sticky top-36 bg-zinc-900/95 backdrop-blur-sm py-3 z-10 -mx-4 px-4">
+  <div ref={refProp} className="scroll-mt-[368px]">
+    <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-accent-ink sticky top-[356px] bg-chrome backdrop-blur-sm py-3 z-10 -mx-5 px-5">
       {category}
-    </h3>
-    <div className="space-y-0">
+    </div>
+    <div>
       {items.map((item) => (
         <MenuItemRow key={item.id} item={item} isVendorOpen={isVendorOpen} />
       ))}
@@ -182,12 +193,12 @@ const ReviewsSection = React.memo(({ vendorId }: { vendorId: string }) => {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-5 border border-zinc-800 rounded-xl bg-zinc-800/30"
+        className="p-5 border border-edge-2 rounded-xl bg-surface-1"
       >
         <h3 className="font-bold text-lg mb-4">Leave a Review</h3>
         <div className="space-y-4">
           <div>
-            <label className="text-sm text-zinc-400 mb-2 block">Your Rating</label>
+            <label className="text-sm text-content-tertiary mb-2 block">Your Rating</label>
             <StarRating rating={newRating} onRatingChange={setNewRating} size={28} />
           </div>
           <Input
@@ -196,7 +207,7 @@ const ReviewsSection = React.memo(({ vendorId }: { vendorId: string }) => {
             value={newUserName}
             onChange={(e) => setNewUserName(e.target.value)}
             maxLength={50}
-            className="bg-zinc-800 border-zinc-700 focus:border-[#00bfff] transition-colors"
+            className="bg-surface-2 border-edge-2 focus:border-sosika-cyan transition-colors"
           />
           <Textarea
             value={newReviewText}
@@ -204,14 +215,14 @@ const ReviewsSection = React.memo(({ vendorId }: { vendorId: string }) => {
             placeholder="Share your experience..."
             maxLength={500}
             rows={4}
-            className="bg-zinc-800 border-zinc-700 focus:border-[#00bfff] transition-colors resize-none"
+            className="bg-surface-2 border-edge-2 focus:border-sosika-cyan transition-colors resize-none"
           />
           <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-500">{newReviewText.length}/500</span>
+            <span className="text-xs text-content-muted">{newReviewText.length}/500</span>
             <Button 
               onClick={handleSubmitReview} 
               disabled={isSubmitting || !canSubmit}
-              className="bg-[#00bfff] hover:bg-[#00a6e0] text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-sosika-cyan hover:bg-sosika-cyan text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
@@ -230,7 +241,7 @@ const ReviewsSection = React.memo(({ vendorId }: { vendorId: string }) => {
         <h3 className="font-bold text-xl mb-4">All Reviews ({reviews.length})</h3>
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-[#00bfff]" />
+            <Loader2 className="w-8 h-8 animate-spin text-accent-ink" />
           </div>
         ) : reviews.length > 0 ? (
           <div className="space-y-4">
@@ -241,14 +252,14 @@ const ReviewsSection = React.memo(({ vendorId }: { vendorId: string }) => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="p-4 bg-zinc-800/40 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors"
+                  className="p-4 bg-surface-1 rounded-xl border border-edge-2 hover:border-edge-2 transition-colors"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-white">{review.userName || 'Anonymous'}</span>
+                    <span className="font-semibold text-content">{review.userName || 'Anonymous'}</span>
                     <StarRating rating={review.rating} readOnly size={14} />
                   </div>
-                  <p className="text-zinc-300 text-sm leading-relaxed">{review.reviewText}</p>
-                  <p className="text-xs text-zinc-500 mt-3">
+                  <p className="text-content-secondary text-sm leading-relaxed">{review.reviewText}</p>
+                  <p className="text-xs text-content-muted mt-3">
                     {new Date(review.createdAt?.toDate()).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'short',
@@ -261,8 +272,8 @@ const ReviewsSection = React.memo(({ vendorId }: { vendorId: string }) => {
           </div>
         ) : (
           <div className="text-center py-16 px-4">
-            <p className="text-zinc-500 text-lg">No reviews yet</p>
-            <p className="text-zinc-600 text-sm mt-1">Be the first to share your experience!</p>
+            <p className="text-content-muted text-lg">No reviews yet</p>
+            <p className="text-content-faint text-sm mt-1">Be the first to share your experience!</p>
           </div>
         )}
       </div>
@@ -285,7 +296,25 @@ const VendorMenuPage = () => {
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [activeTab, setActiveTab] = useState<'menu' | 'reviews'>('menu');
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const {
+    cart,
+    cartTotal,
+    deliveryFee,
+    baseFee,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    checkout,
+    loading: cartLoading,
+    selectedDeliveryOption,
+    setSelectedDeliveryOption,
+    calculatingFee,
+    freeDeliveryUsesLeft,
+    freeDeliveryResetDate,
+  } = useCartContext();
+
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
   const categoryRefs = useRef<Record<string, React.RefObject<HTMLDivElement | null>>>({});
@@ -360,11 +389,22 @@ const VendorMenuPage = () => {
 
   const categories = useMemo(() => Object.keys(groupedItems).sort(), [groupedItems]);
 
+  // Cart items belonging to this vendor — for the floating "N items · Vendor →" bar
+  const vendorCartItems = useMemo(
+    () => cart.filter((item) => item.vendor_id === vendorId),
+    [cart, vendorId]
+  );
+  const vendorCartCount = vendorCartItems.reduce((sum, i) => sum + i.quantity, 0);
+  const vendorCartTotal = vendorCartItems.reduce(
+    (sum, i) => sum + parseFloat(i.price as unknown as string) * i.quantity,
+    0
+  );
+
   const scrollToCategory = useCallback((category: string) => {
     setActiveCategory(category);
     const ref = categoryRefs.current[category];
     if (ref?.current) {
-      const yOffset = -200;
+      const yOffset = -360;
       const y = ref.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
@@ -414,17 +454,17 @@ const VendorMenuPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-900">
-        <Loader2 className="w-12 h-12 text-[#00bfff] animate-spin" />
-        <p className="text-zinc-400 mt-4">Loading menu...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-ground">
+        <Loader2 className="w-12 h-12 text-accent-ink animate-spin" />
+        <p className="text-content-tertiary mt-4">Loading menu...</p>
       </div>
     );
   }
 
   if (!vendor || !vendorId) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-900 px-4">
-        <p className="text-zinc-400 text-lg">Vendor not found</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-ground px-4">
+        <p className="text-content-tertiary text-lg">Vendor not found</p>
         <Button onClick={() => navigate(-1)} className="mt-4">
           Go Back
         </Button>
@@ -433,7 +473,7 @@ const VendorMenuPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-zinc-100">
+    <div className="min-h-screen bg-ground text-content-secondary">
       <Helmet>
         <title>{vendor.name} Menu | Sosika</title>
         <meta name="description" content={`Explore the menu of ${vendor.name} on Sosika. Browse delicious dishes, read reviews, and place your order today!`} />
@@ -449,71 +489,70 @@ const VendorMenuPage = () => {
         initial={false}
         animate={{ y: isHeaderVisible ? 0 : '-100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed top-0 left-0 right-0 z-30 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-800/50 shadow-xl"
+        className="fixed top-0 left-0 right-0 z-30 bg-chrome backdrop-blur-xl border-b border-edge-2 shadow-xl"
       >
-        <div className="max-w-4xl mx-auto px-4 pt-4 pb-3">
-          <div className="flex items-center gap-3 mb-3">
-            <button 
-              onClick={() => navigate(-1)} 
-              className="p-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 active:scale-95 transition-all"
-              aria-label="Go back"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg font-bold text-white truncate">{vendor.name}</h1>
-                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                  vendor.is_open 
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-                    : "bg-zinc-800 text-zinc-400 border border-zinc-700/30"
-                }`}>
-                  {vendor.is_open ? "Open" : "Closed"}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-zinc-400">
-                <StarRating rating={vendor.averageRating || 0} readOnly size={14} />
-                <span>({vendor.ratingCount || 0})</span>
-              </div>
-            </div>
+        {/* Storefront cover photo */}
+        <div className="relative h-40 bg-[repeating-linear-gradient(135deg,#17171A_0_7px,#131316_7px_14px)]">
+          {vendor.cover_image_url && (
+            <img src={vendor.cover_image_url} alt="" className="w-full h-full object-cover" />
+          )}
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute top-5 left-5 w-9 h-9 rounded-xl bg-black/70 border border-edge-3 flex items-center justify-center text-white"
+            aria-label="Go back"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="max-w-md mx-auto px-4 pt-4 pb-3">
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <h1 className="text-[22px] font-bold text-content tracking-[-0.02em] truncate">{vendor.name}</h1>
+            <span className="text-[10px] font-bold text-emerald-ink border border-sosika-emerald/30 px-2 py-1 rounded-full">
+              {vendor.is_open ? "OPEN" : "CLOSED"}
+            </span>
           </div>
-          
+          <div className="flex items-center gap-2 text-xs text-content-tertiary mb-3">
+            <StarRating rating={vendor.averageRating || 0} readOnly size={14} />
+            <span>({vendor.ratingCount || 0})</span>
+          </div>
+
           {activeTab === 'menu' && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="relative"
             >
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted pointer-events-none" />
               <Input
                 ref={searchInputRef}
                 type="text"
                 placeholder="Search menu..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 pl-10 pr-10 focus:border-[#00bfff] transition-colors"
+                className="bg-surface-2 border-edge-2 pl-10 pr-10 focus:border-sosika-cyan transition-colors"
               />
               {searchTerm && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-zinc-700 rounded-full transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-3 rounded-full transition-colors"
                   aria-label="Clear search"
                 >
-                  <X className="w-4 h-4 text-zinc-400" />
+                  <X className="w-4 h-4 text-content-tertiary" />
                 </button>
               )}
             </motion.div>
           )}
         </div>
         
-        <div className="max-w-4xl mx-auto px-4 flex border-t border-zinc-800/50">
+        <div className="max-w-md mx-auto px-4 flex border-t border-edge-2">
           <TabButton label="Menu" active={activeTab === 'menu'} onClick={() => handleTabChange('menu')} />
           <TabButton label="Reviews" active={activeTab === 'reviews'} onClick={() => handleTabChange('reviews')} />
         </div>
       </motion.div>
 
       {/* Spacer */}
-      <div className="h-[140px]" />
+      <div className="h-[300px]" />
 
       {/* Category Filters */}
       <AnimatePresence>
@@ -522,18 +561,18 @@ const VendorMenuPage = () => {
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: isHeaderVisible ? 0 : -150, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed top-[140px] left-0 right-0 z-20 bg-zinc-900/95 backdrop-blur-md border-b border-zinc-800/50 pt-6"
+            className="fixed top-[300px] left-0 right-0 z-20 bg-chrome backdrop-blur-md border-b border-edge-2 pt-6"
           >
-            <div className="max-w-4xl mx-auto px-4 py-3">
+            <div className="max-w-md mx-auto px-4 py-3">
               <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
                 {categories.map((category) => (
                   <button
                     key={category}
                     onClick={() => scrollToCategory(category)}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
-                      activeCategory === category 
-                        ? "bg-[#00bfff] text-black shadow-lg shadow-[#00bfff]/20" 
-                        : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                    className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0 ${
+                      activeCategory === category
+                        ? "bg-sosika-cyan text-on-accent"
+                        : "bg-surface-2 text-content-tertiary border border-edge-2"
                     }`}
                   >
                     <span className="capitalize">{category}</span>
@@ -546,7 +585,7 @@ const VendorMenuPage = () => {
       </AnimatePresence>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 pb-24">
+      <main className="max-w-md mx-auto px-4 pb-24">
         {activeTab === 'menu' ? (
           <div className="pt-4">
             {categories.length > 0 ? (
@@ -567,13 +606,13 @@ const VendorMenuPage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-20"
               >
-                <Search className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-                <p className="text-zinc-500 text-lg">No items found</p>
+                <Search className="w-12 h-12 text-content-faint mx-auto mb-4" />
+                <p className="text-content-muted text-lg">No items found</p>
                 {searchTerm && (
                   <Button 
                     onClick={clearSearch} 
                     variant="ghost" 
-                    className="mt-4 text-[#00bfff] hover:text-[#00a6e0]"
+                    className="mt-4 text-accent-ink hover:text-accent-ink"
                   >
                     Clear search
                   </Button>
@@ -592,7 +631,34 @@ const VendorMenuPage = () => {
         )}
       </main>
 
+      {vendorCartCount > 0 && (
+        <CartSummaryBar
+          label={`${vendorCartCount} item${vendorCartCount !== 1 ? "s" : ""} · ${vendor.name}`}
+          total={vendorCartTotal}
+          onClick={() => setIsCartOpen(true)}
+        />
+      )}
+
       <Navbar />
+
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        cartTotal={cartTotal}
+        removeFromCart={removeFromCart}
+        clearCart={clearCart}
+        checkout={checkout}
+        loading={cartLoading}
+        deliveryFee={deliveryFee}
+        baseFee={baseFee}
+        updateQuantity={updateQuantity}
+        selectedDeliveryOption={selectedDeliveryOption}
+        setSelectedDeliveryOption={setSelectedDeliveryOption}
+        calculatingFee={calculatingFee}
+        freeDeliveryUsesLeft={freeDeliveryUsesLeft}
+        freeDeliveryResetDate={freeDeliveryResetDate}
+      />
     </div>
   );
 };
@@ -609,14 +675,14 @@ const TabButton = React.memo(({
   <button 
     onClick={onClick} 
     className={`relative px-5 py-3 text-sm font-semibold transition-colors ${
-      active ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+      active ? 'text-content' : 'text-content-tertiary hover:text-content-secondary'
     }`}
   >
     {label}
     {active && (
       <motion.div
         layoutId="activeTab"
-        className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00bfff]"
+        className="absolute bottom-0 left-0 right-0 h-0.5 bg-sosika-cyan"
         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       />
     )}

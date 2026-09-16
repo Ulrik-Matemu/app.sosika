@@ -2,8 +2,9 @@ import { useEffect, useRef } from "react";
 import { initializeNotifications } from "../services/push-notifications";
 
 /**
- * Custom React Hook to initialize FCM Push Notifications.
- * Automatically requests permission & registers service worker if user is logged in or active.
+ * Refreshes this device's FCM registration on load — but never prompts. The
+ * permission request belongs to the Notifications toggle in Settings, where the
+ * user has asked for it.
  */
 export const useNotifications = () => {
   const initialized = useRef(false);
@@ -15,7 +16,7 @@ export const useNotifications = () => {
     const userId = localStorage.getItem("userId") || localStorage.getItem("vendor_id") || "guest_user";
 
     initialized.current = true;
-    initializeNotifications(userId).catch((err) => {
+    initializeNotifications(userId, false).catch((err) => {
       console.warn("Notification initialization deferred:", err);
     });
   }, []);

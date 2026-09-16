@@ -2,8 +2,12 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMood } from "../../hooks/useMood";
+import { useDropCountdown } from "../../hooks/useDropCountdown";
+import { useLocationStorage } from "../../hooks/useLocationStorage";
 import posthog from "./../../lib/posthog";
-import { Search } from "lucide-react";
+import { Search, Settings as SettingsIcon } from "lucide-react";
+import DropCard from "../../components/my-components/DropCard";
+import Navbar from "../../components/my-components/navbar";
 
 const allMealTypes = [
   { name: "Breakfast", icon: "/icons/categories/breakfast.png", timeRange: [5, 11] as const },
@@ -34,23 +38,27 @@ export default function MoodSelection() {
   const [selectedMood, setSelectedMood] = useState<string>("");
   const { setMood } = useMood();
   const navigate = useNavigate();
+  const dropCountdown = useDropCountdown();
+  const { locations } = useLocationStorage();
+  const currentLocationLabel = locations[0]?.address?.split(",")[0]?.trim() || "Set location";
+
+  const currentMealType = useMemo(() => getMealTypeByTime(), []);
 
   const smartMoods = useMemo(() => {
-    const currentMealType = getMealTypeByTime();
     const mealOption = allMealTypes.find(m => m.name === currentMealType);
     const drink = allMealTypes.find(m => m.name === "Drink");
     const snack = allMealTypes.find(m => m.name === "Snack");
     const nearby = allMealTypes.find(m => m.name === "Nearby");
     return [mealOption, drink, snack, nearby].filter(Boolean) as typeof allMealTypes;
-  }, []);
+  }, [currentMealType]);
 
   const handleSelect = (mood: string) => {
     setMood(mood);
     setSelectedMood(mood);
     posthog.capture("mood_selected", { mood: mood });
     setTimeout(() => {
-      navigate("/mood/location");
-    }, 350);
+      navigate("/mood/results");
+    }, 200);
   };
 
   const containerVariants = {
@@ -71,126 +79,161 @@ export default function MoodSelection() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0b] p-4 sm:p-6 relative overflow-hidden">
-      {/* Ambient background gradients */}
-      <div className="absolute top-[-30%] left-[-20%] w-[60%] h-[60%] rounded-full bg-[#00bfff]/[0.04] blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-15%] w-[50%] h-[50%] rounded-full bg-[#00bfff]/[0.03] blur-[100px] pointer-events-none" />
-
+    <div className="min-h-screen bg-ground text-content pb-28">
       <motion.div
-        className="w-full max-w-lg z-10"
+        className="max-w-md mx-auto px-5 pt-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Brand */}
-        <motion.div variants={itemVariants} className="text-center mb-2">
-          <h1 className="text-[#00bfff] font-brand font-black text-2xl tracking-tight">
+        {/* Header: wordmark + editable location chip */}
+        <motion.div variants={itemVariants} className="flex items-center justify-between mb-8">
+          <h1 className="text-accent-ink font-extrabold text-[19px] tracking-[-0.02em]">
             Sosika
           </h1>
+          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate("/mood/location")}
+            className="flex items-center gap-[7px] bg-surface-2 border border-edge-2 rounded-full px-3 py-[7px]"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-sosika-cyan" />
+            <span className="text-xs font-semibold text-content-secondary">{currentLocationLabel}</span>
+            <span className="text-[11px] text-content-muted">Change</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/settings")}
+            aria-label="Settings"
+            className="w-9 h-9 flex-none flex items-center justify-center rounded-full bg-surface-2 border border-edge-2 text-content-tertiary"
+          >
+            <SettingsIcon className="w-[15px] h-[15px]" />
+          </button>
+          </div>
         </motion.div>
 
         {/* Greeting */}
-        <motion.div variants={itemVariants} className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
-            {getGreeting()}
+        <motion.div variants={itemVariants} className="mb-6">
+          <h2 className="text-[30px] font-bold text-content leading-[1.1] tracking-tight">
+            {getGreeting()}.
           </h2>
-          <p className="text-zinc-500 text-sm sm:text-base font-medium">
+          <p className="text-content-muted text-base font-normal mt-1.5">
             What are you in the mood for?
           </p>
         </motion.div>
 
-        {/* Mood cards */}
-        <motion.div variants={itemVariants}>
-          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-2xl p-4 sm:p-5">
-            <motion.div
-              className="grid grid-cols-2 gap-3"
-              variants={containerVariants}
-            >
-              {smartMoods.map((mood) => {
-                const isSelected = selectedMood === mood.name.toLowerCase();
-                return (
-                  <motion.button
-                    key={mood.name}
-                    onClick={() => handleSelect(mood.name.toLowerCase())}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.96 }}
-                    variants={itemVariants}
-                    className={`relative rounded-xl p-4 sm:p-5 transition-all duration-300 border ${isSelected
-                      ? "bg-[#00bfff]/[0.12] border-[#00bfff]/40 shadow-lg shadow-[#00bfff]/[0.08]"
-                      : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.1]"
-                      }`}
-                  >
-                    <div className="flex flex-col items-center gap-2.5">
-                      <div className={`w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-lg transition-all duration-300 ${isSelected ? "bg-[#00bfff]/[0.15]" : "bg-white/[0.04]"
-                        }`}>
-                        <img
-                          src={mood.icon}
-                          alt={mood.name}
-                          className={`w-6 h-6 sm:w-7 sm:h-7 transition-all duration-300 ${isSelected ? "opacity-100 scale-110" : "opacity-60"
-                            }`}
-                        />
-                      </div>
-                      <span className={`font-semibold text-sm transition-colors duration-300 ${isSelected ? "text-white" : "text-zinc-400"
-                        }`}>
-                        {mood.name}
-                      </span>
-                    </div>
-                    <AnimatePresence>
-                      {isSelected && (
-                        <motion.div
-                          className="absolute inset-0 rounded-xl border-2 border-[#00bfff]/50"
-                          initial={{ scale: 0.92, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                        />
-                      )}
-                    </AnimatePresence>
-                  </motion.button>
-                );
-              })}
-            </motion.div>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3 my-4">
-              <div className="flex-1 h-px bg-white/[0.06]" />
-              <span className="text-zinc-600 text-[10px] uppercase font-semibold tracking-widest">or search</span>
-              <div className="flex-1 h-px bg-white/[0.06]" />
-            </div>
-
-            {/* Custom mood input */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Try 'biryani', 'pizza', 'coffee'..."
-                  value={customMood}
-                  onChange={(e) => setCustomMood(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSelect(customMood || "any")}
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3.5 text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-[#00bfff]/40 focus:bg-white/[0.06] transition-all duration-300"
-                />
-              </div>
+        {/* Mood grid */}
+        <motion.div
+          className="grid grid-cols-2 gap-2.5"
+          variants={containerVariants}
+        >
+          {smartMoods.map((mood) => {
+            const isSelected = selectedMood === mood.name.toLowerCase();
+            const isNow = mood.name === currentMealType;
+            return (
               <motion.button
-                onClick={() => handleSelect(customMood || "any")}
-                whileHover={{ scale: 1.02 }}
+                key={mood.name}
+                onClick={() => handleSelect(mood.name.toLowerCase())}
                 whileTap={{ scale: 0.97 }}
-                className="bg-[#00bfff] hover:bg-[#00a8e6] text-black px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg shadow-[#00bfff]/20 whitespace-nowrap"
+                variants={itemVariants}
+                className={`relative rounded-[18px] p-4 border flex flex-col gap-[22px] text-left min-h-[96px] transition-colors ${
+                  isSelected
+                    ? "bg-sosika-cyan/[0.09] border-sosika-cyan/35"
+                    : "bg-surface-1 border-edge-2"
+                }`}
               >
-                {customMood.trim() ? "Find Food" : "Surprise Me"}
+                <img
+                  src={mood.icon}
+                  alt=""
+                  aria-hidden
+                  className={`w-[18px] h-[18px] object-contain ${isSelected ? "opacity-100" : "opacity-80"}`}
+                />
+                <span
+                  className={`text-[15px] tracking-[-0.01em] ${
+                    isSelected ? "font-bold text-content" : "font-semibold text-content-tertiary"
+                  }`}
+                >
+                  {mood.name}
+                  {isNow && (
+                    <span className="block text-[11px] font-medium text-accent-ink mt-[3px]">
+                      Right now
+                    </span>
+                  )}
+                </span>
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      className="absolute inset-0 rounded-[18px] border-2 border-sosika-cyan/40 pointer-events-none"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    />
+                  )}
+                </AnimatePresence>
               </motion.button>
-            </div>
+            );
+          })}
+        </motion.div>
+
+        {/* Custom mood search */}
+        <motion.div variants={itemVariants} className="mt-4">
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-faint pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search biryani, pizza, coffee…"
+              value={customMood}
+              onChange={(e) => setCustomMood(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSelect(customMood || "any")}
+              className="w-full bg-surface-2 border border-edge-2 rounded-2xl pl-10 pr-4 py-3.5 text-content text-sm placeholder-content-faint focus:outline-none focus:border-sosika-cyan/35 transition-colors"
+            />
           </div>
+        </motion.div>
+
+        {/* Primary CTA */}
+        <motion.div variants={itemVariants} className="mt-3.5">
+          <button
+            type="button"
+            onClick={() => handleSelect(customMood || currentMealType.toLowerCase())}
+            className="w-full bg-sosika-cyan text-on-accent rounded-2xl py-[17px] font-bold text-[15px] tracking-[-0.01em] active:opacity-90 transition-opacity"
+          >
+            {customMood.trim() ? "Find food" : `See ${currentMealType.toLowerCase()} near you`}
+          </button>
+        </motion.div>
+
+        {/* Friday Biryani drop teaser */}
+        <motion.div variants={itemVariants} className="mt-5">
+          <DropCard
+            eyebrow="Drop · closes fri 11:00"
+            title="Friday Biryani pre-order"
+            countdown={dropCountdown}
+            onClick={() => navigate("/biryani")}
+          />
+        </motion.div>
+
+        {/* Recipes — the cook-it-yourself half of the app */}
+        <motion.div variants={itemVariants} className="mt-3">
+          <DropCard
+            tone="neutral"
+            eyebrow="Recipes"
+            title="Cook it yourself tonight"
+            meta="Tanzanian recipes, updated daily"
+            onClick={() => navigate("/recipes")}
+          />
         </motion.div>
 
         {/* Footer text */}
         <motion.p
           variants={itemVariants}
-          className="text-center text-zinc-600 text-xs mt-6 font-medium"
+          className="text-center text-content-faint text-xs mt-6 font-medium"
         >
-          Your next favorite meal is just a tap away. <a className="underline font-semibold" href="/vendor-onboarding">Sell on Sosika</a>
+          Your next favorite meal is just a tap away.{" "}
+          <a className="underline font-semibold" href="/vendor-onboarding">Sell on Sosika</a>
         </motion.p>
       </motion.div>
+
+      <Navbar />
     </div>
   );
 }

@@ -3,21 +3,15 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft,
-  Clock,
-  Users,
-  ChefHat,
+  ChevronLeft,
   CheckCircle2,
   Share2,
-  Store,
   ExternalLink,
-  Eye,
   UtensilsCrossed,
-  Sparkles,
-  Info,
 } from "lucide-react";
 import { Recipe, VendorMinimal } from "../../types/recipe";
 import { getRecipeBySlug, getLinkedVendors, incrementRecipeViews } from "../../services/recipeService";
+import Navbar from "../../components/my-components/navbar";
 
 export default function RecipeDetailPage() {
   const { country, subcategory, slug } = useParams<{
@@ -113,10 +107,10 @@ export default function RecipeDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0b] flex items-center justify-center p-6 text-white">
+      <div className="min-h-screen bg-ground flex items-center justify-center p-6 text-content">
         <div className="space-y-4 text-center">
-          <div className="w-12 h-12 border-4 border-[#00bfff] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-zinc-400">Loading authentic recipe...</p>
+          <div className="w-10 h-10 border-2 border-sosika-cyan border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-content-muted">Loading authentic recipe…</p>
         </div>
       </div>
     );
@@ -124,25 +118,26 @@ export default function RecipeDetailPage() {
 
   if (!recipe) {
     return (
-      <div className="min-h-screen bg-[#0a0a0b] text-white flex flex-col items-center justify-center p-6 space-y-4">
-        <UtensilsCrossed size={48} className="text-zinc-600" />
-        <h2 className="text-2xl font-bold">Recipe Not Found</h2>
-        <p className="text-sm text-zinc-400 text-center max-w-md">
+      <div className="min-h-screen bg-ground text-content flex flex-col items-center justify-center p-6 space-y-4">
+        <UtensilsCrossed size={40} className="text-content-faint" />
+        <h2 className="text-lg font-bold">Recipe not found</h2>
+        <p className="text-sm text-content-muted text-center max-w-xs">
           The recipe you're looking for does not exist or may have been removed.
         </p>
         <button
           onClick={() => navigate("/recipes")}
-          className="px-6 py-2.5 rounded-xl bg-[#00bfff] text-black font-bold text-xs"
+          className="px-6 py-2.5 rounded-2xl bg-sosika-cyan text-on-accent font-bold text-sm"
         >
-          Return to Recipe Hub
+          Return to recipe hub
         </button>
       </div>
     );
   }
 
+  const totalMinutes = recipe.prepTimeMinutes + recipe.cookTimeMinutes;
+
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white font-sans antialiased pb-24">
-      {/* Helmet SEO Structured Data */}
+    <div className="min-h-screen bg-ground text-content pb-16">
       <Helmet>
         <title>{`${recipe.title} - ${recipe.country} (${recipe.subcategory}) | Sosika`}</title>
         <meta
@@ -154,289 +149,146 @@ export default function RecipeDetailPage() {
         )}
       </Helmet>
 
-      {/* Header Sticky Navigation */}
-      <header className="sticky top-0 z-40 bg-[#0a0a0b]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 sm:px-8 py-3.5">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={() => navigate(`/recipes/${encodeURIComponent(decodedCountry)}/${encodeURIComponent(decodedSubcategory)}`)}
-              className="p-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white border border-white/[0.08] transition-all cursor-pointer shrink-0"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs text-zinc-400 truncate">
-                <Link to="/recipes" className="hover:text-[#00bfff]">Recipes</Link>
-                <span>/</span>
-                <Link to={`/recipes/${encodeURIComponent(decodedCountry)}`} className="hover:text-[#00bfff] truncate">
-                  {decodedCountry}
-                </Link>
-                <span>/</span>
-                <span className="text-white font-semibold truncate">{recipe.subcategory}</span>
-              </div>
-              <h1 className="text-sm sm:text-base font-bold text-white truncate">{recipe.title}</h1>
-            </div>
-          </div>
-
+      <main className="max-w-md mx-auto">
+        {/* 4:3 photo with back chevron overlay */}
+        <div className="relative h-[230px] overflow-hidden bg-[repeating-linear-gradient(135deg,#17171A_0_9px,#131316_9px_18px)]">
+          <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-sosika-ground via-transparent to-black/20" />
+          <button
+            onClick={() => navigate(`/recipes/${encodeURIComponent(decodedCountry)}/${encodeURIComponent(decodedSubcategory)}`)}
+            className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center rounded-xl bg-black/50 backdrop-blur-md text-white"
+            aria-label="Back"
+          >
+            <ChevronLeft size={16} />
+          </button>
           <button
             onClick={handleShare}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 text-xs font-semibold border border-white/[0.08] transition-all cursor-pointer shrink-0"
+            className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-black/50 backdrop-blur-md text-white text-xs font-semibold"
           >
-            <Share2 size={14} />
-            <span>{copied ? "Link Copied!" : "Share"}</span>
+            <Share2 size={13} />
+            <span>{copied ? "Copied" : "Share"}</span>
           </button>
         </div>
-      </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-8 pt-6 space-y-10">
-        {/* Recipe Banner & Title Section */}
-        <section className="space-y-6">
-          <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-white/[0.08] h-64 sm:h-96 shadow-2xl">
-            <img
-              src={recipe.imageUrl}
-              alt={recipe.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
-            
-            <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-              <span className="px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-[#00bfff] border border-[#00bfff]/30 text-xs font-bold">
-                {recipe.country} • {recipe.subcategory}
-              </span>
-              <span className="px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-zinc-300 border border-white/[0.1] text-xs font-semibold capitalize">
-                {recipe.difficulty}
-              </span>
+        <div className="px-5 pt-5 flex flex-col gap-6">
+          {/* Eyebrow + title + byline */}
+          <div>
+            <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-content-faint">
+              {recipe.country} · {totalMinutes} MIN · SERVES {recipe.servings}
             </div>
+            <h1 className="text-[26px] font-bold text-content tracking-[-0.025em] mt-[10px]">{recipe.title}</h1>
+            <p className="text-[13px] text-content-muted mt-2">
+              {recipe.submittedByName ? `by ${recipe.submittedByName}` : "by Sosika Kitchen"}
+            </p>
+          </div>
 
-            <div className="absolute bottom-6 left-6 right-6 space-y-2">
-              <h2 className="text-2xl sm:text-4xl font-black text-white leading-tight">
-                {recipe.title}
-              </h2>
-              {recipe.submittedByName && (
-                <div className="text-xs text-zinc-300 flex items-center gap-1.5">
-                  <ChefHat size={14} className="text-[#00bfff]" />
-                  <span>Submitted by <strong className="text-white">{recipe.submittedByName}</strong></span>
-                  {recipe.submittedBySocial && (
-                    <span className="text-[#00bfff]">({recipe.submittedBySocial})</span>
-                  )}
+          {/* Order it card */}
+          {linkedVendors.length > 0 ? (
+            <div className="rounded-[18px] border border-sosika-cyan/28 bg-sosika-cyan/[0.055] p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-bold text-content">Too tired to cook?</div>
+                  <div className="text-xs text-content-secondary mt-1">
+                    {linkedVendors.length} kitchen{linkedVendors.length !== 1 ? "s" : ""} serve {recipe.title.toLowerCase()} near you
+                  </div>
+                </div>
+                {linkedVendors.length === 1 && (
+                  <Link
+                    to={`/vendor/${linkedVendors[0].id}/menu`}
+                    className="flex-none text-xs font-bold text-on-accent bg-sosika-cyan px-[14px] py-[11px] rounded-[11px]"
+                  >
+                    Order it
+                  </Link>
+                )}
+              </div>
+              {linkedVendors.length > 1 && (
+                <div className="flex flex-col mt-3">
+                  {linkedVendors.map((vendor) => (
+                    <Link
+                      key={vendor.id}
+                      to={`/vendor/${vendor.id}/menu`}
+                      className="flex items-center justify-between py-2.5 border-t border-sosika-cyan/[0.12] first:border-t-0"
+                    >
+                      <span className="text-sm font-semibold text-content truncate">{vendor.name}</span>
+                      <span className="flex items-center gap-1 text-xs font-bold text-accent-ink flex-none">
+                        Order it
+                        <ExternalLink size={12} />
+                      </span>
+                    </Link>
+                  ))}
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-zinc-900/80 border border-white/[0.08] p-4 rounded-2xl">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#00bfff]/10 text-[#00bfff] flex items-center justify-center">
-                <Clock size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-mono">Prep Time</p>
-                <p className="text-sm font-bold text-white">{recipe.prepTimeMinutes} mins</p>
-              </div>
+          ) : (
+            <div className="rounded-[18px] bg-surface-1 border border-edge-2 p-4 text-xs text-content-muted">
+              Are you a vendor serving {recipe.title}? Contact admin to link your menu to this recipe.
             </div>
+          )}
 
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#00bfff]/10 text-[#00bfff] flex items-center justify-center">
-                <Clock size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-mono">Cook Time</p>
-                <p className="text-sm font-bold text-white">{recipe.cookTimeMinutes} mins</p>
-              </div>
+          {/* Ingredients */}
+          <div>
+            <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-content-faint mb-3">
+              Ingredients
             </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#00bfff]/10 text-[#00bfff] flex items-center justify-center">
-                <Users size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-mono">Servings</p>
-                <p className="text-sm font-bold text-white">{recipe.servings} people</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#00bfff]/10 text-[#00bfff] flex items-center justify-center">
-                <Eye size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-mono">Views</p>
-                <p className="text-sm font-bold text-white">{recipe.views || 1}</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* SOSIKA VENDOR DISH INTEGRATION CARD */}
-        {linkedVendors.length > 0 ? (
-          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#00bfff]/20 via-cyan-950/40 to-zinc-900 border border-[#00bfff]/30 p-6 sm:p-8 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#00bfff] text-black flex items-center justify-center font-bold">
-                  <Store size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white">Skip the Cooking!</h3>
-                  <p className="text-xs text-zinc-300">
-                    Order this exact dish prepared fresh by registered Sosika local vendors.
-                  </p>
-                </div>
-              </div>
-              <span className="px-3 py-1 rounded-full bg-[#00bfff]/20 text-[#00bfff] border border-[#00bfff]/30 text-xs font-mono font-bold uppercase">
-                Available Now
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              {linkedVendors.map((vendor) => (
-                <div
-                  key={vendor.id}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/[0.1] hover:border-[#00bfff]/50 transition-all"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    {vendor.image_url ? (
-                      <img
-                        src={vendor.image_url}
-                        alt={vendor.name}
-                        className="w-12 h-12 rounded-xl object-cover border border-white/[0.1]"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-zinc-800 text-[#00bfff] flex items-center justify-center font-bold">
-                        {vendor.name.charAt(0)}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <h4 className="text-sm font-bold text-white truncate">{vendor.name}</h4>
-                      {vendor.location && (
-                        <p className="text-xs text-zinc-400 truncate">{vendor.location}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <Link
-                    to={`/vendor/${vendor.id}/menu`}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#00bfff] text-black font-bold text-xs hover:bg-[#0099cc] transition-all shrink-0 ml-3"
-                  >
-                    <span>Order Menu</span>
-                    <ExternalLink size={14} />
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : (
-          <section className="rounded-2xl bg-zinc-900/40 border border-white/[0.06] p-4 flex items-center justify-between text-xs text-zinc-400">
-            <div className="flex items-center gap-2">
-              <Info size={16} className="text-[#00bfff]" />
-              <span>Are you a vendor serving {recipe.title}? Contact admin to link your menu to this recipe!</span>
-            </div>
-          </section>
-        )}
-
-        {/* Recipe Content: Ingredients & Steps Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Ingredients Column */}
-          <section className="lg:col-span-1 space-y-4 bg-zinc-900/70 border border-white/[0.08] p-6 rounded-3xl h-fit">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <h3 className="text-lg font-black text-white flex items-center gap-2">
-                <ChefHat className="text-[#00bfff]" size={20} />
-                Ingredients
-              </h3>
-              <span className="text-xs text-zinc-400 font-mono">
-                {recipe.ingredients.length} items
-              </span>
-            </div>
-
-            <p className="text-[11px] text-zinc-400">Tap items as you gather ingredients:</p>
-
-            <ul className="space-y-2.5">
+            <div className="flex flex-col gap-[11px]">
               {recipe.ingredients.map((ing) => {
                 const isChecked = checkedIngredients[ing.id];
                 return (
-                  <li
+                  <button
                     key={ing.id}
                     onClick={() => toggleIngredient(ing.id)}
-                    className={`flex items-start gap-3 p-2.5 rounded-xl border transition-all cursor-pointer select-none ${
-                      isChecked
-                        ? "bg-white/[0.02] border-white/[0.05] text-zinc-500 line-through"
-                        : "bg-white/[0.04] border-white/[0.08] text-zinc-200 hover:border-[#00bfff]/30"
+                    className={`flex items-center justify-between gap-3 text-left transition-opacity ${
+                      isChecked ? "opacity-40" : ""
                     }`}
                   >
-                    <CheckCircle2
-                      size={18}
-                      className={`mt-0.5 shrink-0 transition-colors ${
-                        isChecked ? "text-[#00bfff]" : "text-zinc-600"
-                      }`}
-                    />
-                    <div className="text-xs flex-1 flex justify-between gap-2">
-                      <span className="font-medium">{ing.name}</span>
-                      <span className="font-mono text-[#00bfff] shrink-0">{ing.amount}</span>
-                    </div>
-                  </li>
+                    <span className={`text-sm ${isChecked ? "line-through text-content-muted" : "text-content-secondary"}`}>
+                      {ing.name}
+                    </span>
+                    <span className="font-mono text-sm text-content-muted flex-none">{ing.amount}</span>
+                  </button>
                 );
               })}
-            </ul>
-          </section>
-
-          {/* Cooking Steps Column */}
-          <section className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <h3 className="text-lg font-black text-white flex items-center gap-2">
-                <Sparkles className="text-[#00bfff]" size={20} />
-                Step-by-Step Instructions
-              </h3>
-              <span className="text-xs text-zinc-400 font-mono">
-                {recipe.steps.length} steps
-              </span>
             </div>
+          </div>
 
-            <div className="space-y-4">
+          {/* Method */}
+          <div>
+            <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-content-faint mb-3">
+              Method
+            </div>
+            <div className="flex flex-col gap-4">
               {recipe.steps.map((step, idx) => {
                 const isDone = completedSteps[step.id];
                 return (
-                  <motion.div
+                  <motion.button
                     key={step.id}
                     onClick={() => toggleStep(step.id)}
-                    whileHover={{ scale: 1.01 }}
-                    className={`p-6 rounded-3xl border transition-all cursor-pointer select-none space-y-2 ${
-                      isDone
-                        ? "bg-zinc-950/60 border-white/[0.05] opacity-70"
-                        : "bg-zinc-900/90 border-white/[0.08] hover:border-[#00bfff]/40 shadow-lg"
-                    }`}
+                    whileTap={{ scale: 0.99 }}
+                    className={`flex gap-3 text-left transition-opacity ${isDone ? "opacity-40" : ""}`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center ${
-                            isDone
-                              ? "bg-white/[0.05] text-zinc-500"
-                              : "bg-[#00bfff]/10 border border-[#00bfff]/30 text-[#00bfff]"
-                          }`}
-                        >
-                          {idx + 1}
+                    <span className="font-mono text-xs font-bold text-accent-ink flex-none pt-0.5">
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <div className="flex-1">
+                      {step.title && (
+                        <div className={`text-sm font-semibold mb-0.5 ${isDone ? "line-through text-content-muted" : "text-content"}`}>
+                          {step.title}
                         </div>
-                        <h4 className="text-base font-bold text-white">
-                          {step.title || `Step ${idx + 1}`}
-                        </h4>
-                      </div>
-
-                      <CheckCircle2
-                        size={20}
-                        className={isDone ? "text-[#00bfff]" : "text-zinc-700"}
-                      />
+                      )}
+                      <p className={`text-sm leading-[1.6] ${isDone ? "line-through text-content-muted" : "text-content-secondary"}`}>
+                        {step.content}
+                      </p>
                     </div>
-
-                    <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed pl-11">
-                      {step.content}
-                    </p>
-                  </motion.div>
+                    <CheckCircle2 size={16} className={`flex-none mt-0.5 ${isDone ? "text-accent-ink" : "text-content-faint"}`} />
+                  </motion.button>
                 );
               })}
             </div>
-          </section>
+          </div>
         </div>
       </main>
+
+      <Navbar />
     </div>
   );
 }

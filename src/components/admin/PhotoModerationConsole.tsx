@@ -5,7 +5,6 @@ import {
   getDocs,
   writeBatch,
   doc,
-  getDoc,
   updateDoc,
   query
 } from "firebase/firestore";
@@ -41,43 +40,22 @@ export default function PhotoModerationConsole() {
     try {
       const batch = writeBatch(db);
 
-      // 1. Update submission status
+      // 1. Update submission status. Flipping this to "approved" is what
+      // fires the onFoodPhotoApproved Cloud Function trigger
+      // (functions/src/wallet.ts), which credits the customer's wallet
+      // server-side using the platform-configured reward amount — this
+      // console no longer touches wallets or wallet_transactions directly.
       const subRef = doc(db, "food_photo_submissions", sub.id);
       batch.update(subRef, { status: "approved", approvedAt: new Date() });
 
-      // 2. Credit customer wallet
-      const targetPhone = sub.phone;
-      const walletRef = doc(db, "wallets", targetPhone);
-      const walletSnap = await getDoc(walletRef);
-      const currentBal = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
-      const rewardAmt = sub.rewardAmount || 1000;
-
-      batch.set(
-        walletRef,
-        { phone: targetPhone, balance: currentBal + rewardAmt, updatedAt: new Date() },
-        { merge: true }
-      );
-
-      // 3. Log transaction
-      const txRef = doc(collection(db, "wallet_transactions"));
-      batch.set(txRef, {
-        id: txRef.id,
-        phone: targetPhone,
-        amount: rewardAmt,
-        type: "photo_reward",
-        description: `Reward for food photo upload (${sub.menuItemName})`,
-        referenceId: sub.id,
-        timestamp: new Date(),
-      });
-
-      // 4. Optionally update menu item official photo
+      // 2. Optionally update menu item official photo
       if (setAsOfficialImage && sub.menuItemId) {
         const itemRef = doc(db, "menuItems", sub.menuItemId);
         batch.update(itemRef, { image_url: sub.imageUrl, is_available: true });
       }
 
       await batch.commit();
-      alert(`Approved! TZS ${rewardAmt.toLocaleString()} credited to ${targetPhone}.`);
+      alert(`Approved! The customer's wallet will be credited shortly.`);
       fetchSubmissions();
     } catch (err) {
       console.error("Approval error:", err);

@@ -18,9 +18,22 @@ const firebaseConfig = {
 import { getStorage } from "firebase/storage";
 
 const app = initializeApp(firebaseConfig);
+
+/*
+ * Customer auth runs on its own Firebase app instance.
+ *
+ * Admin (email + an `admin` custom claim) and vendor (email + verification)
+ * both sign in against `auth` below. With a single shared instance, a customer
+ * verifying their phone on the same browser replaced that session and bounced
+ * the admin or vendor out of their guard. A second named app gives customers an
+ * independent session; nothing server-side reads the customer token, because
+ * the customer-facing callables are unauthenticated by design.
+ */
+const customerApp = initializeApp(firebaseConfig, "customer");
 const messaging = getMessaging(app);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
+const customerAuth = getAuth(customerApp);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(app);
 const functions = getFunctions(app);
@@ -43,5 +56,5 @@ export const onMessageListener = () =>
     });
   });
 
-export { messaging, getToken, onMessage, auth, provider, analytics, logEvent, db, functions, httpsCallable, storage };
+export { messaging, getToken, onMessage, auth, customerAuth, provider, analytics, logEvent, db, functions, httpsCallable, storage };
 

@@ -1,0 +1,551 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    // -----------------------------
+    // Vendors
+    // -----------------------------
+    // A self-onboarded vendor's document ID is their own Firebase Auth uid
+    // (src/pages/vendor-portal/vendor-onboarding.tsx writes
+    // doc(db, "vendors", uid)), so isSelf(vendorId) is a sound ownership
+    // check for that path. Admin-created vendors (src/components/admin/
+    // VendorManager.tsx) get a random doc ID with no matching auth account
+    // and are admin-managed only — isAdmin() covers them.
+    //
+    // `auth_info` and `subscription` are never touched by any legitimate
+    // vendor self-update (only is_open, listing_data, name, description,
+    // geolocation, address, etc. — see dashboard.tsx). Blocking those two
+    // top-level keys on self-writes closes the self-approval and
+    // self-upgrade-to-premium holes without needing per-field diffing.
+    function vendorSelfUpdateAllowed() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['auth_info', 'subscription']);
+    }
+
+    match /vendors/{vendorId} {
+      allow read: if true;
+
+      allow create: if isAdmin()
+        || (
+          isSelf(vendorId)
+          && request.resource.data.auth_info.is_approved == false
+          && request.resource.data.subscription.tier == 'free'
+        );
+
+      allow update: if isAdmin() || (isSelf(vendorId) && vendorSelfUpdateAllowed());
+
+      allow delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Menu Items
+    // -----------------------------
+    // Ownership is the vendor_id field, which is always the vendor's own
+    // auth uid for items they create. is_featured/featured_rank are
+    // admin-curated and excluded from vendor self-writes.
+    match /menuItems/{itemId} {
+      allow read: if true;
+
+      allow create: if isAdmin()
+        || (isSignedIn() && request.resource.data.vendor_id == request.auth.uid);
+
+      allow update: if isAdmin()
+        || (
+          isSignedIn()
+          && resource.data.vendor_id == request.auth.uid
+          && request.resource.data.vendor_id == request.auth.uid
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['is_featured', 'featured_rank'])
+        );
+
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.vendor_id == request.auth.uid);
+    }
+
+    // -----------------------------
+    // Reviews
+    // -----------------------------
+    // The aggregate rating rollup on the target vendor/menuItem is computed
+    // server-side by the onReviewCreated trigger (functions/src/reviews.ts)
+    // — the client only ever creates the review document itself.
+    match /reviews/{reviewId} {
+      allow read: if true;
+
+      allow create: if request.resource.data.keys().hasOnly(
+          ['targetId', 'targetType', 'rating', 'reviewText', 'userName', 'userId', 'createdAt']
+        )
+        && request.resource.data.targetType in ['vendor', 'menuItem']
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+
+      allow update, delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Orders
+    // -----------------------------
+    // `get` stays public: order IDs are unguessable auto-IDs and
+    // /track/:orderId (src/pages/orders/TrackOrderPage.tsx) needs it for
+    // anonymous customers holding only a tracking link.
+    //
+    // `list` is scoped to admin and the owning vendor. A customer-phone
+    // branch is intentionally NOT included here: the client's own order
+    // history query (src/context/OrdersContext.tsx) matches up to 5 phone
+    // format variants via `where("phone","in",[...])`, which Firestore
+    // cannot statically prove against a single `request.auth.token.
+    // phone_number` value — normalizing phone storage to one format is
+    // planned (Phase 2) before that branch can be added safely. Until then
+    // customer order history falls back to the device's local order record,
+    // which OrdersContext already does on a permission error.
+    //
+    // `create` stays intentionally open (closing it requires moving
+    // checkout behind a server-validated `placeOrder` callable — Phase 1)
+    // but rejects the one thing that currently lets anyone mint a
+    // fully-paid order for free: paymentStatus must always start "unpaid"
+    // at creation. (The wallet-payment options in CartDrawer and
+    // BiryaniPage — the only client code that ever set "paid_via_wallet" —
+    // are disabled in this same change, so no legitimate flow is affected.)
+    // Item prices and totals are still client-supplied and unverified until
+    // Phase 1; that remains a known gap, not a regression.
+    match /orders/{orderId} {
+      allow get: if true;
+
+      allow list: if isAdmin()
+        || (isSignedIn() && request.auth.uid in resource.data.get('vendor_ids', []));
+
+      allow create: if request.resource.data.status == 'pending'
+        && request.resource.data.paymentStatus == 'unpaid'
+        && request.resource.data.riderId == null;
+
+      allow update: if isAdmin()
+        || (
+          isSignedIn()
+          && request.auth.uid in resource.data.get('vendor_ids', [])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+            ['status', 'acceptedAt', 'declinedAt', 'pickedUpAt', 'deliveredAt']
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    // -----------------------------
+    // Free Delivery Pass
+    // -----------------------------
+    // Read stays public — this is a phone number and a small usage counter,
+    // not money, and src/hooks/useCart.ts's fetchPass effect treats a
+    // failed read as "assume 3 uses available" (the wrong direction to
+    // fail closed on), so tightening read here would make the free-pass
+    // badge lie rather than protect anything. The actual exploit was the
+    // write: any client could reset their own quota. That is now
+    // server-only — see the "Free delivery" option being disabled
+    // client-side in CartDrawer/BiryaniPage until Phase 1 moves the debit
+    // into the `placeOrder` callable.
+    match /freeDeliveryPass/{phone} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // -----------------------------
+    // In-App Wallet & Transactions
+    // -----------------------------
+    // All writes are server-only now — see functions/src/wallet.ts
+    // (creditWalletAtomic, onFoodPhotoApproved, adminCreditWallet). No
+    // client path debits or credits a wallet directly any more. That is
+    // the actual fix: a balance could previously be set to anything by its
+    // "owner" simply writing the document.
+    //
+    // Read stays public for the same reason as freeDeliveryPass above:
+    // src/context/WalletContext.tsx streams a customer's own wallet using
+    // only their typed/localStorage phone number (usePhoneAuth verification
+    // is optional and not required anywhere yet — see Phase 2 of the
+    // remediation plan), so scoping read to
+    // `request.auth.token.phone_number` would make a real customer's own
+    // balance invisible to them for virtually every session today. Once
+    // phone verification is mandatory this should tighten to
+    // owner-or-admin read.
+    // Customer profiles. Sign-in is optional — orders, cart and wallet all
+    // still work for guests — so nothing else depends on this existing. A
+    // profile is readable and writable only by the person it belongs to.
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+      allow create, update: if isSelf(uid)
+        && request.resource.data.uid == uid;
+      allow delete: if isSelf(uid) || isAdmin();
+    }
+
+    match /wallets/{phone} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /wallet_transactions/{txId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // -----------------------------
+    // Crowd-Sourced Food Photo Submissions
+    // -----------------------------
+    // Read stays public: src/components/my-components/UploadFoodPhotoModal.tsx
+    // checks for a duplicate submission with a plain
+    // where(orderId==, menuItemId==) query that carries no phone filter at
+    // all, so a phone-scoped read rule would break every upload attempt,
+    // not just the customer's own history view — the same fail-closed-in-
+    // the-wrong-direction problem as wallets/freeDeliveryPass above.
+    //
+    // The actual fix is on the write side: `rewardAmount` must never be
+    // present on a client-created submission — the true reward is read
+    // server-side from system_settings when the onFoodPhotoApproved
+    // trigger fires (functions/src/wallet.ts) — and `status` can only be
+    // set client-side once, to "pending"; only an admin can move it to
+    // approved/rejected.
+    match /food_photo_submissions/{submissionId} {
+      allow read: if true;
+
+      allow create: if !('rewardAmount' in request.resource.data)
+        && request.resource.data.status == 'pending';
+
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // App Entry Telemetry
+    // -----------------------------
+    // No writer exists anywhere in this codebase (telemetry goes to
+    // PostHog instead) — deny writes outright rather than leave it open.
+    match /app_entries/{entryId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // -----------------------------
+    // System Settings (Global Configs)
+    // -----------------------------
+    // Public read: this drives live pricing/feature flags for every
+    // customer session (src/hooks/usePlatformConfig.ts). Write is
+    // admin-only.
+    match /system_settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /systemFlags/{flagId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // -----------------------------
+    // Promotions & Event Banners
+    // -----------------------------
+    match /promotions/{promoId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // -----------------------------
+    // Recipes
+    // -----------------------------
+    // Read is public even for pending/rejected drafts: getRecipeBySlug
+    // (src/services/recipeService.ts) looks a recipe up by slug alone, with
+    // no status filter, so a status-scoped rule would make every recipe
+    // detail page fail to load for anonymous visitors. The content here
+    // (title, ingredients, an optional submitter name/social handle that's
+    // already meant to display publicly once approved) carries nothing
+    // sensitive enough to justify that breakage.
+    //
+    // A submission always starts as "pending_review" with zero views/saves
+    // (src/services/recipeService.ts submitRecipe) — an anonymous submitter
+    // can never publish themselves. Only the view counter is writable by
+    // anyone after that, and only upward.
+    match /recipes/{recipeId} {
+      allow read: if true;
+
+      allow create: if request.resource.data.status == 'pending_review'
+        && request.resource.data.views == 0
+        && request.resource.data.saves == 0;
+
+      allow update: if isAdmin()
+        || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+          && request.resource.data.views > resource.data.views
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /recipeGenerationLogs/{logId} {
+      // Written only by the generateDailyRecipes Cloud Function.
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // -----------------------------
+    // Push Notification History & Tokens
+    // -----------------------------
+    match /notifications/{notificationId} {
+      // Written only by the sendNotification Cloud Function.
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /fcm_tokens/{tokenId} {
+      allow read: if isAdmin();
+      // Client registers its own token id at src/services/push-notifications.tsx.
+      // Not scoped to auth (most sessions are anonymous), but read access is
+      // admin-only so this is a write-your-own-doc-id bucket, not a leak.
+      allow write: if true;
+    }
+
+    // -----------------------------
+    // Support Tickets
+    // -----------------------------
+    match /supportTickets/{ticketId} {
+      allow read: if (isSignedIn() && resource.data.vendorId == request.auth.uid) || isAdmin();
+      allow create: if isSignedIn() && request.resource.data.vendorId == request.auth.uid;
+      allow update: if (isSignedIn() && resource.data.vendorId == request.auth.uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Riders helpers
+    // -----------------------------
+    function riderCreateKeysAreValid() {
+      return request.resource.data.keys().hasOnly([
+        'uid',
+        'phoneNumber',
+        'role',
+        'fullName',
+        'verificationStatus',
+        'onboardingStep',
+        'profileCompletionPercent',
+        'isSuspended',
+        'availabilityState',
+        'suspensionReason',
+        'reviewNotes',
+        'currentAppVersion',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function riderClientDraftKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'fullName',
+        'onboardingStep',
+        'profileCompletionPercent',
+        'currentAppVersion',
+        'updatedAt'
+      ]);
+    }
+
+    function riderClientSubmitKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'verificationStatus',
+        'onboardingStep',
+        'profileCompletionPercent',
+        'submittedAt',
+        'currentAppVersion',
+        'updatedAt'
+      ]);
+    }
+
+    function riderClientAvailabilityKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'availabilityState',
+        'updatedAt'
+      ]);
+    }
+
+    function documentsCreateKeysAreValid() {
+      return request.resource.data.keys().hasOnly([
+        'uid',
+        'nidaNumber',
+        'plateNumber',
+        'vehicleType',
+        'nidaImage',
+        'licenseImage',
+        'selfieImage',
+        'uploadMetadata',
+        'resubmissionCount',
+        'lastSubmittedAt',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function documentsUpdateKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'nidaNumber',
+        'plateNumber',
+        'vehicleType',
+        'nidaImage',
+        'licenseImage',
+        'selfieImage',
+        'uploadMetadata',
+        'resubmissionCount',
+        'lastSubmittedAt',
+        'updatedAt'
+      ]);
+    }
+
+    function riderPresenceKeysAreValid() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'isOnline',
+        'availabilityState',
+        'lastSeenAt',
+        'lat',
+        'lng',
+        'heading',
+        'speed',
+        'batteryLevel',
+        'networkStatus',
+        'activeDeliveryType',
+        'updatedAt'
+      ]);
+    }
+
+    function canSubmitOnboarding() {
+      return (
+          resource.data.verificationStatus in ['draft', 'needs_resubmission', 'rejected']
+          || resource.data.status in ['onboarding_incomplete', 'pending_verification']
+        )
+        && request.resource.data.verificationStatus == 'submitted'
+        && request.resource.data.onboardingStep == 'review'
+        && request.resource.data.profileCompletionPercent == 100;
+    }
+
+    function canToggleAvailability(uid) {
+      return (
+          get(/databases/$(database)/documents/riders/$(uid)).data.verificationStatus == 'approved'
+          || get(/databases/$(database)/documents/riders/$(uid)).data.approved == true
+        )
+        && get(/databases/$(database)/documents/riders/$(uid)).data.isSuspended != true;
+    }
+
+    // -----------------------------
+    // Riders
+    // -----------------------------
+    match /riders/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+
+      allow create: if isSelf(uid)
+        && riderCreateKeysAreValid()
+        && request.resource.data.uid == uid
+        && request.resource.data.role == 'rider'
+        && request.resource.data.verificationStatus == 'draft'
+        && request.resource.data.onboardingStep == 'personal_info'
+        && request.resource.data.isSuspended == false;
+
+      allow update: if (
+          isSelf(uid) && (
+            riderClientDraftKeysAreValid()
+            || (riderClientSubmitKeysAreValid() && canSubmitOnboarding())
+            || (
+              riderClientAvailabilityKeysAreValid()
+              && canToggleAvailability(uid)
+              && request.resource.data.availabilityState in ['online', 'offline']
+            )
+          )
+        ) || isAdmin();
+
+      allow delete: if false;
+    }
+
+    // -----------------------------
+    // Rider documents
+    // -----------------------------
+    match /rider_documents/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+
+      allow create: if isSelf(uid)
+        && documentsCreateKeysAreValid()
+        && request.resource.data.uid == uid;
+
+      allow update: if (isSelf(uid) && documentsUpdateKeysAreValid()) || isAdmin();
+
+      allow delete: if false;
+    }
+
+    // -----------------------------
+    // Rider presence
+    // -----------------------------
+    match /rider_presence/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+
+      allow create: if isSelf(uid) && request.resource.data.uid == uid;
+
+      allow update: if (
+          isSelf(uid)
+          && riderPresenceKeysAreValid()
+          && (
+            request.resource.data.isOnline == false
+            || canToggleAvailability(uid)
+          )
+        ) || isAdmin();
+
+      allow delete: if false;
+    }
+
+    // -----------------------------
+    // Rider review logs
+    // -----------------------------
+    match /rider_review_logs/{uid}/events/{eventId} {
+      allow read: if isSelf(uid) || isAdmin();
+
+      allow create: if isSelf(uid)
+        && request.resource.data.keys().hasOnly([
+          'action',
+          'actor',
+          'note',
+          'timestamp'
+        ])
+        && request.resource.data.action in ['submitted', 'resubmitted']
+        && request.resource.data.actor.type == 'rider'
+        && request.resource.data.actor.uid == uid;
+
+      allow update, delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Rider notification tokens
+    // -----------------------------
+    match /rider_notification_tokens/{tokenId} {
+      allow read: if isAdmin();
+
+      allow create, update: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.platform == 'web';
+
+      allow delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Rider notifications
+    // -----------------------------
+    match /rider_notifications/{notificationId} {
+      allow read: if (isSignedIn() && resource.data.uid == request.auth.uid) || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // -----------------------------
+    // Legacy riderTokens collection
+    // -----------------------------
+    // Keep only if your app still writes here.
+    // Remove later after migration to rider_notification_tokens.
+    match /riderTokens/{tokenId} {
+      allow read, write: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+    }
+  }
+}

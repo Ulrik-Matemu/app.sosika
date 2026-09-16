@@ -9,6 +9,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
 import { google } from "googleapis";
+import { assertIsAdmin } from "./adminGuard";
 
 admin.initializeApp();
 
@@ -29,7 +30,7 @@ interface VerifySubscriptionData {
  * and grants `tier: "premium"` + feature flags in Firestore upon success.
  */
 export const verifyVendorSubscription = onCall(
-  { secrets: [playServiceAccount] },
+  { cors: true, secrets: [playServiceAccount] },
   async (request) => {
     // 1. Authenticate vendor user
     if (!request.auth) {
@@ -50,7 +51,7 @@ export const verifyVendorSubscription = onCall(
     }
 
     const vendorId = request.auth.uid;
-    const packageName = customPackageName || process.env.ANDROID_PACKAGE_NAME || "app.sosika.twa";
+    const packageName = customPackageName || process.env.ANDROID_PACKAGE_NAME || "app.sosika";
 
     try {
       // 2. Initialize Google Play Publisher API client
@@ -185,7 +186,9 @@ interface SendNotificationData {
  *
  * Callable Cloud Function triggered from Admin Dashboard to send FCM push notifications.
  */
-export const sendNotification = onCall(async (request) => {
+export const sendNotification = onCall({ cors: true }, async (request) => {
+  assertIsAdmin(request);
+
   const { title, body, icon, url, targetType, targetValue } = request.data as SendNotificationData;
 
   if (!title || !body) {
@@ -214,7 +217,7 @@ export const sendNotification = onCall(async (request) => {
       url: url || null,
       targetType,
       targetValue: targetValue || null,
-      sentBy: request.auth?.uid || "admin",
+      sentBy: request.auth.uid,
       sentAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -274,4 +277,18 @@ export const sendNotification = onCall(async (request) => {
 
 // Export Daily AI Recipe Generator Cloud Functions
 export { generateDailyRecipes, triggerDailyRecipeGeneration } from "./generateDailyRecipes";
+
+// Export server-authoritative wallet operations (photo-reward crediting,
+// admin manual top-ups/adjustments)
+export { onFoodPhotoApproved, adminCreditWallet } from "./wallet";
+
+// Export the review-rating rollup trigger
+export { onReviewCreated } from "./reviews";
+
+// Export the server-side SMS relay
+export { sendSms } from "./sms";
+
+// Export the menu-item embedding indexer and semantic search callable
+export { onMenuItemWrittenEmbed } from "./menuEmbeddings";
+export { semanticSearchMenuItems } from "./semanticSearch";
 

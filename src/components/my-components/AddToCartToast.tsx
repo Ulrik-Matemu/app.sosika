@@ -57,17 +57,17 @@ export default function AddToCartToast({ onOpenCart }: { onOpenCart: () => void 
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 15, scale: 0.95 }}
-          className="pointer-events-auto bg-[#121216]/95 border border-[#00bfff]/30 backdrop-blur-xl rounded-2xl p-3 shadow-2xl shadow-black/80 flex items-center justify-between gap-3 text-white"
+          className="pointer-events-auto bg-elevated/95 border border-sosika-cyan/30 backdrop-blur-xl rounded-2xl p-3 shadow-2xl shadow-black/80 flex items-center justify-between gap-3 text-content"
         >
           <div className="flex items-center gap-2.5 min-w-0">
             {activeToast.imageUrl ? (
               <img
                 src={activeToast.imageUrl}
                 alt={activeToast.name}
-                className="w-10 h-10 rounded-xl object-cover border border-white/[0.1] shrink-0"
+                className="w-10 h-10 rounded-xl object-cover border border-edge-3 shrink-0"
               />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-[#00bfff]/10 border border-[#00bfff]/20 text-[#00bfff] flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-sosika-cyan/10 border border-sosika-cyan/20 text-accent-ink flex items-center justify-center shrink-0">
                 <ShoppingBag size={18} />
               </div>
             )}
@@ -76,8 +76,8 @@ export default function AddToCartToast({ onOpenCart }: { onOpenCart: () => void 
               <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider block">
                 Added to Cart ✓
               </span>
-              <h4 className="text-xs font-bold text-white truncate">{activeToast.name}</h4>
-              <p className="text-[11px] font-mono text-[#00bfff]">
+              <h4 className="text-xs font-bold text-content truncate">{activeToast.name}</h4>
+              <p className="text-[11px] font-mono text-accent-ink">
                 {activeToast.price.toLocaleString()} TZS
               </p>
             </div>
@@ -86,7 +86,7 @@ export default function AddToCartToast({ onOpenCart }: { onOpenCart: () => void 
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={onOpenCart}
-              className="bg-[#00bfff] hover:bg-[#00a8e6] text-black font-extrabold px-3 py-2 rounded-xl text-[11px] flex items-center gap-1 shadow-md shadow-[#00bfff]/20 transition-all cursor-pointer active:scale-95"
+              className="bg-sosika-cyan hover:bg-sosika-cyan text-black font-extrabold px-3 py-2 rounded-xl text-[11px] flex items-center gap-1 shadow-md shadow-sosika-cyan/20 transition-all cursor-pointer active:scale-95"
             >
               <span>View Cart ({totalCartCount})</span>
               <ArrowRight size={12} />
@@ -94,7 +94,7 @@ export default function AddToCartToast({ onOpenCart }: { onOpenCart: () => void 
 
             <button
               onClick={() => setActiveToast(null)}
-              className="p-1.5 text-zinc-500 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 text-content-muted hover:text-content transition-colors cursor-pointer"
             >
               <X size={14} />
             </button>

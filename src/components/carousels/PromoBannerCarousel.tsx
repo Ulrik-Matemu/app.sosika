@@ -93,7 +93,7 @@ export const PromoBannerCarousel: React.FC<PromoBannerCarouselProps> = ({
   return (
     <div
       onClick={handleClick}
-      className={`relative overflow-hidden rounded-2xl border border-white/[0.08] shadow-lg shadow-black/30 select-none cursor-pointer group ${
+      className={`relative overflow-hidden rounded-2xl border border-edge-2 shadow-lg shadow-black/30 select-none cursor-pointer group ${
         isFullWidth ? "col-span-2 h-[200px]" : "h-[200px]"
       }`}
     >
@@ -127,27 +127,27 @@ export const PromoBannerCarousel: React.FC<PromoBannerCarouselProps> = ({
               draggable={false}
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-zinc-900 to-[#00bfff]/15" />
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-ground to-sosika-cyan/15" />
           )}
           {/* Gradient overlays */}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
           <div className="absolute inset-0 bg-black/15" />
 
           {/* Floating label pill — top-left, minimal */}
-          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/10">
-            <Sparkles className="w-2.5 h-2.5 text-[#00bfff]" />
-            <span className="text-[8px] font-bold text-[#00bfff]/90 uppercase tracking-wider">
+          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-edge-3">
+            <Sparkles className="w-2.5 h-2.5 text-accent-ink" />
+            <span className="text-[8px] font-bold text-accent-ink/90 uppercase tracking-wider">
               Promo
             </span>
           </div>
 
           {/* Bottom Content */}
           <div className="relative z-10 p-3 pr-9">
-            <h4 className="text-[13px] font-bold text-white leading-tight line-clamp-2">
+            <h4 className="text-[13px] font-bold text-content leading-tight line-clamp-2">
               {currentPromo.title}
             </h4>
             {currentPromo.subtitle && (
-              <p className="text-[10px] text-zinc-300/80 mt-0.5 truncate leading-tight">
+              <p className="text-[10px] text-content-secondary/80 mt-0.5 truncate leading-tight">
                 {currentPromo.subtitle}
               </p>
             )}
@@ -155,8 +155,8 @@ export const PromoBannerCarousel: React.FC<PromoBannerCarouselProps> = ({
 
           {/* CTA Arrow */}
           {currentPromo.link_url && (
-            <div className="absolute right-2.5 bottom-3 z-20 w-7 h-7 rounded-full bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center group-hover:bg-[#00bfff] group-hover:border-[#00bfff]/50 transition-all duration-300">
-              <ArrowUpRight className="w-3.5 h-3.5 text-white group-hover:text-black transition-colors" />
+            <div className="absolute right-2.5 bottom-3 z-20 w-7 h-7 rounded-full bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center group-hover:bg-sosika-cyan group-hover:border-sosika-cyan/50 transition-all duration-300">
+              <ArrowUpRight className="w-3.5 h-3.5 text-content group-hover:text-black transition-colors" />
             </div>
           )}
         </motion.div>

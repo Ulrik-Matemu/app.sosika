@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, UploadCloud, Camera, CheckCircle2, AlertCircle, Loader2, Sparkles, ShieldCheck } from "lucide-react";
+import { UploadCloud, CheckCircle2, AlertCircle, Loader2, ShieldCheck } from "lucide-react";
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
 import { db } from "../../firebase";
+import BottomSheet from "./BottomSheet";
 
 interface UploadFoodPhotoModalProps {
   isOpen: boolean;
@@ -128,7 +128,11 @@ export default function UploadFoodPhotoModal({
       // 1. Upload to Cloudinary
       const imageUrl = await uploadToCloudinary(selectedFile);
 
-      // 2. Save submission to Firestore
+      // 2. Save submission to Firestore. The reward amount is intentionally
+      // NOT set here — it's attacker-controlled if it were, since this is a
+      // client write. The onFoodPhotoApproved Cloud Function trigger reads
+      // the true amount from system_settings/global.photoRewardAmount when
+      // an admin approves the submission (see functions/src/wallet.ts).
       await addDoc(collection(db, "food_photo_submissions"), {
         submissionKey: `${orderId}_${menuItemId}`, // Unique compound key
         orderId,
@@ -139,7 +143,6 @@ export default function UploadFoodPhotoModal({
         menuItemName,
         imageUrl,
         status: "pending",
-        rewardAmount: 1000,
         createdAt: serverTimestamp(),
       });
 
@@ -164,153 +167,133 @@ export default function UploadFoodPhotoModal({
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="w-full max-w-md bg-[#121215] border border-white/[0.1] rounded-3xl p-6 shadow-2xl space-y-5 text-white relative overflow-hidden"
-        >
-          {/* Close button */}
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={resetAndClose}
+      title="Snap your food 📸"
+      closeLabel="Later"
+    >
+      {checkingExisting ? (
+        <div className="py-12 text-center space-y-3">
+          <Loader2 size={28} className="animate-spin text-accent-ink mx-auto" />
+          <p className="text-xs text-content-muted">Verifying item photo status…</p>
+        </div>
+      ) : alreadySubmitted ? (
+        <div className="py-6 text-center space-y-4">
+          <div className="w-14 h-14 rounded-[18px] bg-sosika-amber/10 border border-sosika-amber/20 text-amber-ink flex items-center justify-center mx-auto">
+            <ShieldCheck size={28} />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-content">Photo already submitted</h3>
+            <p className="text-xs text-content-muted max-w-xs mx-auto leading-relaxed">
+              You have already submitted a photo for <strong className="text-content-secondary">{menuItemName}</strong> on order #{orderId.slice(-6)}. Each meal item can only earn a reward once.
+            </p>
+          </div>
           <button
             onClick={resetAndClose}
-            className="absolute top-4 right-4 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all cursor-pointer"
+            className="w-full bg-surface-3 border border-edge-2 text-content font-bold py-3 rounded-2xl text-sm"
           >
-            <X size={18} />
+            Close
           </button>
+        </div>
+      ) : !success ? (
+        <>
+          <p className="text-[13px] text-content-secondary leading-[1.6]">
+            Photograph what you ordered from {vendorName}. If we publish it, 500 TZS lands in your Sosika Cash.
+          </p>
 
-          {checkingExisting ? (
-            <div className="py-12 text-center space-y-3">
-              <Loader2 size={28} className="animate-spin text-[#00bfff] mx-auto" />
-              <p className="text-xs text-zinc-400">Verifying item photo status...</p>
-            </div>
-          ) : alreadySubmitted ? (
-            <div className="py-6 text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
-                <ShieldCheck size={28} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-base font-extrabold text-white">Photo Already Submitted</h3>
-                <p className="text-xs text-zinc-400 max-w-xs mx-auto leading-relaxed">
-                  You have already submitted a photo for <strong>{menuItemName}</strong> on Order #{orderId.slice(-6)}. Each meal item can only earn a reward once.
-                </p>
-              </div>
-              <button
-                onClick={resetAndClose}
-                className="w-full bg-white/[0.08] hover:bg-white/[0.12] text-white font-extrabold py-3 rounded-xl text-xs transition-all cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          ) : !success ? (
-            <>
-              {/* Header */}
-              <div className="space-y-1.5 pr-8">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#00bfff]/10 text-[#00bfff] border border-[#00bfff]/20">
-                  <Sparkles size={12} />
-                  Earn TZS 1,000 Reward
-                </span>
-                <h2 className="text-lg font-black tracking-tight text-white">
-                  Upload Food Photo
-                </h2>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Upload a photo of your <strong>{menuItemName}</strong> from {vendorName}. Once approved by admin, <strong>1,000 TZS Sosika Cash</strong> will be credited to your wallet!
-                </p>
-              </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
 
-              {/* Upload Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-
-                {/* Upload Box / Image Preview */}
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/[0.15] hover:border-[#00bfff]/50 rounded-2xl p-6 text-center cursor-pointer transition-all bg-white/[0.02] hover:bg-white/[0.04] relative group overflow-hidden"
-                >
-                  {previewUrl ? (
-                    <div className="relative aspect-video w-full rounded-xl overflow-hidden">
-                      <img
-                        src={previewUrl}
-                        alt="Meal preview"
-                        className="w-full h-full object-cover rounded-xl"
-                      />
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-xs font-bold bg-black/60 px-3 py-1.5 rounded-lg border border-white/20">
-                          Change Photo
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 py-4">
-                      <div className="w-12 h-12 rounded-2xl bg-[#00bfff]/10 text-[#00bfff] border border-[#00bfff]/20 flex items-center justify-center mx-auto">
-                        <Camera size={24} />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-extrabold text-white">
-                          Tap to take or choose photo
-                        </p>
-                        <p className="text-[11px] text-zinc-500">
-                          Supports PNG, JPG, WEBP (Max 10MB)
-                        </p>
-                      </div>
-                    </div>
-                  )}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="border border-dashed border-edge-3 rounded-[20px] p-[34px] text-center cursor-pointer transition-colors bg-surface-1 relative group overflow-hidden"
+            >
+              {previewUrl ? (
+                <div className="relative aspect-video w-full rounded-xl overflow-hidden">
+                  <img src={previewUrl} alt="Meal preview" className="w-full h-full object-cover rounded-xl" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-xs font-bold bg-black/60 px-3 py-1.5 rounded-lg border border-white/20">
+                      Change photo
+                    </span>
+                  </div>
                 </div>
-
-                {error && (
-                  <p className="text-xs text-red-400 flex items-center gap-1.5">
-                    <AlertCircle size={14} className="shrink-0" />
-                    <span>{error}</span>
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  <span className="w-12 h-12 rounded-[15px] bg-sosika-cyan/[0.12] flex items-center justify-center text-[19px] text-accent-ink">＋</span>
+                  <p className="text-sm font-semibold text-content">Take or choose a photo</p>
+                  <p className="font-mono text-[10px] text-content-faint uppercase tracking-wider">
+                    JPG or PNG · Max 5 MB
                   </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={uploading || !selectedFile}
-                  className="w-full bg-[#00bfff] hover:bg-[#00a8e6] disabled:bg-zinc-800 disabled:text-zinc-600 text-black font-extrabold py-3.5 rounded-xl text-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#00bfff]/10"
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Uploading & Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <UploadCloud size={16} />
-                      <span>Submit Photo for TZS 1,000</span>
-                    </>
-                  )}
-                </button>
-              </form>
-            </>
-          ) : (
-            <div className="text-center py-6 space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
-                <CheckCircle2 size={32} />
-              </div>
-              <div className="space-y-1.5">
-                <h3 className="text-lg font-black text-white">Photo Submitted!</h3>
-                <p className="text-xs text-zinc-400 max-w-xs mx-auto leading-relaxed">
-                  Your photo for <strong>{menuItemName}</strong> is now pending admin approval. You will receive <strong>1,000 TZS Sosika Cash</strong> in your wallet once verified!
-                </p>
-              </div>
-              <button
-                onClick={resetAndClose}
-                className="w-full bg-white/[0.08] hover:bg-white/[0.12] text-white font-extrabold py-3 rounded-xl text-xs transition-all cursor-pointer"
-              >
-                Done
-              </button>
+                </div>
+              )}
             </div>
-          )}
-        </motion.div>
-      </div>
-    </AnimatePresence>
+
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center gap-2.5 text-[13px] text-content-secondary">
+                <span className="text-emerald-ink">✓</span> Good light, whole plate in frame
+              </div>
+              <div className="flex items-center gap-2.5 text-[13px] text-content-secondary">
+                <span className="text-emerald-ink">✓</span> No faces or receipts
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-xs text-red-400 flex items-center gap-1.5">
+                <AlertCircle size={14} className="shrink-0" />
+                <span>{error}</span>
+              </p>
+            )}
+
+            <div className="flex items-center justify-between rounded-[15px] border border-sosika-amber/25 bg-sosika-amber/[0.055] px-[14px] py-[14px]">
+              <span className="text-[13px] font-semibold text-amber-ink">Reward if approved</span>
+              <span className="font-mono text-[15px] font-bold text-amber-ink">+500</span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={uploading || !selectedFile}
+              className="w-full bg-sosika-cyan disabled:bg-surface-3 disabled:text-content-faint text-on-accent font-bold py-[18px] rounded-2xl text-[15px] transition-opacity active:opacity-90 flex items-center justify-center gap-2"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Uploading…
+                </>
+              ) : (
+                <>
+                  <UploadCloud size={16} />
+                  <span>Submit photo</span>
+                </>
+              )}
+            </button>
+          </form>
+        </>
+      ) : (
+        <div className="text-center py-6 space-y-4">
+          <div className="w-16 h-16 rounded-[18px] bg-sosika-emerald/10 border border-sosika-emerald/20 text-emerald-ink flex items-center justify-center mx-auto">
+            <CheckCircle2 size={32} />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-lg font-bold text-content">Photo submitted</h3>
+            <p className="text-xs text-content-muted max-w-xs mx-auto leading-relaxed">
+              Your photo for <strong className="text-content-secondary">{menuItemName}</strong> is pending review. 500 TZS lands in your Sosika Cash once it's approved.
+            </p>
+          </div>
+          <button
+            onClick={resetAndClose}
+            className="w-full bg-surface-3 border border-edge-2 text-content font-bold py-3 rounded-2xl text-sm"
+          >
+            Done
+          </button>
+        </div>
+      )}
+    </BottomSheet>
   );
 }

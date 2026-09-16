@@ -2,8 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Theme tokens.
+ *
+ * `ThemeProvider` resolves "system" in JS and always writes a concrete
+ * data-theme onto <html>, so there is no prefers-color-scheme branch here —
+ * exactly two theme blocks, plus a surface-style block that swaps the
+ * translucent surfaces for opaque ones and turns the blur off.
+ *
+ * Tailwind maps these to bg-ground / bg-surface-1|2|3 / border-edge-1|2|3 /
+ * text-content* (see tailwind.config.js). Components should never reach for a
+ * raw colour again.
+ */
 @layer base {
   :root {
+    /*
+     * Accents are theme-invariant — the brand doesn't change with the lights.
+     *
+     * Declared as bare RGB channels so Tailwind can compose an alpha onto them
+     * (`bg-sosika-cyan/10`). With a `var()` hex it cannot, and every tinted
+     * accent surface in the app — the wallet card, active chips, selected
+     * states — silently rendered fully transparent.
+     */
+    --sosika-cyan-rgb: 0 191 255;
+    --sosika-amber-rgb: 245 178 0;
+    --sosika-emerald-rgb: 52 211 153;
+    --sosika-cyan: rgb(var(--sosika-cyan-rgb));
+    --sosika-amber: rgb(var(--sosika-amber-rgb));
+    --sosika-emerald: rgb(var(--sosika-emerald-rgb));
+    /* Label colour for a filled cyan button, in either theme. */
+    --on-accent: #04202B;
+
+    /*
+     * Cyan as INK (text, icons, links) rather than as a fill.
+     *
+     * #00BFFF reaches ~8:1 against the dark ground but only 2.12:1 against
+     * white, which fails WCAG AA badly. Filled cyan buttons keep the bright
+     * brand colour in both themes; cyan lettering gets a darker mix in light.
+     */
+    --accent-ink: #00BFFF;
+    --amber-ink: #F5B200;
+    --emerald-ink: #34D399;
+
+    --radius: 0.5rem;
+    --glass-blur: 20px;
+
+    /*
+     * Deprecated alias. `bg-sosika-ground` is still spelled across the app;
+     * the indirection makes those usages follow the theme until they are
+     * migrated to `bg-ground`.
+     */
+    --sosika-ground: var(--ground);
+  }
+
+  /*
+   * Dark doubles as the bare `:root` default: if the boot script is ever
+   * blocked and no data-theme lands on <html>, the app still renders styled
+   * rather than losing every background at once.
+   */
+  :root,
+  :root[data-theme="dark"] {
+    --ground-rgb: 9 9 11;
+    --ground: rgb(var(--ground-rgb));
+    --elevated: #0D0D10;
+
+    --surface-1: rgba(255, 255, 255, 0.035);
+    --surface-2: rgba(255, 255, 255, 0.045);
+    --surface-3: rgba(255, 255, 255, 0.06);
+
+    --edge-1: rgba(255, 255, 255, 0.055);
+    --edge-2: rgba(255, 255, 255, 0.08);
+    --edge-3: rgba(255, 255, 255, 0.09);
+
+    --text-primary: #FAFAFA;
+    --text-secondary: #D4D4D8;
+    --text-tertiary: #A1A1AA;
+    --text-muted: #71717A;
+    --text-faint: #52525B;
+
+    --chrome: rgba(9, 9, 11, 0.78);
+    --scrim: rgba(0, 0, 0, 0.8);
+    --shimmer-from: rgba(255, 255, 255, 0.03);
+    --shimmer-to: rgba(255, 255, 255, 0.08);
+    --scrollbar: rgba(255, 255, 255, 0.1);
+    --scrollbar-hover: rgba(255, 255, 255, 0.18);
+
+    /* shadcn/ui variables, for the components under src/components/ui. */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
@@ -23,14 +107,84 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
-    --radius: 0.5rem;
   }
-}
 
-@layer base {
-  html, body {
-    background-color: #0a0a0b !important;
-    color: #f4f4f5;
+  :root[data-theme="light"] {
+    --ground-rgb: 255 255 255;
+    --ground: rgb(var(--ground-rgb));
+    --elevated: #FFFFFF;
+
+    --surface-1: rgba(9, 9, 11, 0.03);
+    --surface-2: rgba(9, 9, 11, 0.045);
+    --surface-3: rgba(9, 9, 11, 0.07);
+
+    /* Dark-on-light edges need more weight than light-on-dark to read at all. */
+    --edge-1: rgba(9, 9, 11, 0.08);
+    --edge-2: rgba(9, 9, 11, 0.12);
+    --edge-3: rgba(9, 9, 11, 0.16);
+
+    --text-primary: #09090B;
+    --text-secondary: #27272A;
+    --text-tertiary: #3F3F46;
+    --text-muted: #52525B;
+    --text-faint: #71717A;
+
+    --accent-ink: #0077A3;
+    --amber-ink: #8A6300;
+    --emerald-ink: #0F7A54;
+    --chrome: rgba(255, 255, 255, 0.82);
+    --scrim: rgba(9, 9, 11, 0.45);
+    --shimmer-from: rgba(9, 9, 11, 0.04);
+    --shimmer-to: rgba(9, 9, 11, 0.09);
+    --scrollbar: rgba(9, 9, 11, 0.15);
+    --scrollbar-hover: rgba(9, 9, 11, 0.25);
+
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+  }
+
+  /*
+   * Surface style "solid": same steps, opaque. Translucency over a photo or a
+   * gradient is what makes glass read as glass; some people find it noisy, and
+   * it costs a compositor pass on cheap Androids.
+   */
+  :root[data-surface="solid"] {
+    --glass-blur: 0px;
+  }
+
+  :root[data-theme="dark"][data-surface="solid"] {
+    --surface-1: #141416;
+    --surface-2: #17171A;
+    --surface-3: #1C1C20;
+  }
+
+  :root[data-theme="light"][data-surface="solid"] {
+    --surface-1: #F7F7F8;
+    --surface-2: #F2F2F3;
+    --surface-3: #EAEAEC;
+  }
+
+  html,
+  body {
+    background-color: var(--ground);
+    color: var(--text-primary);
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

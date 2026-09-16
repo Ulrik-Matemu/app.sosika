@@ -1,0 +1,13 @@
+# Compiled output — rebuilt by `npm run build` / the deploy predeploy hook.
+# Was previously committed and drifting from src/; untracked in this change.
+lib/
+
+node_modules/
+
+# Never commit a service account key. set-admin-claim.mjs takes its path via
+# GOOGLE_APPLICATION_CREDENTIALS instead of expecting a file here, but this
+# guards against someone dropping one in for convenience.
+*serviceAccount*.json
+*service-account*.json
+
+*.log

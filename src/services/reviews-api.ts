@@ -4,8 +4,7 @@ import {
   getDocs,
   query,
   where,
-  doc,
-  runTransaction,
+  addDoc,
   serverTimestamp,
 } from "firebase/firestore";
 import { Review } from "../pages/mood/types/types";
@@ -31,41 +30,17 @@ export const getReviews = async (
 };
 
 /**
- * Adds a review for a vendor or menu item and updates the target's average rating.
+ * Adds a review for a vendor or menu item. The target's aggregate rating
+ * (ratingCount / averageRating) is recomputed server-side by the
+ * onReviewCreated Cloud Function trigger (functions/src/reviews.ts) — this
+ * used to run as a client-side transaction that also wrote directly to
+ * `vendors`/`menuItems`, which is why those collections had to stay
+ * world-writable. The client now only ever creates the review document.
  * @param review The review object to be added.
- * @returns A promise that resolves when the transaction is complete.
  */
 export const addReview = async (review: Omit<Review, "id" | "createdAt">) => {
-  const targetCollection =
-    review.targetType === "vendor" ? "vendors" : "menuItems";
-  const targetRef = doc(db, targetCollection, review.targetId);
-  const reviewsCollection = collection(db, "reviews");
-
-  await runTransaction(db, async (transaction) => {
-    const targetDoc = await transaction.get(targetRef);
-    if (!targetDoc.exists()) {
-      throw new Error("Target document does not exist!");
-    }
-
-    // 1. Add the new review
-    const newReviewRef = doc(reviewsCollection); // Create a new doc ref with an auto-generated ID
-    transaction.set(newReviewRef, {
-      ...review,
-      createdAt: serverTimestamp(),
-    });
-
-    // 2. Update the aggregate rating on the target document
-    const data = targetDoc.data();
-    const currentRatingCount = data.ratingCount || 0;
-    const currentAverageRating = data.averageRating || 0;
-
-    const newRatingCount = currentRatingCount + 1;
-    const newAverageRating =
-      (currentAverageRating * currentRatingCount + review.rating) / newRatingCount;
-
-    transaction.update(targetRef, {
-      ratingCount: newRatingCount,
-      averageRating: newAverageRating,
-    });
+  await addDoc(collection(db, "reviews"), {
+    ...review,
+    createdAt: serverTimestamp(),
   });
 };

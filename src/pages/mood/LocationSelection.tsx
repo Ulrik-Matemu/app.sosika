@@ -3,7 +3,7 @@ import { GoogleMap, Autocomplete } from "@react-google-maps/api";
 import { useLocationStorage } from "../../hooks/useLocationStorage";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMapLoader } from "../../services/map-provider";
-import { MapPin, Clock, ChevronLeft, Search, ChevronDown, ChevronUp, LocateFixed, Loader2 } from "lucide-react";
+import { MapPin, ChevronLeft, Search, LocateFixed, Loader2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "../../hooks/use-toast";
 import { useCart } from "../../hooks/useCart";
@@ -16,7 +16,6 @@ export default function LocationSelection() {
   const { locations, saveLocation } = useLocationStorage();
   const [selected, setSelected] = useState<{ lat: number; lng: number } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [showRecent, setShowRecent] = useState(false);
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const [isLocating, setIsLocating] = useState(false);
 
@@ -122,152 +121,80 @@ export default function LocationSelection() {
   };
 
   if (loadError) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0b] text-center p-6 space-y-3">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-ground text-center p-6 space-y-3">
       <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center">
         <MapPin size={24} />
       </div>
-      <h3 className="text-base font-bold text-white">Map Connection Notice</h3>
-      <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
+      <h3 className="text-base font-bold text-content">Map Connection Notice</h3>
+      <p className="text-xs text-content-tertiary max-w-xs leading-relaxed">
         Could not load Google Maps. Please check your internet connection or choose a saved address.
       </p>
     </div>
   );
-  
+
   if (!isLoaded) return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white p-4 flex flex-col items-center">
-      <div className="w-full max-w-lg space-y-4">
+    <div className="min-h-screen bg-ground text-content p-4 flex flex-col items-center">
+      <div className="w-full max-w-md space-y-4">
         {/* Header Skeleton */}
-        <div className="flex items-center gap-3 py-2 border-b border-white/[0.04] pb-4">
-          <div className="w-9 h-9 rounded-xl bg-white/[0.04] animate-pulse" />
+        <div className="flex items-center gap-3 py-2 border-b border-edge-1 pb-4">
+          <div className="w-9 h-9 rounded-xl bg-surface-2 animate-pulse" />
           <div className="space-y-1 flex-1">
-            <div className="w-20 h-3 bg-white/[0.04] rounded animate-pulse" />
-            <div className="w-36 h-5 bg-white/[0.06] rounded animate-pulse" />
+            <div className="w-20 h-3 bg-surface-2 rounded animate-pulse" />
+            <div className="w-36 h-5 bg-surface-3 rounded animate-pulse" />
           </div>
         </div>
 
         {/* Search Bar Skeleton */}
-        <div className="w-full h-12 rounded-2xl bg-white/[0.03] border border-white/[0.06] animate-pulse flex items-center px-4 justify-between">
-          <div className="w-48 h-4 bg-white/[0.05] rounded" />
-          <div className="w-8 h-8 rounded-xl bg-white/[0.05]" />
+        <div className="w-full h-12 rounded-2xl bg-surface-1 border border-edge-1 animate-pulse flex items-center px-4 justify-between">
+          <div className="w-48 h-4 bg-surface-2 rounded" />
+          <div className="w-8 h-8 rounded-xl bg-surface-2" />
         </div>
 
         {/* Map Frame Skeleton */}
-        <div className="w-full h-72 rounded-3xl bg-white/[0.02] border border-white/[0.06] relative overflow-hidden flex flex-col items-center justify-center gap-3">
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#00bfff]/5 to-transparent animate-pulse" />
-          <Loader2 className="w-8 h-8 text-[#00bfff] animate-spin relative z-10" />
-          <p className="text-xs font-bold text-zinc-400 relative z-10">Initializing Interactive Map...</p>
+        <div className="w-full h-72 rounded-[18px] bg-surface-1 border border-edge-1 relative overflow-hidden flex flex-col items-center justify-center gap-3">
+          <div className="absolute inset-0 bg-gradient-to-tr from-sosika-cyan/5 to-transparent animate-pulse" />
+          <Loader2 className="w-8 h-8 text-accent-ink animate-spin relative z-10" />
+          <p className="text-xs font-bold text-content-tertiary relative z-10">Initializing Interactive Map...</p>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white p-4 flex flex-col items-center">
-      <div className="w-full max-w-lg space-y-4">
-        
+    <div className="min-h-screen bg-ground text-content p-4 flex flex-col items-center">
+      <div className="w-full max-w-md space-y-4">
+
         {/* Header */}
-        <div className="flex items-center gap-3 py-2">
-          <button 
-            onClick={() => navigate(-1)} 
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/[0.05] border border-white/[0.06] hover:bg-white/[0.08] transition-all"
-          >
-            <ChevronLeft className="w-4.5 h-4.5 text-zinc-300" />
-          </button>
-          <div className="flex-1">
-            <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-none mb-0.5">
-              Step 2 of 3
-            </p>
-            <h1 className="text-lg font-bold text-white tracking-tight leading-none">
+        <div className="flex items-center justify-between gap-3 py-2">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-3 border border-edge-2 hover:bg-surface-3 transition-all"
+            >
+              <ChevronLeft className="w-4 h-4 text-content-secondary" />
+            </button>
+            <h1 className="text-[19px] font-bold text-content tracking-[-0.02em] leading-none">
               Where are you?
             </h1>
           </div>
-          {/* Step indicators */}
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-[#00bfff]" />
-            <div className="w-2 h-2 rounded-full bg-[#00bfff]" />
-            <div className="w-2 h-2 rounded-full bg-white/[0.1]" />
-          </div>
+          <button
+            onClick={() => navigate(-1)}
+            className="text-[13px] font-semibold text-content-muted hover:text-content transition-colors"
+          >
+            Close
+          </button>
         </div>
-
-        {/* Search + Actions */}
-        <div className="space-y-3">
-          <div className="relative">
-            <Autocomplete onLoad={setAutocomplete} onPlaceChanged={onPlaceChanged}>
-              <div className="relative group">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-600 w-4 h-4 group-focus-within:text-[#00bfff] transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Search for a place or address"
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl py-3 pl-11 pr-4 text-sm outline-none focus:border-[#00bfff]/40 focus:bg-white/[0.06] transition-all duration-300 placeholder-zinc-600"
-                />
-              </div>
-            </Autocomplete>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <button 
-              onClick={handleGeolocate}
-              disabled={isLocating || isCheckingOut}
-              className="w-full flex items-center justify-center gap-2 bg-white/[0.04] border border-white/[0.06] rounded-xl py-3 px-4 hover:bg-white/[0.07] hover:border-white/[0.1] disabled:opacity-40 disabled:cursor-wait transition-all duration-300"
-            >
-              {isLocating ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#00bfff]" />
-              ) : (
-                <LocateFixed className="w-4 h-4 text-[#00bfff]" />
-              )}
-              <span className="font-semibold text-sm text-zinc-300">My Location</span>
-            </button>
-
-            {locations.length > 0 && (
-              <button 
-                onClick={() => setShowRecent(!showRecent)}
-                disabled={isCheckingOut}
-                className="w-full flex items-center justify-center gap-2 bg-white/[0.04] border border-white/[0.06] rounded-xl py-3 px-4 hover:bg-white/[0.07] hover:border-white/[0.1] transition-all duration-300 disabled:opacity-40"
-              >
-                <Clock className="w-4 h-4 text-[#00bfff]" />
-                <span className="font-semibold text-sm text-zinc-300">Recent</span>
-                {showRecent ? <ChevronUp size={14} className="text-zinc-500" /> : <ChevronDown size={14} className="text-zinc-500" />}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Recent locations */}
-        <AnimatePresence>
-          {showRecent && locations.length > 0 && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }} 
-              animate={{ height: "auto", opacity: 1 }} 
-              exit={{ height: 0, opacity: 0 }}
-              className="bg-white/[0.03] rounded-xl border border-white/[0.06] overflow-hidden"
-            >
-              <div className="p-1.5 space-y-0.5">
-                {locations.slice(0, 3).map((loc, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleConfirmLocation(loc.lat, loc.lng, loc.address)}
-                    disabled={isCheckingOut}
-                    className="w-full text-left p-3 hover:bg-[#00bfff]/[0.06] rounded-lg flex items-center gap-3 group transition-all disabled:opacity-40 disabled:cursor-wait"
-                  >
-                    <MapPin className="text-zinc-600 group-hover:text-[#00bfff] w-3.5 h-3.5 transition-colors flex-shrink-0" />
-                    <span className="text-sm truncate text-zinc-400 group-hover:text-white transition-colors">{loc.address}</span>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Map */}
-        <div className="h-72 sm:h-80 rounded-2xl overflow-hidden border border-white/[0.06] relative">
+        <div className="h-64 sm:h-72 rounded-[18px] overflow-hidden border border-edge-1 relative">
           <GoogleMap
             mapContainerStyle={mapContainerStyle}
             zoom={12}
             center={selected || { lat: -6.79, lng: 39.27 }}
             onLoad={onMapLoad}
             onClick={handleMapClick}
-            options={{ 
-              mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID, 
+            options={{
+              mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID,
               disableDefaultUI: true,
               zoomControl: true,
               gestureHandling: 'cooperative'
@@ -275,44 +202,96 @@ export default function LocationSelection() {
           />
           {!selected && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-black/30">
-              <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/[0.08] text-xs text-white/70 font-medium">
+              <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-edge-2 text-xs text-white/70 font-medium">
                 Tap the map to choose a location
               </div>
             </div>
           )}
         </div>
 
+        {/* Search */}
+        <div className="relative">
+          <Autocomplete onLoad={setAutocomplete} onPlaceChanged={onPlaceChanged}>
+            <div className="relative group">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-content-faint w-3.5 h-3.5 group-focus-within:text-accent-ink transition-colors" />
+              <input
+                type="text"
+                placeholder="Search a place or address"
+                className="w-full bg-surface-2 border border-edge-2 rounded-[15px] py-3.5 pl-11 pr-4 text-sm outline-none focus:border-sosika-cyan/35 transition-colors placeholder-content-faint"
+              />
+            </div>
+          </Autocomplete>
+        </div>
+
+        {/* Current location + saved + recent, as rows */}
+        <div className="flex flex-col">
+          <button
+            onClick={handleGeolocate}
+            disabled={isLocating || isCheckingOut}
+            className="flex items-center gap-[13px] py-3.5 border-b border-edge-1 disabled:opacity-40 disabled:cursor-wait text-left w-full"
+          >
+            <span className="w-8 h-8 rounded-[11px] bg-sosika-cyan/[0.12] flex items-center justify-center flex-none">
+              {isLocating ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-accent-ink" />
+              ) : (
+                <LocateFixed className="w-3.5 h-3.5 text-accent-ink" />
+              )}
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-accent-ink">Use my current location</div>
+              <div className="text-xs text-content-muted mt-0.5">Most accurate for delivery fee</div>
+            </div>
+          </button>
+
+          {locations.slice(0, 3).map((loc, i) => (
+            <button
+              key={i}
+              onClick={() => handleConfirmLocation(loc.lat, loc.lng, loc.address)}
+              disabled={isCheckingOut}
+              className="flex items-center gap-[13px] py-3.5 border-b border-edge-1 last:border-b-0 disabled:opacity-40 disabled:cursor-wait text-left w-full"
+            >
+              <span className="w-8 h-8 rounded-[11px] bg-surface-3 flex items-center justify-center flex-none text-content-tertiary text-[13px]">
+                {i === 0 ? "★" : "◷"}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-content truncate">{loc.address}</div>
+                <div className="text-xs text-content-muted mt-0.5">{i === 0 ? "Saved" : "Recent"}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+
         {/* Selected location confirmation */}
         <AnimatePresence>
           {selected && (
             <motion.div
-              initial={{ y: 40, opacity: 0 }}
+              initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
+              exit={{ y: 20, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
               className="space-y-3"
             >
-              <div className="p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#00bfff]/[0.1] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <MapPin className="text-[#00bfff] w-4 h-4" />
+              <div className="p-4 bg-surface-1 border border-edge-2 rounded-[18px] flex items-start gap-3">
+                <div className="w-8 h-8 rounded-[11px] bg-sosika-cyan/[0.12] flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <MapPin className="text-accent-ink w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] uppercase text-zinc-600 font-bold tracking-widest mb-0.5">Delivery to</p>
-                  <p className="text-sm text-white leading-snug font-medium truncate">{locationName}</p>
+                  <p className="font-mono text-[10px] uppercase text-content-faint font-bold tracking-[0.14em] mb-0.5">Delivery to</p>
+                  <p className="text-sm text-content leading-snug font-medium truncate">{locationName}</p>
                 </div>
               </div>
               <button
                 onClick={() => handleConfirmLocation(selected.lat, selected.lng, locationName)}
                 disabled={isCheckingOut}
-                className="w-full bg-[#00bfff] hover:bg-[#00a8e6] text-black font-bold py-4 rounded-xl shadow-lg shadow-[#00bfff]/20 active:scale-[0.98] transition-all text-sm flex items-center justify-center disabled:opacity-60 disabled:cursor-wait"
+                className="w-full bg-sosika-cyan text-on-accent font-bold py-[17px] rounded-2xl active:opacity-90 transition-opacity text-[15px] flex items-center justify-center disabled:opacity-60 disabled:cursor-wait"
               >
                 {isCheckingOut ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    <span>Processing...</span>
+                    <span>Processing…</span>
                   </>
                 ) : (
-                  isOfferFlow ? "Proceed to Checkout" : "Continue"
+                  isOfferFlow ? "Proceed to checkout" : "Deliver here"
                 )}
               </button>
             </motion.div>
