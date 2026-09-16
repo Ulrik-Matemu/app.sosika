@@ -88,7 +88,7 @@ export default function MoodSelection() {
       >
         {/* Header: wordmark + editable location chip */}
         <motion.div variants={itemVariants} className="flex items-center justify-between mb-8">
-          <h1 className="text-accent-ink font-extrabold text-[19px] tracking-[-0.02em]">
+          <h1 className="text-accent-ink font-brand font-black text-[19px] tracking-[-0.02em]">
             Sosika
           </h1>
           <div className="flex items-center gap-2">

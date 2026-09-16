@@ -14,7 +14,9 @@
  *     eyebrow itself is the accent, e.g. amber "Drop").
  *   - Numbers & money: font-mono font-bold. Amber for wallet/drop amounts,
  *     emerald for positive ledger entries.
- *   - Weight caps at font-bold / font-extrabold — no font-black.
+ *   - Weight caps at font-bold / font-extrabold — no font-black, with one
+ *     exception: the Sosika wordmark is font-brand font-black (Titillium Web
+ *     900), which is what makes it read as a mark rather than a heading.
  *   - Radii: rounded-[14px] thumbnails, rounded-2xl (16px) inputs,
  *     rounded-[18px] cards, rounded-full pills. No rounded-3xl.
  *   - One filled cyan button per screen: bg-sosika-cyan text-[#04202B]
