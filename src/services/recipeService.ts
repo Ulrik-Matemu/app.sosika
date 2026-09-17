@@ -13,7 +13,8 @@ import {
   limit,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage, functions, httpsCallable } from "../firebase";
+import { db, storage } from "../firebase";
+import { triggerDailyRecipeGeneration } from "./workerApi";
 import { Recipe, RecipeSubmissionInput, VendorMinimal, RecipeGenerationLog } from "../types/recipe";
 
 // Helper to convert title to slug
@@ -506,7 +507,7 @@ export async function getLinkedVendors(vendorIds: string[]): Promise<VendorMinim
 }
 
 /**
- * Trigger manual AI recipe generation via Cloud Function callable
+ * Trigger manual AI recipe generation via the Worker API
  */
 export async function triggerAIRecipeGeneration(resetQuota: boolean = false): Promise<{
   success: boolean;
@@ -514,9 +515,7 @@ export async function triggerAIRecipeGeneration(resetQuota: boolean = false): Pr
   details?: any;
 }> {
   try {
-    const triggerFn = httpsCallable(functions, "triggerDailyRecipeGeneration");
-    const result: any = await triggerFn({ resetQuota });
-    return result.data;
+    return await triggerDailyRecipeGeneration(resetQuota);
   } catch (err: any) {
     console.error("Failed to trigger AI recipe generation:", err);
     throw new Error(err?.message || "Failed to trigger AI recipe generation.");

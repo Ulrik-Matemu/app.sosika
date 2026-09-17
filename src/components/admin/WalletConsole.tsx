@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { db, functions, httpsCallable } from "../../firebase";
+import { db } from "../../firebase";
+import { adminCreditWallet as adminCreditWalletApi } from "../../services/workerApi";
 import {
   collection,
   doc,
@@ -110,24 +111,19 @@ export default function WalletConsole() {
 
     setSubmitting(true);
     try {
-      // Wallet writes are server-authoritative — see functions/src/wallet.ts.
+      // Wallet writes are server-authoritative — see workers/src/routes/wallet.ts.
       // This console can no longer write `wallets`/`wallet_transactions`
       // directly (Firestore rules deny it), so the credit goes through the
-      // adminCreditWallet callable, which re-validates the amount and is
-      // gated on the `admin` custom claim.
-      const adminCreditWalletFn = httpsCallable<
-        { phone: string; amount: number; description: string; type: typeof creditType },
-        { success: boolean; phone: string; balance: number }
-      >(functions, "adminCreditWallet");
-
-      const result = await adminCreditWalletFn({
+      // adminCreditWallet Worker endpoint, which re-validates the amount and
+      // is gated on the `admin` custom claim.
+      const result = await adminCreditWalletApi({
         phone: formatted,
         amount: amountNum,
         description: description || "Admin Wallet Adjustment",
         type: creditType,
       });
 
-      const newBal = result.data.balance;
+      const newBal = result.balance;
       alert(`Success! Credited TZS ${amountNum.toLocaleString()} to ${formatted}. New balance: TZS ${newBal.toLocaleString()}`);
 
       setCreditPhone("");

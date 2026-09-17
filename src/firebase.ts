@@ -3,7 +3,6 @@ import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getAnalytics, logEvent } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
-import { getFunctions, httpsCallable } from "firebase/functions";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -36,7 +35,6 @@ const auth = getAuth(app);
 const customerAuth = getAuth(customerApp);
 const provider = new GoogleAuthProvider();
 const db = getFirestore(app);
-const functions = getFunctions(app);
 const storage = getStorage(app);
 
 export const onMessageListener = () =>
@@ -56,5 +54,5 @@ export const onMessageListener = () =>
     });
   });
 
-export { messaging, getToken, onMessage, auth, customerAuth, provider, analytics, logEvent, db, functions, httpsCallable, storage };
+export { messaging, getToken, onMessage, auth, customerAuth, provider, analytics, logEvent, db, storage };
 

@@ -9,6 +9,7 @@ import {
   query
 } from "firebase/firestore";
 import { Camera, RefreshCw, ExternalLink, ShieldCheck } from "lucide-react";
+import { notifyPhotoApproved } from "../../services/workerApi";
 
 export default function PhotoModerationConsole() {
   const [submissions, setSubmissions] = useState<any[]>([]);
@@ -40,11 +41,7 @@ export default function PhotoModerationConsole() {
     try {
       const batch = writeBatch(db);
 
-      // 1. Update submission status. Flipping this to "approved" is what
-      // fires the onFoodPhotoApproved Cloud Function trigger
-      // (functions/src/wallet.ts), which credits the customer's wallet
-      // server-side using the platform-configured reward amount — this
-      // console no longer touches wallets or wallet_transactions directly.
+      // 1. Update submission status.
       const subRef = doc(db, "food_photo_submissions", sub.id);
       batch.update(subRef, { status: "approved", approvedAt: new Date() });
 
@@ -55,7 +52,24 @@ export default function PhotoModerationConsole() {
       }
 
       await batch.commit();
-      alert(`Approved! The customer's wallet will be credited shortly.`);
+
+      // 3. Tell the Worker to credit the customer's wallet. This replaced
+      // the onFoodPhotoApproved Firestore trigger — the Worker re-reads the
+      // submission and re-validates status/amount itself (see
+      // workers/src/routes/wallet.ts), so this call only needs to say
+      // "look at this one now". Unlike the old trigger, this isn't
+      // automatic: if it fails after the Firestore write above already
+      // succeeded, the photo is approved but the reward isn't credited yet,
+      // so surface that distinctly rather than a generic success toast.
+      try {
+        await notifyPhotoApproved(sub.id);
+        alert("Approved! The customer's wallet has been credited.");
+      } catch (creditErr) {
+        console.error("Wallet credit RPC failed after approval:", creditErr);
+        alert(
+          "Photo approved, but crediting the wallet failed right now. It will be healed automatically by the nightly reconciliation job within 24 hours."
+        );
+      }
       fetchSubmissions();
     } catch (err) {
       console.error("Approval error:", err);

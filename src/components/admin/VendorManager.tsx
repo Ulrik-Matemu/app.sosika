@@ -9,6 +9,7 @@ import {
   updateDoc
 } from "firebase/firestore";
 import { Vendor } from "../../pages/mood/types/types";
+import { triggerReembed } from "../../services/reembedMenuItem";
 import EditVendorModal from "./EditVendorModal";
 import {
   Store,
@@ -464,7 +465,7 @@ const AddMenuItemForm = ({ vendors }: { vendors: Vendor[] }) => {
     try {
       const imageUrl = await uploadImage(imageFile);
 
-      await addDoc(collection(db, "menuItems"), {
+      const newItemRef = await addDoc(collection(db, "menuItems"), {
         vendor_id: vendorId,
         name,
         description,
@@ -474,6 +475,7 @@ const AddMenuItemForm = ({ vendors }: { vendors: Vendor[] }) => {
         image_url: imageUrl,
         created_at: new Date(),
       });
+      triggerReembed(newItemRef.id);
 
       setSuccess("Menu item created successfully!");
       setName("");

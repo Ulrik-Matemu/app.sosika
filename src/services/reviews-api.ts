@@ -8,6 +8,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { Review } from "../pages/mood/types/types";
+import { rollupReview } from "./workerApi";
 
 /**
  * Fetches all reviews for a specific target (vendor or menu item).
@@ -32,15 +33,20 @@ export const getReviews = async (
 /**
  * Adds a review for a vendor or menu item. The target's aggregate rating
  * (ratingCount / averageRating) is recomputed server-side by the
- * onReviewCreated Cloud Function trigger (functions/src/reviews.ts) — this
- * used to run as a client-side transaction that also wrote directly to
- * `vendors`/`menuItems`, which is why those collections had to stay
- * world-writable. The client now only ever creates the review document.
+ * rollupReview Worker endpoint (workers/src/routes/reviews.ts), called right
+ * after the review doc is created — this used to run as a client-side
+ * transaction that also wrote directly to `vendors`/`menuItems`, which is
+ * why those collections had to stay world-writable. The client now only
+ * ever creates the review document; the rollup call is fire-and-forget
+ * since it only affects a display aggregate, not money.
  * @param review The review object to be added.
  */
 export const addReview = async (review: Omit<Review, "id" | "createdAt">) => {
-  await addDoc(collection(db, "reviews"), {
+  const docRef = await addDoc(collection(db, "reviews"), {
     ...review,
     createdAt: serverTimestamp(),
+  });
+  rollupReview(docRef.id).catch((err) => {
+    console.warn(`[addReview] Failed to trigger rating rollup for review ${docRef.id}:`, err);
   });
 };

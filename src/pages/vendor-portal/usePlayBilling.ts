@@ -18,7 +18,7 @@
  */
 
 import { useState, useCallback, useEffect } from "react";
-import { functions, httpsCallable } from "../../firebase";
+import { verifyVendorSubscription as verifyVendorSubscriptionApi } from "../../services/workerApi";
 
 // ── Type declarations for the Digital Goods API ──────────────────────────
 // These are not yet in the standard TypeScript DOM lib, so we declare them
@@ -164,20 +164,15 @@ export function usePlayBilling(): UsePlayBillingReturn {
         //   - Validating subscription state (expiry, payment state)
         //   - Writing subscription.tier = "premium" + features_enabled flags
         //     to the vendor's Firestore document
-        const verifySubscription = httpsCallable<
-          { purchaseToken: string; sku: string },
-          { success: boolean; message?: string }
-        >(functions, "verifyVendorSubscription");
-
-        const result = await verifySubscription({ purchaseToken, sku });
-        const verified = result.data.success;
+        const result = await verifyVendorSubscriptionApi({ purchaseToken, sku });
+        const verified = result.success;
 
         // ── 5. Complete the PaymentRequest ──────────────────────────────
         await response.complete(verified ? "success" : "fail");
 
         if (!verified) {
           throw new Error(
-            result.data.message ||
+            result.message ||
               "Subscription verification failed. Please contact support."
           );
         }

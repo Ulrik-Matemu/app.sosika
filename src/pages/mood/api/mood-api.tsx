@@ -1,17 +1,7 @@
-import { db, functions, httpsCallable } from "../../../firebase";
+import { db } from "../../../firebase";
 import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { Vendor, MenuItem } from "../types/types";
-
-interface SemanticSearchResponse {
-  degraded: boolean;
-  reason?: string;
-  ranked: { id: string; score: number }[];
-}
-
-const semanticSearchCallable = httpsCallable<
-  { query: string; candidateItemIds: string[] },
-  SemanticSearchResponse
->(functions, "semanticSearchMenuItems");
+import { semanticSearchMenuItems } from "../../../services/workerApi";
 
 // Moods that are category buckets rather than free-text cravings — there's
 // no meaningful embedding for "nearby" or "any", so skip the semantic call.
@@ -60,10 +50,10 @@ async function applySemanticRanking(
   try {
     const candidateItemIds = allNearbyItems.slice(0, MAX_SEMANTIC_CANDIDATES).map((i) => i.id);
     const res = await withTimeout(
-      semanticSearchCallable({ query: mood, candidateItemIds }),
+      semanticSearchMenuItems({ query: mood, candidateItemIds }),
       SEMANTIC_TIMEOUT_MS
     );
-    const { degraded, ranked } = res.data;
+    const { degraded, ranked } = res;
     if (degraded || ranked.length === 0) return degradedRanking(mergedItems);
 
     const scoreMap = new Map(ranked.map((r) => [r.id, r.score]));
