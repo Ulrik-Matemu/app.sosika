@@ -11,7 +11,6 @@ import {
   fetchGeminiQuotaStatus,
   resetGeminiQuotaFlag,
 } from "../../services/recipeService";
-import AdminLogin from "../../components/my-components/AdminLogin";
 import {
   CheckCircle,
   XCircle,
@@ -33,7 +32,6 @@ interface AdminRecipesQueueProps {
 }
 
 export default function AdminRecipesQueue({ embedded = false }: AdminRecipesQueueProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [activeFilter, setActiveFilter] = useState<"pending_review" | "published" | "rejected">("pending_review");
   const [loading, setLoading] = useState(true);
@@ -182,11 +180,8 @@ export default function AdminRecipesQueue({ embedded = false }: AdminRecipesQueu
     }
   };
 
-  // If standalone route and not authenticated, render AdminLogin
-  if (!embedded && !isAuthenticated) {
-    return <AdminLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
-  }
-
+  // Auth is enforced by AdminAuthGuard at the route level (App.tsx) for the
+  // standalone /admin/recipes path, and by AdminDashboard for the embedded tab.
   return (
     <div className="space-y-6 text-white font-sans">
       {/* Standalone Top Header */}

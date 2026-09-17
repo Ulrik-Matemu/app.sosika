@@ -1,3 +1,35 @@
+/*
+ * Design language — "Sosika Customer Flow" canvas, direction 1a ("Counter")
+ * https://claude.ai/design/p/1642cb84-c7b7-45db-a7f8-1ce413aea347
+ *
+ * One ground, one surface scale, cyan reserved for exactly one primary
+ * action per screen. Every customer screen should follow these rules:
+ *
+ *   - Ground: bg-ground. Never a hardcoded #0a0a0b / bg-zinc-900.
+ *   - Surfaces: bg-surface-1 | bg-surface-2 | bg-surface-3 (three steps only).
+ *   - Borders: border-edge-1 | border-edge-2 | border-edge-3.
+ *   - Text: text-content, then -secondary / -tertiary / -muted / -faint.
+ *   - Eyebrow labels: font-mono text-[10px] font-bold uppercase
+ *     tracking-[0.14em] text-content-faint (or the accent colour when the
+ *     eyebrow itself is the accent, e.g. amber "Drop").
+ *   - Numbers & money: font-mono font-bold. Amber for wallet/drop amounts,
+ *     emerald for positive ledger entries.
+ *   - Weight caps at font-bold / font-extrabold — no font-black, with one
+ *     exception: the Sosika wordmark is font-brand font-black (Titillium Web
+ *     900), which is what makes it read as a mark rather than a heading.
+ *   - Radii: rounded-[14px] thumbnails, rounded-2xl (16px) inputs,
+ *     rounded-[18px] cards, rounded-full pills. No rounded-3xl.
+ *   - One filled cyan button per screen: bg-sosika-cyan text-[#04202B]
+ *     font-bold rounded-2xl py-4. Everything else is a secondary surface
+ *     button or a plain link.
+ *   - Page shell: min-h-screen bg-ground text-content pb-28, content capped
+ *     at max-w-md mx-auto px-5 (mobile-first, centered on desktop).
+ *
+ * The tokens behind these utilities live in src/index.css, which also carries
+ * the light theme and the glass/solid surface style. Prefer the <Surface>
+ * primitive (src/components/ui/surface.tsx) over hand-rolling a card.
+ */
+
 body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -22,9 +54,9 @@ body {
 
 .skeleton-shimmer {
   background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.03) 25%,
-      rgba(255, 255, 255, 0.08) 50%,
-      rgba(255, 255, 255, 0.03) 75%);
+      var(--shimmer-from) 25%,
+      var(--shimmer-to) 50%,
+      var(--shimmer-from) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
@@ -67,7 +99,7 @@ body {
   transform-origin: bottom center;
 }
 
-/* Custom scrollbar for dark theme */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -78,12 +110,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scrollbar);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--scrollbar-hover);
 }
 
 /* Hide scrollbar for horizontal scroll containers */
@@ -126,4 +158,14 @@ body {
 
 .animate-pulse-glow {
   animation: pulseGlow 2.5s ease-in-out infinite;
+}
+/*
+ * Glass surfaces. One token drives every card's blur, so the Settings
+ * glass/solid switch is a single variable change rather than a class sweep.
+ * Sticky chrome and modal scrims keep their own literal backdrop-blur — they
+ * must stay translucent in both surface styles to remain legible over content.
+ */
+.glass {
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }

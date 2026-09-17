@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AdminLogin from "../../components/my-components/AdminLogin";
+import AdminAuthGuard from "../../components/my-components/AdminAuthGuard";
 import OverviewMetrics from "../../components/admin/OverviewMetrics";
 import LiveOrdersConsole from "../../components/admin/LiveOrdersConsole";
 import VendorManager from "../../components/admin/VendorManager";
@@ -34,14 +34,11 @@ import {
 type AdminTab = "overview" | "orders" | "vendors" | "menu" | "featured" | "promotions" | "notifications" | "pricing" | "geomap" | "freepass" | "photos" | "wallet" | "recipes";
 
 export default function AdminDashboard() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
 
-  if (!isAuthenticated) {
-    return <AdminLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
-  }
-
   return (
+    <AdminAuthGuard>
+      {({ logout }) => (
     <div className="min-h-screen bg-[#0a0a0b] text-white font-sans antialiased pb-24">
       {/* Admin Top Sticky Navigation Header */}
       <header className="sticky top-0 z-40 bg-[#0a0a0b]/95 backdrop-blur-xl border-b border-white/[0.08] px-3 sm:px-6 py-3.5">
@@ -65,7 +62,7 @@ export default function AdminDashboard() {
 
             {/* Lock Button */}
             <button
-              onClick={() => setIsAuthenticated(false)}
+              onClick={() => { void logout(); }}
               className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition-all cursor-pointer shrink-0"
               title="Lock Admin Console"
             >
@@ -252,5 +249,7 @@ export default function AdminDashboard() {
         {activeTab === "wallet" && <WalletConsole />}
       </main>
     </div>
+      )}
+    </AdminAuthGuard>
   );
 }

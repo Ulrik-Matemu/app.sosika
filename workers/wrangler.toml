@@ -1,0 +1,21 @@
+name = "sosika-api"
+main = "src/index.ts"
+compatibility_date = "2025-02-04"
+
+[vars]
+FIREBASE_PROJECT_ID = "sosika-6442a"
+ANDROID_PACKAGE_NAME = "app.sosika"
+
+[triggers]
+crons = ["0 3 * * *"]
+
+# Secrets (set via `wrangler secret put <NAME>`, never written here):
+#   GEMINI_API_KEY
+#   MESEJI_API_KEY
+#   PLAY_SERVICE_ACCOUNT_KEY
+#   FIRESTORE_SERVICE_ACCOUNT_KEY
+
+
+[[kv_namespaces]]
+binding = "ACCESS_TOKEN_CACHE"
+id = "5bc5251ccc48484ca32f09a6cf96c6c8"

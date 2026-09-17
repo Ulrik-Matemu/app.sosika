@@ -2,6 +2,13 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onCall } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
+import { assertIsAdmin } from "./adminGuard";
+import {
+  callGeminiWithFallback,
+  clearGeminiQuotaFlag,
+  isGeminiQuotaExhaustedToday,
+  markGeminiQuotaExhaustedToday,
+} from "./lib/gemini";
 
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
@@ -24,10 +31,6 @@ function slugify(text: string): string {
 // Loose normalize for dedup comparisons: lowercase, strip punctuation/whitespace
 function normalizeForDedup(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 interface RawAIRecipe {
@@ -156,115 +159,6 @@ async function generateRecipeImageUrl(
 }
 
 // ---------------------------------------------------------------------------
-// Quota circuit breaker: once we detect a 429 (quota/rate-limit) from
-// Gemini, persist a flag with today's date so subsequent calls — whether
-// from the scheduled job or an admin manually testing — short-circuit
-// immediately instead of burning further failed requests against a
-// depleted free-tier quota.
-// ---------------------------------------------------------------------------
-
-function todayKey(): string {
-  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
-}
-
-async function isQuotaExhaustedToday(db: FirebaseFirestore.Firestore): Promise<boolean> {
-  const doc = await db.collection("systemFlags").doc("geminiQuota").get();
-  if (!doc.exists) return false;
-  const data = doc.data();
-  return data?.exhaustedDate === todayKey();
-}
-
-async function markQuotaExhaustedToday(db: FirebaseFirestore.Firestore): Promise<void> {
-  await db.collection("systemFlags").doc("geminiQuota").set({
-    exhaustedDate: todayKey(),
-    markedAt: admin.firestore.FieldValue.serverTimestamp(),
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Gemini call with ordered fallback + retry-on-transient-error.
-// Models ordered by current free-tier availability, cheapest/fastest first.
-// A 429 anywhere in the chain stops the whole chain immediately (quota is
-// almost always account-wide, not per-model) rather than wasting fallback
-// attempts. Other errors (5xx, network) get one retry with backoff before
-// moving to the next model.
-// ---------------------------------------------------------------------------
-
-interface GeminiCallResult {
-  text: string | null;
-  quotaExhausted: boolean;
-  errors: string[];
-}
-
-async function callGeminiWithFallback(apiKey: string, prompt: string): Promise<GeminiCallResult> {
-  // NOTE: verify current free-tier model names before deploying — Google
-  // periodically renames/deprecates models. As of writing, Flash-tier
-  // models are the free-tier-eligible ones; do not assume a model name
-  // without checking current docs.
-  const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
-  const errors: string[] = [];
-
-  for (const modelName of modelsToTry) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-    const maxAttemptsForThisModel = 2; // 1 initial + 1 retry on transient failure
-
-    for (let attempt = 1; attempt <= maxAttemptsForThisModel; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30000);
-        const resp = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-              temperature: 0.7,
-            },
-          }),
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
-
-        if (resp.status === 429) {
-          const errText = await resp.text();
-          errors.push(`Model ${modelName} rate-limited (429): ${errText}`);
-          console.warn(`[callGeminiWithFallback] 429 from ${modelName} — stopping fallback chain, quota likely exhausted.`);
-          return { text: null, quotaExhausted: true, errors };
-        }
-
-        if (resp.ok) {
-          const respJson: any = await resp.json();
-          const candidateText = respJson?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (candidateText) {
-            return { text: candidateText, quotaExhausted: false, errors };
-          }
-          errors.push(`Model ${modelName} returned 200 but no candidate text (possibly safety-filtered).`);
-          break; // don't retry same model on empty content, move to next model
-        }
-
-        // 5xx or other transient-looking errors: retry once, then move on
-        const errText = await resp.text();
-        errors.push(`Model ${modelName} attempt ${attempt} returned status ${resp.status}: ${errText}`);
-        if (attempt < maxAttemptsForThisModel && resp.status >= 500) {
-          await sleep(1500 * attempt); // simple backoff
-          continue;
-        }
-        break; // permanent-looking error (4xx other than 429), move to next model
-      } catch (err: any) {
-        errors.push(`Model ${modelName} attempt ${attempt} threw: ${err?.message || err}`);
-        if (attempt < maxAttemptsForThisModel) {
-          await sleep(1500 * attempt);
-          continue;
-        }
-      }
-    }
-  }
-
-  return { text: null, quotaExhausted: false, errors };
-}
-
-// ---------------------------------------------------------------------------
 // Dedup check: compares normalized title+country+subcategory against
 // existing recipes so the AI doesn't keep re-adding "Chapati" every run.
 // This is a cheap in-memory check against a targeted query rather than
@@ -323,7 +217,7 @@ async function runDailyRecipeGenerationJob(): Promise<{
   };
 
   // 0. Circuit breaker: skip entirely if we already know quota is dead today
-  if (await isQuotaExhaustedToday(db)) {
+  if (await isGeminiQuotaExhaustedToday(db)) {
     const msg = "Skipping run: Gemini free-tier quota already marked exhausted today.";
     console.log(`[runDailyRecipeGenerationJob] ${msg}`);
     errors.push(msg);
@@ -390,7 +284,7 @@ JSON Schema required:
   errors.push(...callResult.errors);
 
   if (callResult.quotaExhausted) {
-    await markQuotaExhaustedToday(db);
+    await markGeminiQuotaExhaustedToday(db);
     return await logAndReturn(true);
   }
 
@@ -487,20 +381,6 @@ JSON Schema required:
 }
 
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-// Reset Quota Flag Helper
-// ---------------------------------------------------------------------------
-
-export async function clearQuotaFlag(db: FirebaseFirestore.Firestore): Promise<void> {
-  try {
-    await db.collection("systemFlags").doc("geminiQuota").delete();
-    console.log("[clearQuotaFlag] System quota flag cleared.");
-  } catch (err: any) {
-    console.warn("[clearQuotaFlag] Failed to clear quota flag:", err?.message || err);
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Scheduled Cloud Function (Daily Cron Job at 03:00 UTC)
 // ---------------------------------------------------------------------------
 
@@ -522,14 +402,16 @@ export const generateDailyRecipes = onSchedule(
 // ---------------------------------------------------------------------------
 
 export const triggerDailyRecipeGeneration = onCall(
-  { secrets: [geminiApiKey] },
+  { cors: true, secrets: [geminiApiKey] },
   async (request) => {
+    assertIsAdmin(request);
+
     const db = admin.firestore();
     const data = request.data || {};
 
     if (data.resetQuota) {
       console.log("[triggerDailyRecipeGeneration] Admin requested resetting quota flag...");
-      await clearQuotaFlag(db);
+      await clearGeminiQuotaFlag(db);
     }
 
     const result = await runDailyRecipeGenerationJob();

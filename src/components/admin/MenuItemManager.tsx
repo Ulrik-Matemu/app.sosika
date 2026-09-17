@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 import { Vendor, MenuItem } from "../../pages/mood/types/types";
 import { uploadToCloudinary } from "../../services/cloudinary";
+import { triggerReembed } from "../../services/reembedMenuItem";
 import {
   UtensilsCrossed,
   Search,
@@ -229,6 +230,7 @@ export default function MenuItemManager() {
       }
 
       await updateDoc(docRef, updatePayload);
+      triggerReembed(editingItem.id);
 
       setEditingItem(null);
       fetchData();

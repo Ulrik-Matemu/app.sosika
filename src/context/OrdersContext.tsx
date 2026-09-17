@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db, auth } from "../firebase";
+import { db, customerAuth } from "../firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
+import { phoneVariations } from "../lib/phone";
 
 export interface OrderRecord {
   orderId: string;
@@ -27,25 +28,7 @@ interface OrdersContextType {
   disconnectPhone: () => void;
 }
 
-export const getPhoneVariations = (rawPhone: string): string[] => {
-  const digits = rawPhone.replace(/\D/g, "").trim();
-  if (!digits) return [];
-
-  const baseDigits = digits.startsWith("255")
-    ? digits.substring(3)
-    : digits.startsWith("0")
-    ? digits.substring(1)
-    : digits;
-
-  const variations = new Set<string>();
-  variations.add(`+255${baseDigits}`);
-  variations.add(`255${baseDigits}`);
-  variations.add(`0${baseDigits}`);
-  variations.add(baseDigits);
-  variations.add(rawPhone.trim());
-
-  return Array.from(variations).filter(Boolean);
-};
+export const getPhoneVariations = (rawPhone: string): string[] => phoneVariations(rawPhone);
 
 const getLocalOrders = (): OrderRecord[] => {
   const localList: OrderRecord[] = [];
@@ -69,7 +52,7 @@ const getLocalOrders = (): OrderRecord[] => {
 const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
 
 export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [user, setUser] = useState<User | null>(customerAuth.currentUser);
   const [orders, setOrders] = useState<OrderRecord[]>(() => {
     // Initial sync from local storage for instant render
     const local = getLocalOrders();
@@ -85,7 +68,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [customPhone, setCustomPhone] = useState<string | null>(() => localStorage.getItem("guestPhone"));
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(customerAuth, (u) => {
       setUser(u);
     });
     return () => unsub();
@@ -108,9 +91,9 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     setLoading(true);
-    const phoneVariations = getPhoneVariations(activePhone);
+    const variations = getPhoneVariations(activePhone);
 
-    if (phoneVariations.length === 0) {
+    if (variations.length === 0) {
       setLoading(false);
       return;
     }
@@ -118,7 +101,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Index-safe multi-format query using 'in' operator (up to 10 variations)
     const q = query(
       collection(db, "orders"),
-      where("phone", "in", phoneVariations.slice(0, 10))
+      where("phone", "in", variations.slice(0, 10))
     );
 
     const unsubscribe = onSnapshot(

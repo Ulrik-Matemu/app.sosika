@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { db, functions, httpsCallable } from "../../firebase";
+import { db } from "../../firebase";
+import { sendNotification as sendNotificationApi } from "../../services/workerApi";
 import { collection, query, orderBy, limit, onSnapshot, getDocs } from "firebase/firestore";
 import {
   Bell,
@@ -99,8 +100,7 @@ export default function NotificationConsole() {
     setStatusMessage(null);
 
     try {
-      const sendNotificationCallable = httpsCallable(functions, "sendNotification");
-      const result: any = await sendNotificationCallable({
+      const result = await sendNotificationApi({
         title,
         body,
         icon: icon.trim() || undefined,
@@ -109,10 +109,10 @@ export default function NotificationConsole() {
         targetValue: targetValue.trim() || undefined,
       });
 
-      if (result.data?.success) {
+      if (result?.success) {
         setStatusMessage({
           type: "success",
-          text: `Notification sent successfully! (Delivered: ${result.data.successCount ?? 1}, Failed: ${result.data.failureCount ?? 0})`,
+          text: `Notification sent successfully! (Delivered: ${result.successCount ?? 1}, Failed: ${result.failureCount ?? 0})`,
         });
         // Reset form
         setTitle("");
@@ -121,10 +121,10 @@ export default function NotificationConsole() {
         setUrl("");
         setTargetValue("");
       } else {
-        setStatusMessage({ type: "error", text: result.data?.message || "Failed to send notification." });
+        setStatusMessage({ type: "error", text: "Failed to send notification." });
       }
     } catch (err: any) {
-      console.error("Error sending notification via Cloud Function:", err);
+      console.error("Error sending notification via Worker API:", err);
       setStatusMessage({
         type: "error",
         text: err?.message || "Error calling sendNotification Cloud Function. Please ensure Cloud Functions are deployed.",

@@ -6,6 +6,7 @@ import { collection, serverTimestamp, doc, getDoc, runTransaction, setDoc } from
 import { useLocationStorage } from './useLocationStorage';
 import { calculateDistance, fetchVendorGeolocation } from '../pages/mood/api/mood-api';
 import posthog from './../lib/posthog';
+import { toDigits } from '../lib/phone';
 import { sendMesejiSMS } from '../services/meseji';
 import { usePlatformConfig } from './usePlatformConfig';
 
@@ -85,17 +86,12 @@ export const DELIVERY_OPTIONS: DeliveryOption[] = [
   }
 ];
 
-export const formatTZPhoneNumber = (rawPhone: string): string => {
-  let cleaned = rawPhone.replace(/\D/g, ''); // Remove non-digits
-
-  if (cleaned.startsWith('0')) {
-    cleaned = '255' + cleaned.substring(1);
-  } else if (/^[678]/.test(cleaned)) {
-    cleaned = '255' + cleaned;
-  }
-
-  return cleaned;
-};
+/**
+ * Digits-only form, `255…`. This is the shape `freeDeliveryPass/{phone}` and
+ * the `orders.phone` field are already written in, so it stays — only the
+ * parsing is shared now (src/lib/phone.ts).
+ */
+export const formatTZPhoneNumber = (rawPhone: string): string => toDigits(rawPhone);
 
 export function useCart() {
   const { locations } = useLocationStorage();
@@ -628,12 +624,12 @@ export function useCart() {
       const ADMIN_PHONES = '255778903468'; // Remember to return Abbas
       const adminSMSMessage = `New Sosika Order!\nOrder ID: ${docRef.id}\nVendor: ${vendorName}\nItems: ${adminItemsText}\nTotal: TZS ${orderTotal}\nCustomer: +${formattedPhone}\nLocation: ${displayLocation}`;
 
-      sendMesejiSMS(ADMIN_PHONES, adminSMSMessage);
+      sendMesejiSMS(ADMIN_PHONES, adminSMSMessage, docRef.id);
 
       // C. Send order confirmation to Customer
       const customerSMSMessage = `Habari! Oda yako ya Sosika imepokelewa kwa ufanisi.\nOda ID: ${docRef.id}\nJumla: TZS ${orderTotal}\nTunakujulisha punde itakapothibitishwa. Ahsante!`;
 
-      sendMesejiSMS(formattedPhone, customerSMSMessage);
+      sendMesejiSMS(formattedPhone, customerSMSMessage, docRef.id);
 
       // D. Send SMS notification to Premium Vendors (subscription-gated)
       for (const vid of uniqueVendorIds) {
@@ -656,7 +652,7 @@ export function useCart() {
                 const vName = vData?.name || vData?.listing_data?.name || 'Vendor';
                 const vendorSMSMessage = `Sosika: ${vName} unayo Oda Mpya! 🔔\nOda: ${docRef.id}\nBidhaa: ${vendorItemsText}\nJumla: TZS ${orderTotal}\nMteja: +${formattedPhone}\nMahali: ${displayLocation}\nFungua Sosika Console kuthibitisha.`;
 
-                sendMesejiSMS(formattedVendorPhone, vendorSMSMessage);
+                sendMesejiSMS(formattedVendorPhone, vendorSMSMessage, docRef.id);
               }
             }
           }

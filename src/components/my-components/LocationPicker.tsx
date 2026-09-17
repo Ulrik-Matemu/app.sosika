@@ -161,11 +161,11 @@ export default function LocationPickerModal({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-[#ededed] dark:bg-[#121212] p-3 rounded-lg shadow-lg w-[90%] max-w-md">
+            <div className="bg-elevated dark:bg-elevated p-3 rounded-lg shadow-lg w-[90%] max-w-md">
                 <div className="flex justify-between items-center">
-                    <h2 className="text-lg font-bold text-[#00bfff]">Select Location</h2>
+                    <h2 className="text-lg font-bold text-accent-ink">Select Location</h2>
                     <button onClick={onClose}>
-                        <X className="h-5 w-5 text-gray-600 dark:text-white" />
+                        <X className="h-5 w-5 text-content-muted" />
                     </button>
                 </div>
 
@@ -176,16 +176,16 @@ export default function LocationPickerModal({
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search location..."
-                            className="w-full p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#00bfff] dark:bg-[#1a1a1a] dark:text-white"
+                            className="w-full p-2 rounded border border-edge-2 bg-surface-2 text-content focus:outline-none focus:ring-2 focus:ring-sosika-cyan dark:bg-elevated dark:text-content"
                         />
 
                         {searchResults.length > 0 && (
-                            <ul className="absolute z-20 bg-white dark:bg-[#1a1a1a] border border-gray-300 rounded mt-1 w-full max-h-40 overflow-y-auto shadow">
+                            <ul className="absolute z-20 bg-elevated border border-edge-2 rounded mt-1 w-full max-h-40 overflow-y-auto shadow">
                                 {searchResults.map((result) => (
                                     <li
                                         key={result.id}
                                         onClick={() => handleResultClick(result)}
-                                        className="p-2 hover:bg-[#f0f8ff] dark:hover:bg-[#2a2a2a] cursor-pointer text-sm"
+                                        className="p-2 hover:bg-elevated dark:hover:bg-elevated cursor-pointer text-sm"
                                     >
                                         {result.place_name}
                                     </li>
@@ -222,7 +222,7 @@ export default function LocationPickerModal({
                     }}
                     className={`mt-4 w-full ${buttonSuccess
                         ? 'bg-green-500 hover:bg-green-600'
-                        : 'bg-[#00bfff] hover:bg-[#0099cc]'
+                        : 'bg-sosika-cyan hover:bg-sosika-cyan'
                         } text-black py-2 px-4 rounded text-center font-semibold transition-colors duration-300`}
                 >
                     {address

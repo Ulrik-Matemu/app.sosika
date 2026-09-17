@@ -94,7 +94,7 @@ export const FeaturedItemsCarousel: React.FC<FeaturedItemsCarouselProps> = ({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-white/[0.08] shadow-lg shadow-black/30 select-none ${
+      className={`relative overflow-hidden rounded-2xl border border-edge-2 shadow-lg shadow-black/30 select-none ${
         isFullWidth ? "col-span-2 h-[200px]" : "h-[200px]"
       }`}
     >
@@ -128,14 +128,14 @@ export const FeaturedItemsCarousel: React.FC<FeaturedItemsCarouselProps> = ({
               draggable={false}
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/15 via-zinc-900 to-[#00bfff]/10" />
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/15 via-ground to-sosika-cyan/10" />
           )}
           {/* Gradient overlays */}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
           <div className="absolute inset-0 bg-black/20" />
 
           {/* Floating "Featured" pill — top-left, minimal */}
-          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/10">
+          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-edge-3">
             <Flame className="w-2.5 h-2.5 text-amber-400" />
             <span className="text-[8px] font-bold text-amber-300/90 uppercase tracking-wider">
               Featured
@@ -144,14 +144,14 @@ export const FeaturedItemsCarousel: React.FC<FeaturedItemsCarouselProps> = ({
 
           {/* Bottom Content */}
           <div className="relative z-10 p-3 pr-10">
-            <p className="text-[8px] font-semibold text-zinc-400 truncate uppercase tracking-wide mb-0.5">
+            <p className="text-[8px] font-semibold text-content-tertiary truncate uppercase tracking-wide mb-0.5">
               {vendorName}
             </p>
-            <h4 className="text-[13px] font-bold text-white leading-tight truncate">
+            <h4 className="text-[13px] font-bold text-content leading-tight truncate">
               {currentItem.name}
             </h4>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[#00bfff] text-xs font-extrabold">
+              <span className="text-accent-ink text-xs font-extrabold">
                 {Number(currentItem.price).toLocaleString()} TZS
               </span>
               {!isVendorOpen && (
@@ -171,8 +171,8 @@ export const FeaturedItemsCarousel: React.FC<FeaturedItemsCarouselProps> = ({
               isAdded
                 ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/40 scale-110"
                 : !canAdd
-                ? "bg-zinc-800/60 text-zinc-600 border border-white/5 cursor-not-allowed"
-                : "bg-[#00bfff] text-black hover:bg-[#33ccff] active:scale-90 shadow-lg shadow-[#00bfff]/30"
+                ? "bg-content-faint/60 text-content-faint border border-white/5 cursor-not-allowed"
+                : "bg-sosika-cyan text-black hover:bg-sosika-cyan active:scale-90 shadow-lg shadow-sosika-cyan/30"
             }`}
             aria-label={!canAdd ? "Unavailable" : `Add ${currentItem.name}`}
           >

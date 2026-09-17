@@ -5,11 +5,11 @@ import {
   getDocs,
   writeBatch,
   doc,
-  getDoc,
   updateDoc,
   query
 } from "firebase/firestore";
 import { Camera, RefreshCw, ExternalLink, ShieldCheck } from "lucide-react";
+import { notifyPhotoApproved } from "../../services/workerApi";
 
 export default function PhotoModerationConsole() {
   const [submissions, setSubmissions] = useState<any[]>([]);
@@ -41,43 +41,35 @@ export default function PhotoModerationConsole() {
     try {
       const batch = writeBatch(db);
 
-      // 1. Update submission status
+      // 1. Update submission status.
       const subRef = doc(db, "food_photo_submissions", sub.id);
       batch.update(subRef, { status: "approved", approvedAt: new Date() });
 
-      // 2. Credit customer wallet
-      const targetPhone = sub.phone;
-      const walletRef = doc(db, "wallets", targetPhone);
-      const walletSnap = await getDoc(walletRef);
-      const currentBal = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
-      const rewardAmt = sub.rewardAmount || 1000;
-
-      batch.set(
-        walletRef,
-        { phone: targetPhone, balance: currentBal + rewardAmt, updatedAt: new Date() },
-        { merge: true }
-      );
-
-      // 3. Log transaction
-      const txRef = doc(collection(db, "wallet_transactions"));
-      batch.set(txRef, {
-        id: txRef.id,
-        phone: targetPhone,
-        amount: rewardAmt,
-        type: "photo_reward",
-        description: `Reward for food photo upload (${sub.menuItemName})`,
-        referenceId: sub.id,
-        timestamp: new Date(),
-      });
-
-      // 4. Optionally update menu item official photo
+      // 2. Optionally update menu item official photo
       if (setAsOfficialImage && sub.menuItemId) {
         const itemRef = doc(db, "menuItems", sub.menuItemId);
         batch.update(itemRef, { image_url: sub.imageUrl, is_available: true });
       }
 
       await batch.commit();
-      alert(`Approved! TZS ${rewardAmt.toLocaleString()} credited to ${targetPhone}.`);
+
+      // 3. Tell the Worker to credit the customer's wallet. This replaced
+      // the onFoodPhotoApproved Firestore trigger — the Worker re-reads the
+      // submission and re-validates status/amount itself (see
+      // workers/src/routes/wallet.ts), so this call only needs to say
+      // "look at this one now". Unlike the old trigger, this isn't
+      // automatic: if it fails after the Firestore write above already
+      // succeeded, the photo is approved but the reward isn't credited yet,
+      // so surface that distinctly rather than a generic success toast.
+      try {
+        await notifyPhotoApproved(sub.id);
+        alert("Approved! The customer's wallet has been credited.");
+      } catch (creditErr) {
+        console.error("Wallet credit RPC failed after approval:", creditErr);
+        alert(
+          "Photo approved, but crediting the wallet failed right now. It will be healed automatically by the nightly reconciliation job within 24 hours."
+        );
+      }
       fetchSubmissions();
     } catch (err) {
       console.error("Approval error:", err);

@@ -39,11 +39,12 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.triggerDailyRecipeGeneration = exports.generateDailyRecipes = exports.sendNotification = exports.verifyVendorSubscription = void 0;
+exports.semanticSearchMenuItems = exports.onMenuItemWrittenEmbed = exports.sendSms = exports.onReviewCreated = exports.adminCreditWallet = exports.onFoodPhotoApproved = exports.triggerDailyRecipeGeneration = exports.generateDailyRecipes = exports.sendNotification = exports.verifyVendorSubscription = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const params_1 = require("firebase-functions/params");
 const admin = __importStar(require("firebase-admin"));
 const googleapis_1 = require("googleapis");
+const adminGuard_1 = require("./adminGuard");
 admin.initializeApp();
 // Secret holding the Google Play Service Account JSON key (optional if using default GCP ADC)
 const playServiceAccount = (0, params_1.defineSecret)("PLAY_SERVICE_ACCOUNT_KEY");
@@ -54,7 +55,7 @@ const playServiceAccount = (0, params_1.defineSecret)("PLAY_SERVICE_ACCOUNT_KEY"
  * Validates Google Play purchase token via Google Developer API (androidpublisher v3)
  * and grants `tier: "premium"` + feature flags in Firestore upon success.
  */
-exports.verifyVendorSubscription = (0, https_1.onCall)({ secrets: [playServiceAccount] }, async (request) => {
+exports.verifyVendorSubscription = (0, https_1.onCall)({ cors: true, secrets: [playServiceAccount] }, async (request) => {
     // 1. Authenticate vendor user
     if (!request.auth) {
         throw new https_1.HttpsError("unauthenticated", "Vendor user must be authenticated to verify subscriptions.");
@@ -64,7 +65,7 @@ exports.verifyVendorSubscription = (0, https_1.onCall)({ secrets: [playServiceAc
         throw new https_1.HttpsError("invalid-argument", "Both 'purchaseToken' and 'sku' are required fields.");
     }
     const vendorId = request.auth.uid;
-    const packageName = customPackageName || process.env.ANDROID_PACKAGE_NAME || "app.sosika.twa";
+    const packageName = customPackageName || process.env.ANDROID_PACKAGE_NAME || "app.sosika";
     try {
         // 2. Initialize Google Play Publisher API client
         let auth;
@@ -168,7 +169,8 @@ exports.verifyVendorSubscription = (0, https_1.onCall)({ secrets: [playServiceAc
  *
  * Callable Cloud Function triggered from Admin Dashboard to send FCM push notifications.
  */
-exports.sendNotification = (0, https_1.onCall)(async (request) => {
+exports.sendNotification = (0, https_1.onCall)({ cors: true }, async (request) => {
+    (0, adminGuard_1.assertIsAdmin)(request);
     const { title, body, icon, url, targetType, targetValue } = request.data;
     if (!title || !body) {
         throw new https_1.HttpsError("invalid-argument", "Both 'title' and 'body' are required fields.");
@@ -194,7 +196,7 @@ exports.sendNotification = (0, https_1.onCall)(async (request) => {
             url: url || null,
             targetType,
             targetValue: targetValue || null,
-            sentBy: request.auth?.uid || "admin",
+            sentBy: request.auth.uid,
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
         });
         // 2. Dispatch based on audience targeting
@@ -255,4 +257,20 @@ exports.sendNotification = (0, https_1.onCall)(async (request) => {
 var generateDailyRecipes_1 = require("./generateDailyRecipes");
 Object.defineProperty(exports, "generateDailyRecipes", { enumerable: true, get: function () { return generateDailyRecipes_1.generateDailyRecipes; } });
 Object.defineProperty(exports, "triggerDailyRecipeGeneration", { enumerable: true, get: function () { return generateDailyRecipes_1.triggerDailyRecipeGeneration; } });
+// Export server-authoritative wallet operations (photo-reward crediting,
+// admin manual top-ups/adjustments)
+var wallet_1 = require("./wallet");
+Object.defineProperty(exports, "onFoodPhotoApproved", { enumerable: true, get: function () { return wallet_1.onFoodPhotoApproved; } });
+Object.defineProperty(exports, "adminCreditWallet", { enumerable: true, get: function () { return wallet_1.adminCreditWallet; } });
+// Export the review-rating rollup trigger
+var reviews_1 = require("./reviews");
+Object.defineProperty(exports, "onReviewCreated", { enumerable: true, get: function () { return reviews_1.onReviewCreated; } });
+// Export the server-side SMS relay
+var sms_1 = require("./sms");
+Object.defineProperty(exports, "sendSms", { enumerable: true, get: function () { return sms_1.sendSms; } });
+// Export the menu-item embedding indexer and semantic search callable
+var menuEmbeddings_1 = require("./menuEmbeddings");
+Object.defineProperty(exports, "onMenuItemWrittenEmbed", { enumerable: true, get: function () { return menuEmbeddings_1.onMenuItemWrittenEmbed; } });
+var semanticSearch_1 = require("./semanticSearch");
+Object.defineProperty(exports, "semanticSearchMenuItems", { enumerable: true, get: function () { return semanticSearch_1.semanticSearchMenuItems; } });
 //# sourceMappingURL=index.js.map

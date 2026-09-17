@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { usePlayBilling } from "./usePlayBilling";
 import { uploadToCloudinary } from "../../services/cloudinary";
+import { triggerReembed } from "../../services/reembedMenuItem";
 import { GoogleMap, Autocomplete } from "@react-google-maps/api";
 import { useMapLoader } from "../../services/map-provider";
 
@@ -1927,9 +1928,11 @@ function MenuCatalogueView({ menuItems, vendorId }: { menuItems: any[]; vendorId
           return;
         }
         await updateDoc(doc(db, "menuItems", editingItem.id), payload);
+        triggerReembed(editingItem.id);
         toast({ title: "Catalog updated", description: "Reference adjusted securely." });
       } else {
-        await addDoc(collection(db, "menuItems"), { ...payload, created_at: serverTimestamp() });
+        const newItemRef = await addDoc(collection(db, "menuItems"), { ...payload, created_at: serverTimestamp() });
+        triggerReembed(newItemRef.id);
         toast({ title: "Catalog insertion completed", description: "Menu entry is now live globally." });
       }
       setShowForm(false);

@@ -4,9 +4,7 @@ import { motion } from "framer-motion";
 import {
   ChevronLeft,
   Clock,
-  MapPin,
   Check,
-  Flame,
   Sparkles,
   Phone,
   Copy,
@@ -14,12 +12,12 @@ import {
   Wallet,
   Coins,
   ShieldCheck,
-  Utensils,
 } from "lucide-react";
 import { collection, getDocs, getDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../firebase";
 import { MenuItem, Vendor } from "../mood/types/types";
 import { useLocationStorage } from "../../hooks/useLocationStorage";
+import { useDropCountdown } from "../../hooks/useDropCountdown";
 import { useWallet } from "../../context/WalletContext";
 import { usePlatformConfig } from "../../hooks/usePlatformConfig";
 import { formatTZPhoneNumber } from "../../hooks/useCart";
@@ -58,19 +56,18 @@ const SIDES = [
   { id: "rice", label: "Extra Biryani Rice", price: 3000 },
 ];
 
-// Helper to compute next Friday 12:00 PM
+// Helper to compute next Friday's date (used for order metadata, separate from the live countdown display)
 function getNextFridayTarget(): Date {
   const now = new Date();
-  const dayOfWeek = now.getDay(); // 0 = Sun, 5 = Fri
+  const dayOfWeek = now.getDay();
   const target = new Date(now);
 
   if (dayOfWeek === 5 && now.getHours() < 22) {
-    // Today is Friday and before 10 PM
     return now;
   }
 
   let daysUntilFriday = (5 - dayOfWeek + 7) % 7;
-  if (daysUntilFriday === 0) daysUntilFriday = 7; // Next Friday
+  if (daysUntilFriday === 0) daysUntilFriday = 7;
 
   target.setDate(now.getDate() + daysUntilFriday);
   target.setHours(12, 0, 0, 0);
@@ -90,8 +87,8 @@ export default function BiryaniPage() {
   const [vendorsMap, setVendorsMap] = useState<Record<string, Vendor>>({});
   const [loadingItems, setLoadingItems] = useState(true);
 
-  // Countdown state
-  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, isTodayFriday: false });
+  // Countdown state — shared with Home and Search drop teasers
+  const countdown = useDropCountdown();
 
   // Custom Biryani Builder State
   const [selectedPortion, setSelectedPortion] = useState(PORTIONS[0]);
@@ -116,38 +113,6 @@ export default function BiryaniPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedLipa, setCopiedLipa] = useState(false);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
-
-  // 1. Calculate Countdown to Friday
-  useEffect(() => {
-    const updateCountdown = () => {
-      const now = new Date();
-      const isFriday = now.getDay() === 5;
-
-      if (isFriday) {
-        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0, isTodayFriday: true });
-        return;
-      }
-
-      const target = getNextFridayTarget();
-      const diffMs = target.getTime() - now.getTime();
-
-      if (diffMs <= 0) {
-        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0, isTodayFriday: true });
-        return;
-      }
-
-      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
-      const seconds = Math.floor((diffMs / 1000) % 60);
-
-      setCountdown({ days, hours, minutes, seconds, isTodayFriday: false });
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // 2. Fetch Biryani items from Firestore
   useEffect(() => {
@@ -284,7 +249,7 @@ export default function BiryaniPage() {
       const orderRef = doc(collection(db, "orders"));
       const generatedOrderId = orderRef.id;
 
-      const isFriday = countdown.isTodayFriday;
+      const isFriday = countdown.isLive;
       const targetDate = isFriday ? new Date().toISOString().split("T")[0] : getNextFridayTarget().toISOString().split("T")[0];
 
       const orderData = {
@@ -379,13 +344,13 @@ export default function BiryaniPage() {
 
       // 3. Send Admin SMS via Meseji
       const adminSMS = `New Friday Biryani ${!isFriday ? "Pre-Order" : "Order"}!\nOrder ID: ${generatedOrderId}\nVendor: ${checkoutItem.vendor_name}\nItem: ${checkoutItem.name}\nTotal: TZS ${totalAmount.toLocaleString()}\nCustomer: +${formattedPhone}\nLocation: ${userLocation.address || "Arusha"}`;
-      sendMesejiSMS("255778903468", adminSMS);
+      sendMesejiSMS("255778903468", adminSMS, generatedOrderId);
 
       // 4. Send Customer SMS via Meseji
       const customerSMS = isFriday
         ? `Habari! Oda yako ya Friday Biryani imepokelewa kwa ufanisi.\nOda ID: ${generatedOrderId}\nJumla: TZS ${totalAmount.toLocaleString()}\nTunaiandaa sasa hivi. Ahsante!`
         : `Habari! Pre-order yako ya Friday Biryani imepokelewa kwa ufanisi.\nOda ID: ${generatedOrderId}\nJumla: TZS ${totalAmount.toLocaleString()}\nSiku ya Delivery: Ijumaa (${targetDate}). Ahsante!`;
-      sendMesejiSMS(formattedPhone, customerSMS);
+      sendMesejiSMS(formattedPhone, customerSMS, generatedOrderId);
 
       // 5. Send Vendor SMS via Meseji if subscribed
       try {
@@ -399,7 +364,7 @@ export default function BiryaniPage() {
             const vendorPhone = vData?.phone || vData?.listing_data?.phone || vData?.auth_info?.phone_number;
             if (vendorPhone) {
               const vendorSMS = `New Biryani Order Received!\nOrder ID: ${generatedOrderId}\nItem: ${checkoutItem.name}\nCustomer: +${formattedPhone}`;
-              sendMesejiSMS(vendorPhone, vendorSMS);
+              sendMesejiSMS(vendorPhone, vendorSMS, generatedOrderId);
             }
           }
         }
@@ -440,178 +405,142 @@ export default function BiryaniPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white pb-32">
-      {/* Sticky Top Bar */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0b]/95 backdrop-blur-xl border-b border-white/[0.08] px-4 py-3.5">
-        <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 hover:bg-white/10"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-
-          <div className="text-center min-w-0">
-            <h1 className="text-sm font-black text-white tracking-tight flex items-center justify-center gap-1.5">
-              <span>Friday Biryani Special</span>
-              <span className="text-base">🍛</span>
-            </h1>
-            <p className="text-[10px] text-zinc-400 truncate">Authentic Coastal & Swahili Spice</p>
+    <div className="min-h-screen bg-ground text-content pb-32">
+      {/* Drop photo header */}
+      <div className="relative h-[200px] bg-[repeating-linear-gradient(135deg,#1B160A_0_7px,#141009_7px_14px)] flex flex-col justify-between p-5">
+        <button
+          onClick={() => navigate(-1)}
+          className="w-[34px] h-[34px] rounded-xl bg-black/70 border border-edge-3 flex items-center justify-center text-white flex-none"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <div>
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-amber-ink">
+            Weekly drop
           </div>
-
-          <div className="w-9" />
+          <h1 className="text-[28px] font-bold tracking-[-0.025em] mt-[7px]">Friday Biryani</h1>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 pt-4 space-y-5">
-        {/* Friday Countdown Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/20 via-zinc-900 to-black border border-amber-500/30 p-4 shadow-xl">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
-              <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span className="text-[10px] font-extrabold text-amber-300 uppercase tracking-wider">
-                {countdown.isTodayFriday ? "Friday Special is LIVE!" : "Friday Special Countdown"}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-medium">
-              <MapPin className="w-3 h-3 text-[#00bfff]" />
-              <span className="truncate max-w-[120px]">{userLocation.address}</span>
-            </div>
+      <div className="max-w-md mx-auto px-5 pt-5 space-y-5">
+        {/* Countdown panel */}
+        <div className="rounded-[20px] border border-sosika-amber/28 bg-sosika-amber/[0.055] p-[18px]">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-ink">
+              {countdown.isLive ? "Orders open now" : "Orders close in"}
+            </span>
+            <span className="text-[11px] font-semibold text-content-tertiary truncate max-w-[140px]">
+              {userLocation.address}
+            </span>
           </div>
 
-          {countdown.isTodayFriday ? (
-            <div className="py-2">
-              <h2 className="text-base font-black text-white">
-                Fresh Hot Biryani Available Today! 🔥
+          {countdown.isLive ? (
+            <div className="mt-3">
+              <h2 className="text-[15px] font-bold text-content">
+                Fresh hot biryani is available today
               </h2>
-              <p className="text-xs text-amber-300/80 mt-0.5">
+              <p className="text-[13px] text-content-secondary leading-[1.55] mt-2">
                 Order now for instant lunch or dinner delivery.
               </p>
             </div>
           ) : (
-            <div className="py-1">
-              <p className="text-xs text-zinc-300 font-medium mb-3">
-                Biryani is a Friday tradition on Sosika! Pre-order now to guarantee your spot for this Friday.
-              </p>
-
-              {/* Countdown Numbers Grid */}
-              <div className="grid grid-cols-4 gap-2 text-center">
-                <div className="bg-black/50 border border-white/10 rounded-xl p-2">
-                  <span className="text-lg font-black text-amber-400 leading-none block">
-                    {countdown.days}
-                  </span>
-                  <span className="text-[9px] text-zinc-400 uppercase font-bold">Days</span>
+            <>
+              <div className="flex gap-2 mt-[14px]">
+                <div className="flex-1 bg-black/60 rounded-[13px] py-3 text-center">
+                  <div className="font-mono text-[22px] font-bold text-amber-ink leading-none">{countdown.days}</div>
+                  <div className="font-mono text-[9px] text-content-muted uppercase tracking-[0.14em] mt-1">Days</div>
                 </div>
-                <div className="bg-black/50 border border-white/10 rounded-xl p-2">
-                  <span className="text-lg font-black text-amber-400 leading-none block">
-                    {countdown.hours}
-                  </span>
-                  <span className="text-[9px] text-zinc-400 uppercase font-bold">Hours</span>
+                <div className="flex-1 bg-black/60 rounded-[13px] py-3 text-center">
+                  <div className="font-mono text-[22px] font-bold text-amber-ink leading-none">{countdown.hours}</div>
+                  <div className="font-mono text-[9px] text-content-muted uppercase tracking-[0.14em] mt-1">Hrs</div>
                 </div>
-                <div className="bg-black/50 border border-white/10 rounded-xl p-2">
-                  <span className="text-lg font-black text-amber-400 leading-none block">
-                    {countdown.minutes}
-                  </span>
-                  <span className="text-[9px] text-zinc-400 uppercase font-bold">Mins</span>
-                </div>
-                <div className="bg-black/50 border border-white/10 rounded-xl p-2">
-                  <span className="text-lg font-black text-amber-400 leading-none block">
-                    {countdown.seconds}
-                  </span>
-                  <span className="text-[9px] text-zinc-400 uppercase font-bold">Secs</span>
+                <div className="flex-1 bg-black/60 rounded-[13px] py-3 text-center">
+                  <div className="font-mono text-[22px] font-bold text-amber-ink leading-none">{countdown.minutes}</div>
+                  <div className="font-mono text-[9px] text-content-muted uppercase tracking-[0.14em] mt-1">Min</div>
                 </div>
               </div>
-            </div>
+              <p className="text-[13px] text-content-secondary leading-[1.55] mt-[14px]">
+                Biryani is a Friday tradition. Pre-order now to guarantee your portion — you pay at delivery, same as any order.
+              </p>
+            </>
           )}
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-zinc-900/80 p-1 rounded-2xl border border-white/10">
+        <div className="flex gap-2">
           <button
             onClick={() => setActiveTab("catalog")}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 text-center text-[13px] py-3 rounded-[13px] transition-colors ${
               activeTab === "catalog"
-                ? "bg-[#00bfff] text-black shadow-md shadow-[#00bfff]/20"
-                : "text-zinc-400 hover:text-white"
+                ? "font-bold text-on-accent bg-sosika-cyan"
+                : "font-semibold text-content-tertiary bg-surface-2 border border-edge-2"
             }`}
           >
-            <Utensils className="w-3.5 h-3.5" />
-            <span>Available Biryani</span>
+            Available now
           </button>
           <button
             onClick={() => setActiveTab("custom")}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 text-center text-[13px] py-3 rounded-[13px] transition-colors ${
               activeTab === "custom"
-                ? "bg-[#00bfff] text-black shadow-md shadow-[#00bfff]/20"
-                : "text-zinc-400 hover:text-white"
+                ? "font-bold text-on-accent bg-sosika-cyan"
+                : "font-semibold text-content-tertiary bg-surface-2 border border-edge-2"
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Custom Biryani Order</span>
+            Custom order
           </button>
         </div>
 
         {/* CATALOG TAB */}
         {activeTab === "catalog" && (
-          <div className="space-y-3">
+          <div>
             {loadingItems ? (
-              <div className="py-12 text-center text-zinc-500 text-xs flex justify-center items-center gap-2">
+              <div className="py-12 text-center text-content-muted text-xs flex justify-center items-center gap-2">
                 <Clock className="w-4 h-4 animate-spin" /> Loading Biryani spots...
               </div>
             ) : menuItems.length === 0 ? (
-              <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6 text-center space-y-3">
-                <p className="text-xs text-zinc-400">
+              <div className="bg-surface-1 border border-edge-2 rounded-2xl p-6 text-center space-y-3">
+                <p className="text-xs text-content-tertiary">
                   No standard vendor biryani items listed yet, but you can build a custom Biryani order right now!
                 </p>
                 <button
                   onClick={() => setActiveTab("custom")}
-                  className="px-4 py-2 rounded-xl bg-[#00bfff] text-black font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-sosika-cyan text-black font-bold text-xs"
                 >
                   Create Custom Biryani Order 🍛
                 </button>
               </div>
             ) : (
-              menuItems.map((item) => {
+              menuItems.map((item, idx) => {
                 const vendorName = vendorsMap[item.vendor_id]?.name || "Sosika Biryani Spot";
+                const isFirst = idx === 0;
                 return (
                   <div
                     key={item.id}
-                    className="bg-zinc-900/60 border border-white/10 rounded-2xl p-3.5 flex items-center justify-between gap-3 hover:border-white/20 transition-all"
+                    className="flex gap-3.5 items-center py-3.5 border-b border-edge-1 last:border-b-0"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-14 h-14 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl flex-shrink-0">
-                          🍛
-                        </div>
+                    <div className="flex-none w-14 h-14 rounded-[15px] overflow-hidden bg-[repeating-linear-gradient(135deg,#17171A_0_7px,#131316_7px_14px)]">
+                      {item.image_url && (
+                        <img src={item.image_url} alt="" className="w-full h-full object-cover" />
                       )}
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-bold text-amber-400 truncate uppercase">
-                          {vendorName}
-                        </p>
-                        <h3 className="text-xs font-bold text-white truncate">{item.name}</h3>
-                        {item.description && (
-                          <p className="text-[10px] text-zinc-400 line-clamp-1 mt-0.5">
-                            {item.description}
-                          </p>
-                        )}
-                        <p className="text-[#00bfff] font-extrabold text-xs mt-1">
-                          {Number(item.price).toLocaleString()} TZS
-                        </p>
-                      </div>
                     </div>
-
+                    <div className="flex-1 min-w-0">
+                      <p className="font-mono text-[10px] tracking-[0.1em] text-content-muted truncate uppercase">
+                        {vendorName}
+                      </p>
+                      <h3 className="text-[15px] font-semibold text-content truncate mt-1">{item.name}</h3>
+                      <p className="font-mono text-[13px] font-bold text-content mt-[5px]">
+                        {Number(item.price).toLocaleString()}
+                      </p>
+                    </div>
                     <button
                       onClick={() => handleOpenCatalogCheckout(item)}
-                      className="px-3.5 py-2 rounded-xl bg-[#00bfff] text-black font-bold text-xs hover:bg-[#33ccff] flex-shrink-0 transition-all shadow-md shadow-[#00bfff]/20"
+                      className={`flex-none text-xs px-3.5 py-2.5 rounded-[11px] transition-colors ${
+                        isFirst
+                          ? "font-bold text-on-accent bg-sosika-cyan"
+                          : "font-semibold text-content-secondary border border-edge-3"
+                      }`}
                     >
-                      {countdown.isTodayFriday ? "Order Now" : "Pre-Order"}
+                      {countdown.isLive ? "Order now" : "Pre-order"}
                     </button>
                   </div>
                 );
@@ -622,15 +551,15 @@ export default function BiryaniPage() {
 
         {/* CUSTOM ORDER BUILDER TAB */}
         {activeTab === "custom" && (
-          <div className="bg-zinc-900/60 border border-white/10 rounded-2xl p-4 space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-amber-400" />
+          <div className="bg-surface-1 border border-edge-2 rounded-2xl p-4 space-y-4">
+            <h3 className="text-xs font-bold text-content uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-amber-ink" />
               Build Your Custom Biryani
             </h3>
 
             {/* 1. Portion Selection */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-400 mb-2">
+              <label className="block text-[11px] font-semibold text-content-tertiary mb-2">
                 1. Select Portion Size
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -640,13 +569,13 @@ export default function BiryaniPage() {
                     onClick={() => setSelectedPortion(p)}
                     className={`p-2.5 rounded-xl border text-left transition-all ${
                       selectedPortion.id === p.id
-                        ? "bg-[#00bfff]/10 border-[#00bfff] text-white"
-                        : "bg-black/30 border-white/5 text-zinc-400 hover:border-white/20"
+                        ? "bg-sosika-cyan/10 border-sosika-cyan text-white"
+                        : "bg-black/30 border-edge-2 text-content-tertiary hover:border-edge-3"
                     }`}
                   >
                     <p className="text-xs font-bold">{p.label}</p>
-                    <p className="text-[9px] text-zinc-400">{p.sublabel}</p>
-                    <p className="text-[10px] font-extrabold text-[#00bfff] mt-1">
+                    <p className="text-[9px] text-content-tertiary">{p.sublabel}</p>
+                    <p className="text-[10px] font-extrabold text-accent-ink mt-1">
                       {p.price.toLocaleString()} TZS
                     </p>
                   </button>
@@ -656,7 +585,7 @@ export default function BiryaniPage() {
 
             {/* 2. Protein Choice */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-400 mb-2">
+              <label className="block text-[11px] font-semibold text-content-tertiary mb-2">
                 2. Select Meat / Protein
               </label>
               <div className="space-y-1.5">
@@ -666,8 +595,8 @@ export default function BiryaniPage() {
                     onClick={() => setSelectedProtein(prot)}
                     className={`w-full p-2.5 rounded-xl border flex items-center justify-between text-xs font-semibold transition-all ${
                       selectedProtein.id === prot.id
-                        ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
-                        : "bg-black/30 border-white/5 text-zinc-400 hover:border-white/20"
+                        ? "bg-sosika-amber/10 border-sosika-amber/40 text-amber-300"
+                        : "bg-black/30 border-edge-2 text-content-tertiary hover:border-edge-3"
                     }`}
                   >
                     <span>{prot.label}</span>
@@ -683,7 +612,7 @@ export default function BiryaniPage() {
 
             {/* 3. Extra Sides */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-400 mb-2">
+              <label className="block text-[11px] font-semibold text-content-tertiary mb-2">
                 3. Add Extra Sides (Optional)
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -699,12 +628,12 @@ export default function BiryaniPage() {
                       }}
                       className={`p-2.5 rounded-xl border flex items-center justify-between text-xs font-semibold transition-all ${
                         isSelected
-                          ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-300"
-                          : "bg-black/30 border-white/5 text-zinc-400 hover:border-white/20"
+                          ? "bg-sosika-emerald/10 border-sosika-emerald/40 text-emerald-300"
+                          : "bg-black/30 border-edge-2 text-content-tertiary hover:border-edge-3"
                       }`}
                     >
                       <span>{side.label}</span>
-                      <span className="text-[10px] font-bold text-zinc-400">
+                      <span className="text-[10px] font-bold text-content-tertiary">
                         +{side.price.toLocaleString()}
                       </span>
                     </button>
@@ -715,7 +644,7 @@ export default function BiryaniPage() {
 
             {/* 4. Special Instructions */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-400 mb-1">
+              <label className="block text-[11px] font-semibold text-content-tertiary mb-1">
                 4. Special Preparation Notes (Optional)
               </label>
               <textarea
@@ -723,21 +652,21 @@ export default function BiryaniPage() {
                 value={customInstructions}
                 onChange={(e) => setCustomInstructions(e.target.value)}
                 rows={2}
-                className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-[#00bfff]"
+                className="w-full bg-black/40 border border-edge-2 rounded-xl p-2.5 text-xs text-white placeholder-content-muted outline-none focus:border-sosika-cyan"
               />
             </div>
 
             {/* Price Summary & Order Button */}
-            <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+            <div className="pt-3 border-t border-edge-2 flex items-center justify-between">
               <div>
-                <p className="text-[10px] text-zinc-400">Total Custom Biryani Price</p>
-                <p className="text-base font-black text-[#00bfff]">{customTotal.toLocaleString()} TZS</p>
+                <p className="text-[10px] text-content-tertiary">Total Custom Biryani Price</p>
+                <p className="text-base font-bold text-accent-ink">{customTotal.toLocaleString()} TZS</p>
               </div>
               <button
                 onClick={handleOpenCustomCheckout}
-                className="px-5 py-2.5 rounded-xl bg-[#00bfff] text-black font-extrabold text-xs hover:bg-[#33ccff] transition-all shadow-md shadow-[#00bfff]/20"
+                className="px-5 py-2.5 rounded-xl bg-sosika-cyan text-black font-extrabold text-xs hover:bg-sosika-cyan transition-all shadow-md shadow-sosika-cyan/20"
               >
-                {countdown.isTodayFriday ? "Order Custom Biryani 🍛" : "Pre-Order Custom Biryani 🍛"}
+                {countdown.isLive ? "Order Custom Biryani 🍛" : "Pre-Order Custom Biryani 🍛"}
               </button>
             </div>
           </div>
@@ -746,53 +675,53 @@ export default function BiryaniPage() {
 
       {/* CHECKOUT DRAWER */}
       {isCheckoutOpen && checkoutItem && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-scrim backdrop-blur-md">
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="w-full max-w-lg bg-[#0d0d12] border-t border-white/10 rounded-t-[32px] p-5 pb-8 sm:pb-6 space-y-4 max-h-[88vh] overflow-y-auto select-none"
+            className="w-full max-w-md bg-ground border-t border-edge-2 rounded-t-[28px] p-5 pb-8 sm:pb-6 space-y-4 max-h-[88vh] overflow-y-auto select-none"
           >
             {/* Top Drag Handle */}
-            <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-1 cursor-grab" />
+            <div className="w-10 h-1 bg-edge-3 rounded-full mx-auto mb-1 cursor-grab" />
 
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between border-b border-edge-2 pb-3">
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] font-bold text-amber-400 uppercase tracking-widest">
-                    {countdown.isTodayFriday ? "Friday Order Checkout" : "Friday Pre-Order Checkout"}
+                  <span className="text-[9px] font-bold text-amber-ink uppercase tracking-widest">
+                    {countdown.isLive ? "Friday Order Checkout" : "Friday Pre-Order Checkout"}
                   </span>
-                  <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                  <span className="text-[9px] font-extrabold text-emerald-ink bg-sosika-emerald/10 px-1.5 py-0.5 rounded border border-sosika-emerald/20">
                     🔒 Secure 256-Bit
                   </span>
                 </div>
-                <h3 className="text-sm font-bold text-white truncate">{checkoutItem.name}</h3>
+                <h3 className="text-sm font-bold text-content truncate">{checkoutItem.name}</h3>
               </div>
               <button
                 onClick={() => setIsCheckoutOpen(false)}
-                className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white"
+                className="w-7 h-7 rounded-full bg-surface-2 border border-edge-2 flex items-center justify-center text-content-tertiary hover:text-content"
               >
                 ✕
               </button>
             </div>
 
             {/* Item & Price Summary */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-1.5 text-xs">
+            <div className="bg-surface-2 border border-edge-2 rounded-xl p-3 space-y-1.5 text-xs">
               <div className="flex justify-between">
-                <span className="text-zinc-400">Item Subtotal</span>
-                <span className="font-bold text-white">{checkoutItem.price.toLocaleString()} TZS</span>
+                <span className="text-content-tertiary">Item Subtotal</span>
+                <span className="font-bold text-content">{checkoutItem.price.toLocaleString()} TZS</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-400">Delivery Fee (Estimated)</span>
-                <span className="font-bold text-white">{calculatedDeliveryFee.toLocaleString()} TZS</span>
+                <span className="text-content-tertiary">Delivery Fee (Estimated)</span>
+                <span className="font-bold text-content">{calculatedDeliveryFee.toLocaleString()} TZS</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-400">Service Fee</span>
-                <span className="font-bold text-white">{(platformConfig.serviceFee || 1000).toLocaleString()} TZS</span>
+                <span className="text-content-tertiary">Service Fee</span>
+                <span className="font-bold text-content">{(platformConfig.serviceFee || 1000).toLocaleString()} TZS</span>
               </div>
-              <div className="pt-2 border-t border-white/10 flex justify-between font-black text-sm text-[#00bfff]">
+              <div className="pt-2 border-t border-edge-2 flex justify-between font-bold text-sm text-accent-ink">
                 <span>Total Amount</span>
                 <span>
                   {(checkoutItem.price + calculatedDeliveryFee + (platformConfig.serviceFee || 1000)).toLocaleString()} TZS
@@ -802,24 +731,24 @@ export default function BiryaniPage() {
 
             {/* Phone Number Entry */}
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-content-secondary mb-1">
                 Your Contact Phone Number *
               </label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
                 <input
                   type="tel"
                   placeholder="e.g. 0712345678 or 255712345678"
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-[#00bfff]"
+                  className="w-full bg-black/40 border border-edge-2 rounded-xl py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-sosika-cyan"
                 />
               </div>
             </div>
 
             {/* Payment Method Selector */}
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-2">
+              <label className="block text-xs font-semibold text-content-secondary mb-2">
                 Select Payment Method
               </label>
               <div className="space-y-2">
@@ -828,67 +757,57 @@ export default function BiryaniPage() {
                   onClick={() => setPaymentMethod("lipa_namba")}
                   className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
                     paymentMethod === "lipa_namba"
-                      ? "bg-[#00bfff]/10 border-[#00bfff] text-white"
-                      : "bg-white/5 border-white/5 text-zinc-400 hover:border-white/15"
+                      ? "bg-sosika-cyan/10 border-sosika-cyan text-white"
+                      : "bg-surface-2 border-edge-2 text-content-tertiary hover:border-white/15"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Coins className="w-4 h-4 text-[#00bfff]" />
+                    <Coins className="w-4 h-4 text-accent-ink" />
                     <div>
                       <p className="text-xs font-bold">Lipa Namba (Advance Payment)</p>
-                      <p className="text-[10px] text-zinc-400">Pay via Vodacom / Tigo / Airtel Lipa Namba</p>
+                      <p className="text-[10px] text-content-tertiary">Pay via Vodacom / Tigo / Airtel Lipa Namba</p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-extrabold text-[#00bfff] bg-[#00bfff]/10 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-extrabold text-accent-ink bg-sosika-cyan/10 px-2 py-0.5 rounded">
                     Recommended
                   </span>
                 </button>
 
-                {/* 2. Sosika Wallet */}
-                <button
-                  onClick={() => setPaymentMethod("wallet")}
-                  className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
-                    paymentMethod === "wallet"
-                      ? "bg-amber-500/10 border-amber-500/40 text-white"
-                      : "bg-white/5 border-white/5 text-zinc-400 hover:border-white/15"
-                  }`}
+                {/* 2. Sosika Wallet — temporarily disabled. This path used to
+                    mark the order paymentStatus: "paid_via_wallet" without
+                    ever actually debiting the wallet (no deductWalletBalance
+                    call existed on this page), and wallet writes are now
+                    server-only regardless. Comes back once this checkout
+                    moves behind the `placeOrder` callable (Phase 1). */}
+                <div
+                  className="w-full p-3 rounded-xl border border-edge-2 bg-surface-1 text-left flex items-center justify-between opacity-50"
+                  title="Paying with Sosika Cash at checkout is temporarily unavailable"
                 >
                   <div className="flex items-center gap-2.5">
-                    <Wallet className="w-4 h-4 text-amber-400" />
+                    <Wallet className="w-4 h-4 text-content-muted" />
                     <div>
-                      <p className="text-xs font-bold">Sosika Cash Wallet</p>
-                      <p className="text-[10px] text-zinc-400">
-                        Available Balance: TZS {balance.toLocaleString()}
+                      <p className="text-xs font-bold text-content-tertiary">Sosika Cash Wallet</p>
+                      <p className="text-[10px] text-amber-ink/80 font-bold">
+                        Unavailable for checkout
                       </p>
                     </div>
                   </div>
-                  {balance < checkoutItem.price + calculatedDeliveryFee + (platformConfig.serviceFee || 1000) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsTopUpOpen(true);
-                      }}
-                      className="text-[9px] font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2 py-0.5 rounded"
-                    >
-                      Top Up
-                    </button>
-                  )}
-                </button>
+                </div>
 
                 {/* 3. Cash on Delivery */}
                 <button
                   onClick={() => setPaymentMethod("cod")}
                   className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
                     paymentMethod === "cod"
-                      ? "bg-emerald-500/10 border-emerald-500/40 text-white"
-                      : "bg-white/5 border-white/5 text-zinc-400 hover:border-white/15"
+                      ? "bg-sosika-emerald/10 border-sosika-emerald/40 text-white"
+                      : "bg-surface-2 border-edge-2 text-content-tertiary hover:border-white/15"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <ShieldCheck className="w-4 h-4 text-emerald-ink" />
                     <div>
                       <p className="text-xs font-bold">Cash / Pay on Delivery</p>
-                      <p className="text-[10px] text-zinc-400">Pay when your Biryani is delivered</p>
+                      <p className="text-[10px] text-content-tertiary">Pay when your Biryani is delivered</p>
                     </div>
                   </div>
                 </button>
@@ -897,17 +816,17 @@ export default function BiryaniPage() {
 
             {/* Lipa Namba Details Display when selected */}
             {paymentMethod === "lipa_namba" && (
-              <div className="bg-black/60 border border-[#00bfff]/30 rounded-xl p-3.5 space-y-2.5">
+              <div className="bg-black/60 border border-sosika-cyan/30 rounded-xl p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase">Sosika Lipa Namba</span>
-                  <span className="text-xs font-extrabold text-[#00bfff] font-mono">{LIPA_NUMBER}</span>
+                  <span className="text-[10px] font-bold text-content-tertiary uppercase">Sosika Lipa Namba</span>
+                  <span className="text-xs font-extrabold text-accent-ink font-mono">{LIPA_NUMBER}</span>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={copyLipaNumber}
-                    className="flex-1 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold flex items-center justify-center gap-1 text-white"
+                    className="flex-1 py-1.5 rounded-lg bg-surface-3 hover:bg-surface-3 text-xs font-bold flex items-center justify-center gap-1 text-content"
                   >
-                    {copiedLipa ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedLipa ? <Check className="w-3.5 h-3.5 text-emerald-ink" /> : <Copy className="w-3.5 h-3.5" />}
                     {copiedLipa ? "Copied!" : "Copy Lipa Namba"}
                   </button>
                   <a
@@ -920,7 +839,7 @@ export default function BiryaniPage() {
                     )}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1 hover:bg-emerald-500/30"
+                    className="flex-1 py-1.5 rounded-lg bg-sosika-emerald/20 border border-sosika-emerald/30 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1 hover:bg-sosika-emerald/30"
                   >
                     <MessageSquare className="w-3.5 h-3.5" /> WhatsApp Receipt
                   </a>
@@ -932,11 +851,11 @@ export default function BiryaniPage() {
             <button
               onClick={handlePlaceOrder}
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-xl bg-[#00bfff] text-black font-extrabold text-xs uppercase tracking-wider hover:bg-[#33ccff] transition-all disabled:opacity-50 shadow-lg shadow-[#00bfff]/30"
+              className="w-full py-3.5 rounded-xl bg-sosika-cyan text-black font-extrabold text-xs uppercase tracking-wider hover:bg-sosika-cyan transition-all disabled:opacity-50 shadow-lg shadow-sosika-cyan/30"
             >
               {isSubmitting
                 ? "Securing Your Order..."
-                : countdown.isTodayFriday
+                : countdown.isLive
                 ? "Confirm Friday Order 🍛"
                 : "Confirm Friday Pre-Order 🍛"}
             </button>
