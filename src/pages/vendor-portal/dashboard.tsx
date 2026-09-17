@@ -17,6 +17,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { usePlayBilling } from "./usePlayBilling";
 import { uploadToCloudinary } from "../../services/cloudinary";
 import { triggerReembed } from "../../services/reembedMenuItem";
+import { notifyOrderStatus } from "../../services/workerApi";
 import { GoogleMap, Autocomplete } from "@react-google-maps/api";
 import { useMapLoader } from "../../services/map-provider";
 
@@ -1348,6 +1349,9 @@ function LiveOrdersView({
 
       await updateDoc(orderRef, updates);
       toast({ title: "Order Pipeline Synced", description: `Order status set to ${status}.` });
+      notifyOrderStatus(orderId).catch((err) => {
+        console.warn(`Failed to push order-status notification for ${orderId}:`, err);
+      });
     } catch (err) {
       toast({ title: "Execution framework faulted", variant: "destructive" });
     }

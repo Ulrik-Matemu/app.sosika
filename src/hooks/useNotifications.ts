@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { initializeNotifications } from "../services/push-notifications";
+import { initializeNotifications, getActiveCustomerPhone } from "../services/push-notifications";
 
 /**
  * Refreshes this device's FCM registration on load — but never prompts. The
@@ -14,9 +14,10 @@ export const useNotifications = () => {
 
     // Check if user has an identity token or userId stored
     const userId = localStorage.getItem("userId") || localStorage.getItem("vendor_id") || "guest_user";
+    const phone = getActiveCustomerPhone();
 
     initialized.current = true;
-    initializeNotifications(userId, false).catch((err) => {
+    initializeNotifications(userId, false, phone).catch((err) => {
       console.warn("Notification initialization deferred:", err);
     });
   }, []);

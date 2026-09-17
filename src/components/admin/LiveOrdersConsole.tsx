@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { db } from "../../firebase";
 import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { notifyOrderStatus } from "../../services/workerApi";
 import {
   Package,
   Clock,
@@ -70,6 +71,9 @@ export default function LiveOrdersConsole() {
       await updateDoc(doc(db, "orders", orderId), {
         status: newStatus,
         adminOverrideAt: new Date(),
+      });
+      notifyOrderStatus(orderId).catch((err) => {
+        console.warn(`Failed to push order-status notification for ${orderId}:`, err);
       });
     } catch (err) {
       console.error("Admin status override failed:", err);

@@ -12,7 +12,7 @@ import { normalizePhone } from "../lib/phone";
 import { invalidArgument, notFound, permissionDenied } from "../lib/errors";
 
 const MESEJI_API_URL = "https://meseji.co.tz/api/v1/sms/send";
-const MESEJI_SENDER_ID = "SOSIKA";
+const MESEJI_SENDER_ID = "SOSIKA-D";
 const MAX_MESSAGE_LENGTH = 640;
 const ADMIN_OPS_PHONE = normalizePhone("255778903468");
 

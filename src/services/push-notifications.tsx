@@ -1,4 +1,4 @@
-import { messaging, getToken, db } from "../firebase";
+import { messaging, getToken, db, customerAuth } from "../firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
@@ -21,7 +21,8 @@ export const notificationPermission = (): NotificationPermission | "unsupported"
  */
 export const initializeNotifications = async (
   userId: string,
-  promptIfNeeded = false
+  promptIfNeeded = false,
+  phone?: string | null
 ): Promise<string | null> => {
   try {
     if (!notificationsSupported()) {
@@ -45,13 +46,27 @@ export const initializeNotifications = async (
     });
 
     if (token) {
-      await saveTokenToFirestore(userId, token);
+      await saveTokenToFirestore(userId, token, phone);
       localStorage.setItem("fcmToken", token);
     }
 
     return token;
   } catch (error) {
     console.error("Error initializing notifications:", error);
+    return null;
+  }
+};
+
+/**
+ * The phone identifier used everywhere else customer-facing state is keyed
+ * (orders, wallet, free-delivery pass) — resolved the same way OrdersContext
+ * does, so a device's fcm_tokens doc can be looked up by the same phone the
+ * rest of the app already uses to find "this customer's" data.
+ */
+export const getActiveCustomerPhone = (): string | null => {
+  try {
+    return localStorage.getItem("guestPhone") || customerAuth.currentUser?.phoneNumber || null;
+  } catch {
     return null;
   }
 };
@@ -68,13 +83,14 @@ export const initializeNotifications = async (
  * A token is already unique per device+browser, which is exactly the grain
  * push targeting needs.
  */
-export const saveTokenToFirestore = async (userId: string, token: string) => {
+export const saveTokenToFirestore = async (userId: string, token: string, phone?: string | null) => {
   try {
     await setDoc(
       doc(db, "fcm_tokens", token),
       {
         token,
         userId,
+        ...(phone ? { phone } : {}),
         updatedAt: serverTimestamp(),
         platform: "web",
         userAgent: navigator.userAgent,

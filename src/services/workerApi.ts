@@ -44,7 +44,7 @@ export function sendNotification(data: {
   body: string;
   icon?: string;
   url?: string;
-  targetType: "all" | "user" | "topic";
+  targetType: "all" | "user" | "topic" | "phone";
   targetValue?: string;
 }) {
   return callWorker<{ success: boolean; successCount: number; failureCount: number; message: string }>(
@@ -93,6 +93,14 @@ export function triggerReembed(itemId: string) {
   return callWorker<{ success: boolean; embedded: boolean; reason?: string }>(
     "/reembedMenuItem",
     { itemId },
+    { auth: true }
+  );
+}
+
+export function notifyOrderStatus(orderId: string) {
+  return callWorker<{ success: boolean; notified: boolean; reason?: string; devicesReached?: number; devicesFailed?: number }>(
+    "/notifyOrderStatus",
+    { orderId },
     { auth: true }
   );
 }
