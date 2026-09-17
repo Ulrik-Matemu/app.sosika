@@ -12,6 +12,7 @@ import { FirestoreClient } from "../lib/firestoreRest";
 import { normalizePhone } from "../lib/phone";
 import { requireAuth, requireAdmin } from "../lib/adminGuard";
 import { invalidArgument } from "../lib/errors";
+import { sendPushToPhone } from "../lib/fcm";
 
 const DEFAULT_PHOTO_REWARD_TZS = 1000;
 
@@ -26,7 +27,7 @@ interface CreditParams {
   idempotencyKey?: string;
 }
 
-async function creditWalletAtomic(db: FirestoreClient, params: CreditParams): Promise<number> {
+async function creditWalletAtomic(db: FirestoreClient, params: CreditParams): Promise<{ balance: number; credited: boolean }> {
   const walletPath = `wallets/${params.phone}`;
   const txPath = params.idempotencyKey ? `wallet_transactions/${params.idempotencyKey}` : `wallet_transactions/${crypto.randomUUID()}`;
 
@@ -35,7 +36,7 @@ async function creditWalletAtomic(db: FirestoreClient, params: CreditParams): Pr
       const existingTx = await tx.get(txPath);
       if (existingTx) {
         const existingWallet = await tx.get(walletPath);
-        return (existingWallet?.balance as number) || 0;
+        return { balance: (existingWallet?.balance as number) || 0, credited: false };
       }
     }
 
@@ -54,8 +55,22 @@ async function creditWalletAtomic(db: FirestoreClient, params: CreditParams): Pr
       timestamp: new Date(),
     });
 
-    return newBalance;
+    return { balance: newBalance, credited: true };
   });
+}
+
+async function notifyWalletCredit(env: Env, db: FirestoreClient, phone: string, amount: number, description: string): Promise<void> {
+  try {
+    await sendPushToPhone(env, db, phone, {
+      title: "Sosika Cash credited!",
+      body: `TZS ${amount.toLocaleString()} added — ${description}`,
+      url: "/wallet",
+    });
+  } catch (err) {
+    // Best-effort: the credit already landed, a push failure shouldn't
+    // surface as an error to the caller.
+    console.warn(`[wallet] Failed to send credit push to ${phone}:`, err);
+  }
 }
 
 export const walletRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -76,12 +91,15 @@ walletRoutes.post("/adminCreditWallet", requireAuth, requireAdmin, async (c) => 
   const creditType = (allowedTypes.includes(body.type || "") ? body.type : "manual_topup") as WalletTransactionType;
 
   const db = new FirestoreClient(c.env.FIREBASE_PROJECT_ID, firestoreServiceAccount(c.env));
-  const balance = await creditWalletAtomic(db, {
+  const description = body.description?.trim() || "Admin wallet adjustment";
+  const { balance } = await creditWalletAtomic(db, {
     phone,
     amount: body.amount,
-    description: body.description?.trim() || "Admin wallet adjustment",
+    description,
     type: creditType,
   });
+
+  await notifyWalletCredit(c.env, db, phone, body.amount, description);
 
   return c.json({ success: true, phone, balance });
 });
@@ -126,14 +144,19 @@ walletRoutes.post("/notifyPhotoApproved", requireAuth, requireAdmin, async (c) =
     console.warn("[notifyPhotoApproved] Failed to read reward config, using default:", err);
   }
 
-  const balance = await creditWalletAtomic(db, {
+  const description = `Reward for approved food photo (${submission.menuItemName || "Meal"})`;
+  const { balance, credited } = await creditWalletAtomic(db, {
     phone,
     amount: rewardAmount,
-    description: `Reward for approved food photo (${submission.menuItemName || "Meal"})`,
+    description,
     type: "photo_reward",
     referenceId: body.submissionId,
     idempotencyKey: `photo_reward_${body.submissionId}`,
   });
+
+  if (credited) {
+    await notifyWalletCredit(c.env, db, phone, rewardAmount, description);
+  }
 
   return c.json({ success: true, credited: true, balance });
 });

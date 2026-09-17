@@ -10,6 +10,7 @@ import { reviewRoutes } from "./routes/reviews";
 import { smsRoutes } from "./routes/sms";
 import { menuEmbeddingRoutes } from "./routes/menuEmbeddings";
 import { semanticSearchRoutes } from "./routes/semanticSearch";
+import { orderRoutes } from "./routes/orders";
 import { reconcilePhotoRewards } from "./scheduled/reconcilePhotoRewards";
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -34,6 +35,7 @@ app.route("/", reviewRoutes);
 app.route("/", smsRoutes);
 app.route("/", menuEmbeddingRoutes);
 app.route("/", semanticSearchRoutes);
+app.route("/", orderRoutes);
 
 export default {
   fetch: app.fetch,

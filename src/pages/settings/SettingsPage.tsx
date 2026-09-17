@@ -197,7 +197,7 @@ export default function SettingsPage() {
     }
     setLocalError(null);
     setBusy(true);
-    await initializeNotifications(user?.uid ?? userPhone ?? "guest_user", true);
+    await initializeNotifications(user?.uid ?? userPhone ?? "guest_user", true, userPhone);
     setPermission(notificationPermission());
     setBusy(false);
   };

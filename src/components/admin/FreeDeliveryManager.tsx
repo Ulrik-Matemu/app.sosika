@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { sendNotification as sendNotificationApi } from "../../services/workerApi";
 import {
   Gift,
   Search,
@@ -54,6 +55,16 @@ export default function FreeDeliveryManager() {
         { merge: true }
       );
       setGlobalEnabled(nextState);
+
+      // Only announce turning it ON — a "your free deliveries are gone" push
+      // is not news anyone wants, and there's no urgency to tell them.
+      if (nextState) {
+        sendNotificationApi({
+          title: "Free delivery is back!",
+          body: "Free delivery is active platform-wide again — order now to use it.",
+          targetType: "all",
+        }).catch((err) => console.warn("Failed to broadcast free-delivery activation:", err));
+      }
     } catch (err) {
       console.error("Error updating global free delivery setting:", err);
       alert("Failed to update global free delivery setting.");
@@ -149,6 +160,12 @@ export default function FreeDeliveryManager() {
         lastResetTimestamp: Date.now(),
       }));
       alert(`Free delivery pass for ${userPassData.phone} reset to 3 uses!`);
+      sendNotificationApi({
+        title: "Free deliveries restored!",
+        body: "You've got 3 free deliveries again. Order now to use them.",
+        targetType: "phone",
+        targetValue: userPassData.phone,
+      }).catch((err) => console.warn("Failed to push free-delivery reset notification:", err));
     } catch (err) {
       console.error("User pass reset error:", err);
       alert("Failed to reset user pass.");

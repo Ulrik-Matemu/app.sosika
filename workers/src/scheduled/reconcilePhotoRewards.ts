@@ -12,6 +12,7 @@ import type { Env } from "../lib/env";
 import { firestoreServiceAccount } from "../lib/env";
 import { FirestoreClient } from "../lib/firestoreRest";
 import { normalizePhone } from "../lib/phone";
+import { sendPushToPhone } from "../lib/fcm";
 
 const DEFAULT_PHOTO_REWARD_TZS = 1000;
 
@@ -42,6 +43,7 @@ export async function reconcilePhotoRewards(env: Env): Promise<{ checked: number
     const phone = normalizePhone(submission.data.phone || "");
     if (!phone) continue; // nothing to credit, matches original skip behavior
 
+    const description = `Reward for approved food photo (${submission.data.menuItemName || "Meal"}) [reconciled]`;
     try {
       await db.runTransaction(async (tx) => {
         const txSnap = await tx.get(txPath);
@@ -55,13 +57,22 @@ export async function reconcilePhotoRewards(env: Env): Promise<{ checked: number
           phone,
           amount: rewardAmount,
           type: "photo_reward",
-          description: `Reward for approved food photo (${submission.data.menuItemName || "Meal"}) [reconciled]`,
+          description,
           referenceId: submission.id,
           timestamp: new Date(),
         });
       });
       healed++;
       console.log(`[reconcilePhotoRewards] Healed missing credit for submission ${submission.id}`);
+      try {
+        await sendPushToPhone(env, db, phone, {
+          title: "Sosika Cash credited!",
+          body: `TZS ${rewardAmount.toLocaleString()} added — ${description}`,
+          url: "/wallet",
+        });
+      } catch (pushErr) {
+        console.warn(`[reconcilePhotoRewards] Failed to send credit push to ${phone}:`, pushErr);
+      }
     } catch (err) {
       errors.push(`submission ${submission.id}: ${err instanceof Error ? err.message : String(err)}`);
     }
